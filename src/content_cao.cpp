@@ -21,7 +21,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <ICameraSceneNode.h>
-#include <ITextSceneNode.h>
+#include <IBillboardTextSceneNode.h>
 #include <IBillboardSceneNode.h>
 #include <IMeshManipulator.h>
 #include <IAnimatedMeshSceneNode.h>
@@ -48,6 +48,8 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "camera.h" // CameraModes
 #include "wieldmesh.h"
 #include "log.h"
+
+#define NICK_SCALE 0.2
 
 class Settings;
 struct ToolCapabilities;
@@ -980,13 +982,20 @@ void GenericCAO::addToScene(scene::ISceneManager *smgr, ITextureSource *tsrc,
 
 	scene::ISceneNode *node = getSceneNode();
 	if (node && m_is_player && !m_is_local_player) {
-		// Add a text node for showing the name
-		gui::IGUIEnvironment* gui = irr->getGUIEnvironment();
+        // Add a text node for showing the name
+        gui::IGUIEnvironment* gui = irr->getGUIEnvironment();
 		std::wstring wname = utf8_to_wide(m_name);
-		m_textnode = smgr->addTextSceneNode(gui->getSkin()->getFont(),
-				wname.c_str(), m_nametag_color, node);
-		m_textnode->grab();
-		m_textnode->setPosition(v3f(0, BS*1.1, 0));
+        // NICKNAME
+
+        core::dimension2d< u32 > tmp = gui->getBuiltInFont()->getDimension(wname.c_str());
+        core::dimension2d< f32 > nickname_size = core::dimension2d< f32 >(NICK_SCALE*tmp.Width, NICK_SCALE*tmp.Height);
+        
+        m_textnode = smgr->addBillboardTextSceneNode(gui->getBuiltInFont(),
+                wname.c_str(), node, nickname_size);
+                
+        m_textnode->setMaterialFlag(video::EMF_BILINEAR_FILTER, false);
+        m_textnode->grab();
+        m_textnode->setPosition(v3f(0, BS*1.1, 0));
 	}
 
 	updateNodePos();
