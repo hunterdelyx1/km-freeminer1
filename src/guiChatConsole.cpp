@@ -58,6 +58,7 @@ GUIChatConsole::GUIChatConsole(
 	m_open(false),
 	m_close_on_return(false),
 	m_height(0),
+	m_width(0),
 	m_desired_height(0),
 	m_desired_height_fraction(0.0),
 	m_height_speed(5.0),
@@ -178,7 +179,7 @@ void GUIChatConsole::setCursor(
 void GUIChatConsole::draw()
 {
 	if(!IsVisible)
-		return;
+        return;
 
 	video::IVideoDriver* driver = Environment->getVideoDriver();
 
@@ -191,14 +192,17 @@ void GUIChatConsole::draw()
 		if (m_screensize.Y != 0)
 			m_height = m_height * screensize.Y / m_screensize.Y;
 		m_desired_height = m_desired_height_fraction * m_screensize.Y;
+        
+        m_width = 0.5 * screensize.X;
+        
 		m_screensize = screensize;
 		reformatConsole();
 	}
-
+    
 	// Animation
-	u32 now = getTimeMs();
-	animate(now - m_animate_time_old);
-	m_animate_time_old = now;
+    u32 now = getTimeMs();
+    animate(now - m_animate_time_old);
+    m_animate_time_old = now;
 
 	// Draw console elements if visible
 	if (m_height > 0)
@@ -213,7 +217,7 @@ void GUIChatConsole::draw()
 
 void GUIChatConsole::reformatConsole()
 {
-	s32 cols = m_screensize.X / m_fontsize.X - 2; // make room for a margin (looks better)
+	s32 cols = m_width / m_fontsize.X - 2; // make room for a margin (looks better)
 	s32 rows = m_desired_height / m_fontsize.Y - 1; // make room for the input prompt
 	if (cols <= 0 || rows <= 0)
 		cols = rows = 0;
@@ -222,7 +226,7 @@ void GUIChatConsole::reformatConsole()
 
 void GUIChatConsole::recalculateConsolePosition()
 {
-	core::rect<s32> rect(0, 0, m_screensize.X, m_height);
+	core::rect<s32> rect(0, 0, m_width, m_height);
 	DesiredRect = rect;
 	recalculateAbsolutePosition(false);
 }
@@ -278,7 +282,7 @@ void GUIChatConsole::drawBackground()
 	video::IVideoDriver* driver = Environment->getVideoDriver();
 	if (m_background != NULL)
 	{
-		core::rect<s32> sourcerect(0, -m_height, m_screensize.X, 0);
+		core::rect<s32> sourcerect(0, -m_height, m_width, 0);
 		driver->draw2DImage(
 			m_background,
 			v2s32(0, 0),
@@ -291,7 +295,7 @@ void GUIChatConsole::drawBackground()
 	{
 		driver->draw2DRectangle(
 			m_background_color,
-			core::rect<s32>(0, 0, m_screensize.X, m_height),
+			core::rect<s32>(0, 0, m_width, m_height),
 			&AbsoluteClippingRect);
 	}
 }

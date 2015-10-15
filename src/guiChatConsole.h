@@ -108,6 +108,8 @@ private:
 	bool m_close_on_return;
 	// current console height [pixels]
 	s32 m_height;
+	// current console width [pixels]
+	s32 m_width;
 	// desired height [pixels]
 	f32 m_desired_height;
 	// desired height [screen height fraction]

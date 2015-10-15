@@ -23,6 +23,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "chat.h"
 #include "debug.h"
 #include "strfnd.h"
+#include "gettext.h"
 #include <cctype>
 #include <sstream>
 #include "util/string.h"
@@ -672,16 +673,23 @@ void ChatPrompt::clampView()
 ChatBackend::ChatBackend():
 	m_console_buffer(500),
 	m_recent_buffer(6),
+    m_last_msg_time(0),
 	m_prompt(L"]", 500)
 {
+    m_last_msg_time = getTimeMs();
 }
 
-ChatBackend::~ChatBackend()
-{
+ChatBackend::~ChatBackend(){
+
+}
+
+u32 ChatBackend::get_last_msg_time(){
+    return m_last_msg_time;
 }
 
 void ChatBackend::addMessage(std::wstring name, std::wstring text)
 {
+    m_last_msg_time = getTimeMs();
 	// Note: A message may consist of multiple lines, for example the MOTD.
 	WStrfnd fnd(text);
 	while (!fnd.atend())
@@ -694,6 +702,7 @@ void ChatBackend::addMessage(std::wstring name, std::wstring text)
 
 void ChatBackend::addUnparsedMessage(std::wstring message)
 {
+    m_last_msg_time = getTimeMs();
 	// TODO: Remove the need to parse chat messages client-side, by sending
 	// separate name and text fields in TOCLIENT_CHAT_MESSAGE.
 

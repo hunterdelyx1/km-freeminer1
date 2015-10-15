@@ -64,6 +64,8 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "sound.h"
 
+#define CHAT_SIZE 0.9
+
 #if USE_SOUND
 	#include "sound_openal.h"
 #endif
@@ -1549,7 +1551,7 @@ protected:
 	void dropSelectedItem();
 	void dropSelectedStack();
 	void openInventory();
-	void openConsole(float height = 0.6, bool close_on_return = false, const std::wstring& input = L"");
+	void openConsole(float height = CHAT_SIZE, bool close_on_return = false, const std::wstring& input = L"");
 	void toggleFreeMove(float *statustext_time);
 	void toggleFreeMoveAlt(float *statustext_time, float *jump_timer);
 	void toggleFast(float *statustext_time);
@@ -2815,11 +2817,11 @@ void Game::processKeyboardInput(VolatileRunFlags *flags,
 		show_pause_menu(&current_formspec, client, gamedef, texture_src, device,
 				simple_singleplayer_mode);
 	} else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_CHAT])) {
-		openConsole(0.1, true);
+		openConsole(CHAT_SIZE, true);
 	} else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_CMD])) {
-		openConsole(0.1, true, L"/");
+		openConsole(CHAT_SIZE, true, L"/");
 	//} else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_MSG])) {
-	//	openConsole(0.1, true, L"/msg ");
+	//	openConsole(CHAT_SIZE, true, L"/msg ");
 	} else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_CONSOLE])) {
 		openConsole();
 	} else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_FREEMOVE])) {
