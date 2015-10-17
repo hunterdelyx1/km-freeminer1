@@ -37,6 +37,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "xCGUITTFont.h"
 
 #define CHAT_TIME 12000
+#define DEFAULT_WIDTH_MOD 0.49
 
 inline u32 clamp_u8(s32 value)
 {
@@ -52,7 +53,7 @@ GUIChatConsole::GUIChatConsole(
 		Client* client
 ):
 	IGUIElement(gui::EGUIET_ELEMENT, env, parent, id,
-			core::rect<s32>(0,0,100,100)),
+			core::rect<s32>(0,0,0,0)),
 	m_chat_backend(backend),
 	m_client(client),
 	m_screensize(v2u32(0,0)),
@@ -94,7 +95,7 @@ GUIChatConsole::GUIChatConsole(
 		m_background_color.setBlue(clamp_u8(myround(console_color.Z)));
 	}
 
-	m_font = g_fontengine->getFont(FONT_SIZE_UNSPECIFIED, FM_Mono);
+	m_font = g_fontengine->getFont(26, FM_Mono);
 
 	if (m_font == NULL)
 	{
@@ -200,7 +201,7 @@ void GUIChatConsole::draw()
 			m_height = m_height * screensize.Y / m_screensize.Y;
 		m_desired_height = m_desired_height_fraction * screensize.Y;
         
-        m_width = 0.45 * screensize.X;
+        m_width = DEFAULT_WIDTH_MOD * screensize.X;
         
 		m_screensize = screensize;
 		reformatConsole();
