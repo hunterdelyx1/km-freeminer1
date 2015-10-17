@@ -1864,7 +1864,7 @@ void Game::run()
 	runData.profiler_max_page = 2;
 	runData.update_wielded_item_trigger = true;
 
-	flags.show_chat = true;
+	flags.show_chat = false; // CHAT DISABLED BY DEFAULT
 	flags.show_hud = true;
 	flags.show_minimap = g_settings->getBool("enable_minimap");
 	flags.show_debug = g_settings->getBool("show_debug");

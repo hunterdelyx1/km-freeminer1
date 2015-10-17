@@ -36,6 +36,8 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "xCGUITTFont.h"
 
+#define CHAT_TIME 12000
+
 inline u32 clamp_u8(s32 value)
 {
 	return (u32) MYMIN(MYMAX(value, 0), 255);
@@ -207,7 +209,7 @@ void GUIChatConsole::draw()
 	// Animation
     u32 now = getTimeMs();
 
-    if ((now-m_chat_backend->get_last_msg_time()<3000) & !m_open){
+    if ((now-m_chat_backend->get_last_msg_time()<CHAT_TIME) & !m_open){
         m_msg_open = true;
     }
     else {
@@ -249,6 +251,7 @@ void GUIChatConsole::animate(u32 msec)
 	// animate the console height
 	s32 goal = ( m_open || m_msg_open ) ? m_desired_height : 0;
     m_height = goal;
+    
 	/*if (m_height != goal)
 	{
 		s32 max_change = msec * m_screensize.Y * (m_height_speed / 1000.0);
