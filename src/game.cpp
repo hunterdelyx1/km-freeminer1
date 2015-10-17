@@ -2286,7 +2286,7 @@ bool Game::initGui()
 		errorstream << *error_message << std::endl;
 		return false;
 	}
-
+    
 	// Profiler text (size is updated when text is updated)
 	guitext_profiler = guienv->addStaticText(
 			L"<Profiler>",

@@ -56,6 +56,7 @@ GUIChatConsole::GUIChatConsole(
 	m_screensize(v2u32(0,0)),
 	m_animate_time_old(0),
 	m_open(false),
+    m_msg_open(true),
 	m_close_on_return(false),
 	m_height(0),
 	m_width(0),
@@ -108,6 +109,14 @@ GUIChatConsole::GUIChatConsole(
 
 	// set default cursor options
 	setCursor(true, true, 2.0, 0.1);
+    
+	video::IVideoDriver* driver = Environment->getVideoDriver();
+	v2u32 screensize = driver->getScreenSize();
+    
+    m_width = 0.45 * screensize.X;
+	m_close_on_return = true;
+    
+	m_desired_height_fraction = 0.9;
 }
 
 GUIChatConsole::~GUIChatConsole()
@@ -143,6 +152,7 @@ void GUIChatConsole::closeConsole()
 void GUIChatConsole::closeConsoleAtOnce()
 {
 	m_open = false;
+    m_msg_open = false;
 	m_height = 0;
 	recalculateConsolePosition();
 }
@@ -178,6 +188,7 @@ void GUIChatConsole::setCursor(
 
 void GUIChatConsole::draw()
 {
+
 	if(!IsVisible)
         return;
 
@@ -191,9 +202,7 @@ void GUIChatConsole::draw()
 		// scale current console height to new window size
 		if (m_screensize.Y != 0)
 			m_height = m_height * screensize.Y / m_screensize.Y;
-		m_desired_height = m_desired_height_fraction * m_screensize.Y;
-        
-        m_width = 0.5 * screensize.X;
+		m_desired_height = m_desired_height_fraction * screensize.Y;
         
 		m_screensize = screensize;
 		reformatConsole();
@@ -201,15 +210,23 @@ void GUIChatConsole::draw()
     
 	// Animation
     u32 now = getTimeMs();
+
+    if ((now-m_chat_backend->get_last_msg_time()<3000) & !m_open){
+        m_msg_open = true;
+    }
+    else {
+        m_msg_open = false;
+    }
+    
     animate(now - m_animate_time_old);
     m_animate_time_old = now;
-
+    
 	// Draw console elements if visible
 	if (m_height > 0)
 	{
 		drawBackground();
 		drawText();
-		drawPrompt();
+		if(!m_msg_open) drawPrompt();
 	}
 
 	gui::IGUIElement::draw();
@@ -234,7 +251,11 @@ void GUIChatConsole::recalculateConsolePosition()
 void GUIChatConsole::animate(u32 msec)
 {
 	// animate the console height
-	s32 goal = m_open ? m_desired_height : 0;
+    //std::cout<<"m_desired_height:"<< m_desired_height<<std::endl;
+    //std::cout<<"bool:"<< ( m_open || m_msg_open ) <<std::endl;
+	s32 goal = ( m_open || m_msg_open ) ? m_desired_height : 0;
+    //std::cout<<m_desired_height<<std::endl;
+
 	if (m_height != goal)
 	{
 		s32 max_change = msec * m_screensize.Y * (m_height_speed / 1000.0);
