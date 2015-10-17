@@ -109,13 +109,7 @@ GUIChatConsole::GUIChatConsole(
 
 	// set default cursor options
 	setCursor(true, true, 2.0, 0.1);
-    
-	video::IVideoDriver* driver = Environment->getVideoDriver();
-	v2u32 screensize = driver->getScreenSize();
-    
-    m_width = 0.45 * screensize.X;
-	m_close_on_return = true;
-    
+
 	m_desired_height_fraction = 0.9;
 }
 
@@ -204,6 +198,8 @@ void GUIChatConsole::draw()
 			m_height = m_height * screensize.Y / m_screensize.Y;
 		m_desired_height = m_desired_height_fraction * screensize.Y;
         
+        m_width = 0.45 * screensize.X;
+        
 		m_screensize = screensize;
 		reformatConsole();
 	}
@@ -251,10 +247,7 @@ void GUIChatConsole::recalculateConsolePosition()
 void GUIChatConsole::animate(u32 msec)
 {
 	// animate the console height
-    //std::cout<<"m_desired_height:"<< m_desired_height<<std::endl;
-    //std::cout<<"bool:"<< ( m_open || m_msg_open ) <<std::endl;
 	s32 goal = ( m_open || m_msg_open ) ? m_desired_height : 0;
-    //std::cout<<m_desired_height<<std::endl;
 
 	if (m_height != goal)
 	{
