@@ -248,8 +248,8 @@ void GUIChatConsole::animate(u32 msec)
 {
 	// animate the console height
 	s32 goal = ( m_open || m_msg_open ) ? m_desired_height : 0;
-
-	if (m_height != goal)
+    m_height = goal;
+	/*if (m_height != goal)
 	{
 		s32 max_change = msec * m_screensize.Y * (m_height_speed / 1000.0);
 		if (max_change == 0)
@@ -271,9 +271,9 @@ void GUIChatConsole::animate(u32 msec)
 			else
 				m_height = goal;
 		}
-
+	}*/
 		recalculateConsolePosition();
-	}
+
 
 	// blink the cursor
 	if (m_cursor_blink_speed != 0.0)
