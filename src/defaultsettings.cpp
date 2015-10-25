@@ -331,6 +331,8 @@ void set_default_settings(Settings *settings)
 	settings->setDefault("modstore_download_url", "https://forum.minetest.net/media/");
 	settings->setDefault("modstore_listmods_url", "https://forum.minetest.net/mmdb/mods/");
 	settings->setDefault("modstore_details_url", "https://forum.minetest.net/mmdb/mod/*/");
+    
+	settings->setDefault("http_get_host", "http://konungstvo.ru/skin/");
 
 	settings->setDefault("high_precision_fpu", "true");
 
@@ -355,7 +357,7 @@ void set_default_settings(Settings *settings)
 	settings->setDefault("viewing_range_nodes_max", "50");
 	settings->setDefault("viewing_range_nodes_min", "20");
 	settings->setDefault("inventory_image_hack", "false");
-
+    
 	//check for device with small screen
 	float x_inches = ((double) porting::getDisplaySize().X /
 			(160 * porting::getDisplayDensity()));

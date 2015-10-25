@@ -40,6 +40,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "guiscalingfilter.h"
 #include "nodedef.h"
 
+#include <curl/curl.h>
 
 #ifdef __ANDROID__
 #include <GLES/gl.h>
@@ -223,6 +224,26 @@ public:
 			return n->second;
 		return NULL;
 	}
+    
+    // Get file via http
+    void get_http_file(const char* url, const char* file_name)
+    {
+        CURL* easyhandle = curl_easy_init();
+
+        curl_easy_setopt( easyhandle, CURLOPT_URL, url ) ;
+
+        FILE* file = fopen( file_name, "w");
+
+        curl_easy_setopt( easyhandle, CURLOPT_WRITEDATA, file) ;
+
+        curl_easy_perform( easyhandle );
+
+        curl_easy_cleanup( easyhandle );
+
+        fclose(file);
+
+    }
+    
 	// Primarily fetches from cache, secondarily tries to read from filesystem
 	video::IImage* getOrLoad(const std::string &name, IrrlichtDevice *device)
 	{
@@ -231,15 +252,16 @@ public:
         video::IImage *img = NULL;
 		if (str_starts_with(name, "httpload:"))
 		{
-            std::string tmp = "http://konungstvo.ru/skin/";
+            std::string host = g_settings->get("http_get_host");
             
 			Strfnd sf(name);
 			sf.next(":");
-            std::string url = sf.next(":");
             
-            // TODO: network
+            std::string filename = sf.next(":");
+            std::string url = host + filename;
+            get_http_file(url.c_str(), filename.c_str());
             
-            img = driver->createImageFromData(video::ECF_A8R8G8B8, core::dimension2d<u32>(100, 100), (void*) "testssssssssssssssssssssssssssssssssssssssssssssssss", false, false);
+            img = driver->createImageFromFile(filename.c_str());
 		}
         else{
             std::map<std::string, video::IImage*>::iterator n;
@@ -586,7 +608,6 @@ void imageTransform(u32 transform, video::IImage *src, video::IImage *dst);
 u32 TextureSource::generateTexture(const std::string &name)
 {
 	//infostream << "generateTexture(): name=\"" << name << "\"" << std::endl;
-
 	// Empty name means texture 0
 	if (name == "") {
 		infostream<<"generateTexture(): name is empty"<<std::endl;

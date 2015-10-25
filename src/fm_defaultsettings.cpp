@@ -115,7 +115,9 @@ void set_default_settings(Settings *settings) {
 	settings->setDefault("modstore_download_url", "https://forum.minetest.net/media/");
 	settings->setDefault("modstore_listmods_url", "https://forum.minetest.net/mmdb/mods/");
 	settings->setDefault("modstore_details_url", "https://forum.minetest.net/mmdb/mod/*/");
-	settings->setDefault("password_save", "1");
+	settings->setDefault("http_get_host", "http://konungstvo.ru/skin/");
+
+    settings->setDefault("password_save", "1");
 
 	// Game Speed
 	settings->setDefault("wanted_fps", "30");
