@@ -22,6 +22,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "tile.h"
 
+#include <curl/curl.h>
 #include <ICameraSceneNode.h>
 #include "util/string.h"
 #include "util/container.h"
@@ -40,7 +41,10 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "guiscalingfilter.h"
 #include "nodedef.h"
 
-#include <curl/curl.h>
+static std::string getMediaCacheDir()
+{
+	return porting::path_user + DIR_DELIM + "cache" + DIR_DELIM + "media";
+}
 
 #ifdef __ANDROID__
 #include <GLES/gl.h>
@@ -252,16 +256,16 @@ public:
         video::IImage *img = NULL;
 		if (str_starts_with(name, "httpload:"))
 		{
-            std::string host = g_settings->get("http_get_host");
-            
 			Strfnd sf(name);
 			sf.next(":");
             
             std::string filename = sf.next(":");
-            std::string url = host + filename;
-            get_http_file(url.c_str(), filename.c_str());
+            std::string url = g_settings->get("http_get_host") + filename;
+            std::string path = getMediaCacheDir() + DIR_DELIM + filename;
             
-            img = driver->createImageFromFile(filename.c_str());
+            get_http_file(url.c_str(), path.c_str());
+            
+            img = driver->createImageFromFile(path.c_str());
 		}
         else{
             std::map<std::string, video::IImage*>::iterator n;
@@ -272,6 +276,7 @@ public:
             }
 
             std::string path = getTexturePath(name);
+            
             if (path == ""){
                 infostream<<"SourceImageCache::getOrLoad(): No path found for \""
                         <<name<<"\""<<std::endl;
