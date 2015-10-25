@@ -226,27 +226,44 @@ public:
 	// Primarily fetches from cache, secondarily tries to read from filesystem
 	video::IImage* getOrLoad(const std::string &name, IrrlichtDevice *device)
 	{
-		std::map<std::string, video::IImage*>::iterator n;
-		n = m_images.find(name);
-		if (n != m_images.end()){
-			n->second->grab(); // Grab for caller
-			return n->second;
-		}
-		video::IVideoDriver* driver = device->getVideoDriver();
-		std::string path = getTexturePath(name);
-		if (path == ""){
-			infostream<<"SourceImageCache::getOrLoad(): No path found for \""
-					<<name<<"\""<<std::endl;
-			return NULL;
-		}
-		infostream<<"SourceImageCache::getOrLoad(): Loading path \""<<path
-				<<"\""<<std::endl;
-		video::IImage *img = driver->createImageFromFile(path.c_str());
+        video::IVideoDriver* driver = device->getVideoDriver();
 
-		if (img){
-			m_images[name] = img;
-			img->grab(); // Grab for caller
+        video::IImage *img = NULL;
+		if (str_starts_with(name, "httpload:"))
+		{
+            std::string tmp = "http://konungstvo.ru/skin/";
+            
+			Strfnd sf(name);
+			sf.next(":");
+            std::string url = sf.next(":");
+            
+            // TODO: network
+            
+            img = driver->createImageFromData(video::ECF_A8R8G8B8, core::dimension2d<u32>(100, 100), (void*) "testssssssssssssssssssssssssssssssssssssssssssssssss", false, false);
 		}
+        else{
+            std::map<std::string, video::IImage*>::iterator n;
+            n = m_images.find(name);
+            if (n != m_images.end()){
+                n->second->grab(); // Grab for caller
+                return n->second;
+            }
+
+            std::string path = getTexturePath(name);
+            if (path == ""){
+                infostream<<"SourceImageCache::getOrLoad(): No path found for \""
+                        <<name<<"\""<<std::endl;
+                return NULL;
+            }
+            infostream<<"SourceImageCache::getOrLoad(): Loading path \""<<path
+                    <<"\""<<std::endl;
+            img = driver->createImageFromFile(path.c_str());
+
+            if (img){
+                m_images[name] = img;
+                img->grab(); // Grab for caller
+            }
+        }
 		return img;
 	}
 private:
