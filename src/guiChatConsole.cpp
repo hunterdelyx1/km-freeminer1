@@ -114,6 +114,8 @@ GUIChatConsole::GUIChatConsole(
 	setCursor(true, true, 2.0, 0.1);
 
 	m_desired_height_fraction = 0.9;
+    
+    parent->sendToBack(this);
 }
 
 GUIChatConsole::~GUIChatConsole()
