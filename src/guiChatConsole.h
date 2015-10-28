@@ -101,7 +101,6 @@ private:
 
 	// used to compute how much time passed since last animate()
 	u32 m_animate_time_old;
-    u32 m_new_msg_time;
     
 	// should the console be opened or closed?
 	bool m_open;

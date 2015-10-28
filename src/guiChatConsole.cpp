@@ -58,7 +58,6 @@ GUIChatConsole::GUIChatConsole(
 	m_client(client),
 	m_screensize(v2u32(0,0)),
 	m_animate_time_old(0),
-    m_new_msg_time(0),
 	m_open(false),
     m_msg_open(true),
 	m_close_on_return(false),
@@ -77,7 +76,6 @@ GUIChatConsole::GUIChatConsole(
 	m_fontsize(0, 0)
 {
 	m_animate_time_old = getTimeMs();
-	m_new_msg_time = getTimeMs();
 
 	// load background settings
 	s32 console_alpha = g_settings->getS32("console_alpha");
@@ -127,7 +125,6 @@ GUIChatConsole::~GUIChatConsole()
 void GUIChatConsole::openConsole(float height, bool close_on_return)
 {
 	m_open = true;
-    m_msg_open = false;
 	m_close_on_return = close_on_return;
 	m_desired_height_fraction = height;
 	m_desired_height = height * m_screensize.Y;
@@ -146,7 +143,7 @@ bool GUIChatConsole::isOpenInhibited() const
 
 void GUIChatConsole::closeConsole()
 {
-	if(!m_chat_backend->m_new_msg) m_open = false;
+	m_open = false;
 }
 
 void GUIChatConsole::closeConsoleAtOnce()
@@ -212,14 +209,11 @@ void GUIChatConsole::draw()
     
 	// Animation
     u32 now = getTimeMs();
-    
-    if(m_chat_backend->m_new_msg){
+
+    if ((now-m_chat_backend->get_last_msg_time()<CHAT_TIME) & !m_open){
         m_msg_open = true;
-        m_chat_backend->m_new_msg = false;
-        m_new_msg_time = getTimeMs();
     }
-    
-    if ((now-m_new_msg_time > CHAT_TIME) & !m_open){
+    else {
         m_msg_open = false;
     }
     
@@ -479,9 +473,7 @@ bool GUIChatConsole::OnEvent(const SEvent& event)
 		{
 			std::string text = wide_to_narrow(m_chat_backend->getPrompt().submit());
 			m_client->typeChatMessage(text);
-            
-            if (text!="") m_chat_backend->m_new_msg = true;
-            
+
 			if (m_close_on_return) {
 				closeConsole();
 				Environment->removeFocus(this);
