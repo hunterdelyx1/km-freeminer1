@@ -1004,6 +1004,7 @@ void GenericCAO::addToScene(scene::ISceneManager *smgr, ITextureSource *tsrc,
 		// shadow can remain.
         errorstream<<"Alpha:"<<m_nametag_color.getAlpha()<<std::endl;
 		m_textnode->setVisible(m_nametag_color.getAlpha() > 0);
+        errorstream<<"IsVisible:"<<m_textnode->isVisible()<<std::endl;
 	}
 
 	updateNodePos();
@@ -1819,6 +1820,8 @@ void GenericCAO::processMessage(const std::string &data)
 			// shadow can remain.
             errorstream<<"Alpha:"<<m_nametag_color.getAlpha()<<std::endl;
 			m_textnode->setVisible(m_nametag_color.getAlpha() > 0);
+            errorstream<<"IsVisible:"<<m_textnode->isVisible()<<std::endl;
+
 		}
 	}
 }
