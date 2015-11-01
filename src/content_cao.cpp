@@ -997,6 +997,11 @@ void GenericCAO::addToScene(scene::ISceneManager *smgr, ITextureSource *tsrc,
         m_textnode->setMaterialFlag(video::EMF_BILINEAR_FILTER, false);
         m_textnode->grab();
         m_textnode->setPosition(v3f(0, BS*1.1, 0));
+        
+		// Enforce hiding nametag,
+		// because if freetype is enabled, a grey
+		// shadow can remain.
+		m_textnode->setVisible(m_nametag_color.getAlpha() > 0);
 	}
 
 	updateNodePos();
