@@ -993,6 +993,7 @@ void GenericCAO::addToScene(scene::ISceneManager *smgr, ITextureSource *tsrc,
         m_textnode = smgr->addBillboardTextSceneNode(gui->getBuiltInFont(),
                 wname.c_str(), node, nickname_size);
                 
+        m_textnode->setTextColor(m_nametag_color);
         m_textnode->setMaterialFlag(video::EMF_BILINEAR_FILTER, false);
         m_textnode->grab();
         m_textnode->setPosition(v3f(0, BS*1.1, 0));
