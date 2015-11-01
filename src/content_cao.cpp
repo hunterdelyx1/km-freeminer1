@@ -1002,7 +1002,7 @@ void GenericCAO::addToScene(scene::ISceneManager *smgr, ITextureSource *tsrc,
 		// Enforce hiding nametag,
 		// because if freetype is enabled, a grey
 		// shadow can remain.
-        std::cout<<"Alpha:"<<m_nametag_color.getAlpha()<<std::end;
+        std::cout<<"Alpha:"<<m_nametag_color.getAlpha()<<std::endl;
 		m_textnode->setVisible(m_nametag_color.getAlpha() > 0);
 	}
 
@@ -1817,7 +1817,7 @@ void GenericCAO::processMessage(const std::string &data)
 			// Enforce hiding nametag,
 			// because if freetype is enabled, a grey
 			// shadow can remain.
-            std::cout<<"Alpha:"<<m_nametag_color.getAlpha()<<std::end;
+            std::cout<<"Alpha:"<<m_nametag_color.getAlpha()<<std::endl;
 			m_textnode->setVisible(m_nametag_color.getAlpha() > 0);
 		}
 	}
