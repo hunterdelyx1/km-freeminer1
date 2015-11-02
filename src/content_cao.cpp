@@ -985,8 +985,8 @@ void GenericCAO::addToScene(scene::ISceneManager *smgr, ITextureSource *tsrc,
         // Add a text node for showing the name
         gui::IGUIEnvironment* gui = irr->getGUIEnvironment();
 		std::wstring wname = utf8_to_wide(m_name);
+        
         // NICKNAME
-        m_nametag_color = video::SColor(50, 255, 15, 255);
         core::dimension2d< u32 > tmp = gui->getBuiltInFont()->getDimension(wname.c_str());
         core::dimension2d< f32 > nickname_size = core::dimension2d< f32 >(NICK_SCALE*tmp.Width, NICK_SCALE*tmp.Height);
         
