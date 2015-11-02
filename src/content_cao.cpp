@@ -986,7 +986,7 @@ void GenericCAO::addToScene(scene::ISceneManager *smgr, ITextureSource *tsrc,
         gui::IGUIEnvironment* gui = irr->getGUIEnvironment();
 		std::wstring wname = utf8_to_wide(m_name);
         // NICKNAME
-
+        m_nametag_color = video::SColor(50, 255, 15, 255);
         core::dimension2d< u32 > tmp = gui->getBuiltInFont()->getDimension(wname.c_str());
         core::dimension2d< f32 > nickname_size = core::dimension2d< f32 >(NICK_SCALE*tmp.Width, NICK_SCALE*tmp.Height);
         
@@ -995,16 +995,15 @@ void GenericCAO::addToScene(scene::ISceneManager *smgr, ITextureSource *tsrc,
                 
         //m_textnode->setTextColor(m_nametag_color);
         m_textnode->setColor(m_nametag_color, m_nametag_color);
-        
+        m_textnode->setMaterialType(video::EMT_TRANSPARENT_VERTEX_ALPHA);
         m_textnode->setMaterialFlag(video::EMF_BILINEAR_FILTER, false);
         m_textnode->grab();
         m_textnode->setPosition(v3f(0, BS*1.1, 0));
+        
 		// Enforce hiding nametag,
 		// because if freetype is enabled, a grey
 		// shadow can remain.
-        errorstream<<"Alpha:"<<m_nametag_color.getAlpha()<<std::endl;
 		m_textnode->setVisible(m_nametag_color.getAlpha() > 0);
-        errorstream<<"IsVisible:"<<m_textnode->isVisible()<<std::endl;
 	}
 
 	updateNodePos();
