@@ -988,13 +988,11 @@ void GenericCAO::addToScene(scene::ISceneManager *smgr, ITextureSource *tsrc,
         
         // NICKNAME
         core::dimension2d< u32 > tmp = gui->getBuiltInFont()->getDimension(wname.c_str());
-        
         core::dimension2d< f32 > nickname_size = core::dimension2d< f32 >(NICK_SCALE*tmp.Width, NICK_SCALE*tmp.Height);
         
         m_textnode = smgr->addBillboardTextSceneNode(gui->getBuiltInFont(),
                 wname.c_str(), node, nickname_size);
                 
-        //m_textnode->setTextColor(m_nametag_color);
         m_textnode->setColor(m_nametag_color, m_nametag_color);
         m_textnode->setMaterialType(video::EMT_TRANSPARENT_VERTEX_ALPHA);
         m_textnode->setMaterialFlag(video::EMF_BILINEAR_FILTER, false);
@@ -1818,9 +1816,7 @@ void GenericCAO::processMessage(const std::string &data)
 			// Enforce hiding nametag,
 			// because if freetype is enabled, a grey
 			// shadow can remain.
-            errorstream<<"Alpha:"<<m_nametag_color.getAlpha()<<std::endl;
 			m_textnode->setVisible(m_nametag_color.getAlpha() > 0);
-            errorstream<<"IsVisible:"<<m_textnode->isVisible()<<std::endl;
 
 		}
 	}
