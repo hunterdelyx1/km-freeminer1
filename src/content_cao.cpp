@@ -997,7 +997,7 @@ void GenericCAO::addToScene(scene::ISceneManager *smgr, ITextureSource *tsrc,
         m_textnode->setMaterialType(video::EMT_TRANSPARENT_VERTEX_ALPHA);
         m_textnode->setMaterialFlag(video::EMF_BILINEAR_FILTER, false);
         m_textnode->grab();
-        m_textnode->setPosition(v3f(0, BS*1.1, 0));
+        m_textnode->setPosition(v3f(0, m_selection_box.MaxEdge.Y , 0));
         
 		// Enforce hiding nametag,
 		// because if freetype is enabled, a grey
@@ -1629,7 +1629,8 @@ void GenericCAO::processMessage(const std::string &data)
 			m_initial_tx_basepos_set = true;
 			m_tx_basepos = m_prop.initial_sprite_basepos;
 		}
-
+        
+        m_textnode->setPosition(v3f(0, m_selection_box.MaxEdge.Y , 0));
 		expireVisuals();
 	}
 	else if(cmd == GENERIC_CMD_UPDATE_POSITION)
