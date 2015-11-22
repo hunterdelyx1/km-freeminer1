@@ -1630,7 +1630,6 @@ void GenericCAO::processMessage(const std::string &data)
 			m_tx_basepos = m_prop.initial_sprite_basepos;
 		}
         
-        m_textnode->setPosition(v3f(0, m_selection_box.MaxEdge.Y , 0));
 		expireVisuals();
 	}
 	else if(cmd == GENERIC_CMD_UPDATE_POSITION)
