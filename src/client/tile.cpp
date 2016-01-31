@@ -22,7 +22,8 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "tile.h"
 
-#include <curl/curl.h>
+#include "httpfetch.h"
+
 #include <ICameraSceneNode.h>
 #include "util/string.h"
 #include "util/container.h"
@@ -40,6 +41,8 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "imagefilters.h"
 #include "guiscalingfilter.h"
 #include "nodedef.h"
+
+
 
 static std::string getMediaCacheDir()
 {
@@ -228,26 +231,7 @@ public:
 			return n->second;
 		return NULL;
 	}
-    
-    // Get file via http
-    void get_http_file(const char* url, const char* file_name)
-    {
-        CURL* easyhandle = curl_easy_init();
-
-        curl_easy_setopt( easyhandle, CURLOPT_URL, url ) ;
-
-        FILE* file = fopen( file_name, "w");
-
-        curl_easy_setopt( easyhandle, CURLOPT_WRITEDATA, file) ;
-
-        curl_easy_perform( easyhandle );
-
-        curl_easy_cleanup( easyhandle );
-
-        fclose(file);
-
-    }
-    
+        
 	// Primarily fetches from cache, secondarily tries to read from filesystem
 	video::IImage* getOrLoad(const std::string &name, IrrlichtDevice *device)
 	{
@@ -257,17 +241,42 @@ public:
 		if (str_starts_with(name, "httpload:"))
 		{
 			Strfnd sf(name);
-			sf.next(":");
+			sf.next(":"); 
             
             std::string filename = sf.next(":");
             std::string url = g_settings->get("http_get_host") + filename;
             std::string path = getMediaCacheDir() + DIR_DELIM + filename;
             
-            get_http_file(url.c_str(), path.c_str());
+//            get_http_file(url.c_str(), path.c_str());
+//            img = driver->createImageFromFile(path.c_str());
             
-            img = driver->createImageFromFile(path.c_str());
-		}
-        else{
+            HTTPFetchRequest fetch_request;
+            HTTPFetchResult fetch_result;
+            fetch_request.url = url;
+            fetch_request.caller = HTTPFETCH_SYNC;
+            fetch_request.timeout = g_settings->getS32("curl_file_download_timeout");
+            httpfetch_sync(fetch_request, fetch_result);
+            
+            if (!fetch_result.succeeded) {
+                return NULL;
+            }
+                        
+            Buffer<char> data_rw(fetch_result.data.c_str(), fetch_result.data.size());
+            
+            io::IFileSystem *irrfs = device->getFileSystem();
+            io::IReadFile *rfile = irrfs->createMemoryReadFile(
+                    *data_rw, data_rw.getSize(), "_tempreadfile");
+            FATAL_ERROR_IF(!rfile, "Could not create irrlicht memory file.");
+
+            img = driver->createImageFromFile(rfile);
+            
+            if(!img) {
+                errorstream<<"Client: Cannot create image from data of "<<url<<std::endl;
+                rfile->drop();
+                return NULL;
+            }
+        }
+        else {
             std::map<std::string, video::IImage*>::iterator n;
             n = m_images.find(name);
             if (n != m_images.end()){
