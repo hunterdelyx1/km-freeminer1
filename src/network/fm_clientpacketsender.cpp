@@ -314,3 +314,5 @@ void Client::sendDrawControl() {
 
 	Send(0, buffer, false);
 }
+
+#include "../km/network/km_clientpacketsender.cpp"

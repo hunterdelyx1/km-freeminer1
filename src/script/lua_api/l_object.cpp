@@ -937,6 +937,16 @@ int ObjectRef::l_is_player_connected(lua_State *L)
 	return 1;
 }
 
+// is_chat_opened(self)
+int ObjectRef::l_is_chat_opened(lua_State *L)
+{
+	NO_MAP_LOCK_REQUIRED;
+	ObjectRef *ref = checkobject(L, 1);
+	Player *player = getplayer(ref);
+	lua_pushboolean(L, player->isChatOpened());
+	return 1;
+}
+
 // get_player_name(self)
 int ObjectRef::l_get_player_name(lua_State *L)
 {
@@ -1730,6 +1740,9 @@ const luaL_reg ObjectRef::methods[] = {
 	luamethod(ObjectRef, is_player),
 	luamethod(ObjectRef, is_player_connected),
 	luamethod(ObjectRef, get_player_name),
+    
+    luamethod(ObjectRef, is_chat_opened),
+
 	luamethod(ObjectRef, get_player_velocity),
 	luamethod(ObjectRef, get_look_dir),
 	luamethod(ObjectRef, get_look_pitch),

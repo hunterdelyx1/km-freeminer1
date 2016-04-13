@@ -126,6 +126,7 @@ GUIChatConsole::~GUIChatConsole()
 
 void GUIChatConsole::openConsole(float height, bool close_on_return)
 {
+    m_client->sendChatOpened(true);
 	m_open = true;
 	m_close_on_return = close_on_return;
 	m_desired_height_fraction = height;
@@ -145,11 +146,13 @@ bool GUIChatConsole::isOpenInhibited() const
 
 void GUIChatConsole::closeConsole()
 {
+    m_client->sendChatOpened(false);
 	m_open = false;
 }
 
 void GUIChatConsole::closeConsoleAtOnce()
 {
+    m_client->sendChatOpened(false);
 	m_open = false;
     m_msg_open = false;
 	m_height = 0;

@@ -44,7 +44,6 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "../util/auth.h"
 
-
 //todo: split as in serverpackethandler.cpp
 
 void Server::ProcessData(NetworkPacket *pkt)
@@ -591,6 +590,10 @@ void Server::ProcessData(NetworkPacket *pkt)
 		/*infostream<<"Server::ProcessData(): Moved player "<<peer_id<<" to "
 															<<"("<<position.X<<","<<position.Y<<","<<position.Z<<")"
 															<<" pitch="<<pitch<<" yaw="<<yaw<<std::endl;*/
+	}
+    else if(command == TOSERVER_DELETEDBLOCKS)
+	{
+		player->setChatOpened(!player->isChatOpened());
 	}
 	else if(command == TOSERVER_DELETEDBLOCKS)
 	{
@@ -1344,6 +1347,13 @@ void Server::ProcessData(NetworkPacket *pkt)
 		client->fov  = packet[TOSERVER_DRAWCONTROL_FOV].as<f32>();
 		//client->block_overflow = packet[TOSERVER_DRAWCONTROL_BLOCK_OVERFLOW].as<bool>();
 	}
+//==================================================================================    
+    else if(command == TOSERVER_IS_CHAT_OPENED)
+	{
+        bool chatOpened = packet[TOSERVER_IS_OPENED].as<bool>();
+        player->setChatOpened(chatOpened);
+    }
+//==================================================================================    
 	else
 	{
 		infostream<<"Server::ProcessData(): Ignoring "

@@ -682,6 +682,8 @@ private:
 	float m_timelapse_timer;
 public:
 	void sendDrawControl();
+    
+    void sendChatOpened(bool opened);
 private:
 
 	// Storage for mesh data for creating multiple instances of the same mesh

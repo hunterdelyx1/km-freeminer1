@@ -1040,4 +1040,6 @@ const static std::string accessDeniedStrings[SERVER_ACCESSDENIED_MAX] = {
 	"This server has experienced an internal error. You will now be disconnected."
 };
 
+#include "../km/network/km_networkprotocol.h"
+
 #endif
