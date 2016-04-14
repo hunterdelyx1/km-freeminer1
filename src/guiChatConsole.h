@@ -101,19 +101,13 @@ private:
 
 	// used to compute how much time passed since last animate()
 	u32 m_animate_time_old;
-    
+
 	// should the console be opened or closed?
 	bool m_open;
-	// should the console be opened or closed?
-	bool m_msg_open;
-	// should the console be opened or closed?
-	bool m_opened;
 	// close console on return or not
 	bool m_close_on_return;
 	// current console height [pixels]
 	s32 m_height;
-	// current console width [pixels]
-	s32 m_width;
 	// desired height [pixels]
 	f32 m_desired_height;
 	// desired height [screen height fraction]

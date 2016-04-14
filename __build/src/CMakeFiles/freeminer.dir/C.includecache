@@ -1,0 +1,24 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../src/util/sha2.h
+stddef.h
+-
+
+/home/xunto/Programming/freeminer/km-freeminer/src/util/md32_common.h
+
+/home/xunto/Programming/freeminer/km-freeminer/src/util/sha256.c
+stdlib.h
+-
+string.h
+-
+util/sha2.h
+-
+md32_common.h
+/home/xunto/Programming/freeminer/km-freeminer/src/util/md32_common.h
+

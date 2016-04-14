@@ -1,0 +1,893 @@
+The system is: Linux - 4.4.5-1-ARCH - x86_64
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: /usr/bin/cc 
+Build flags: 
+Id flags: 
+
+The output was:
+0
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
+
+The C compiler identification is GNU, found in "/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/3.5.1/CompilerIdC/a.out"
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+Compiler: /usr/bin/c++ 
+Build flags: 
+Id flags: 
+
+The output was:
+0
+
+
+Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
+
+The CXX compiler identification is GNU, found in "/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/3.5.1/CompilerIdCXX/a.out"
+
+Determining if the C compiler works passed with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_62935/fast"
+/usr/bin/make -f CMakeFiles/cmTC_62935.dir/build.make CMakeFiles/cmTC_62935.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_62935.dir/testCCompiler.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_62935.dir/testCCompiler.c.o   -c /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp/testCCompiler.c
+Linking C executable cmTC_62935
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_62935.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_62935.dir/testCCompiler.c.o  -o cmTC_62935 -rdynamic 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+Detecting C compiler ABI info compiled with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_605ce/fast"
+/usr/bin/make -f CMakeFiles/cmTC_605ce.dir/build.make CMakeFiles/cmTC_605ce.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_605ce.dir/CMakeCCompilerABI.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_605ce.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake-3.5/Modules/CMakeCCompilerABI.c
+Linking C executable cmTC_605ce
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_605ce.dir/link.txt --verbose=1
+/usr/bin/cc      -v CMakeFiles/cmTC_605ce.dir/CMakeCCompilerABI.c.o  -o cmTC_605ce -rdynamic  
+Using built-in specs.
+COLLECT_GCC=/usr/bin/cc
+COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/lto-wrapper
+Target: x86_64-unknown-linux-gnu
+Configured with: /build/gcc-multilib/src/gcc-5-20160209/configure --prefix=/usr --libdir=/usr/lib --libexecdir=/usr/lib --mandir=/usr/share/man --infodir=/usr/share/info --with-bugurl=https://bugs.archlinux.org/ --enable-languages=c,c++,ada,fortran,go,lto,objc,obj-c++ --enable-shared --enable-threads=posix --enable-libmpx --with-system-zlib --with-isl --enable-__cxa_atexit --disable-libunwind-exceptions --enable-clocale=gnu --disable-libstdcxx-pch --disable-libssp --enable-gnu-unique-object --enable-linker-build-id --enable-lto --enable-plugin --enable-install-libiberty --with-linker-hash-style=gnu --enable-gnu-indirect-function --enable-multilib --disable-werror --enable-checking=release
+Thread model: posix
+gcc version 5.3.0 (GCC) 
+COMPILER_PATH=/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/:/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/:/usr/lib/gcc/x86_64-unknown-linux-gnu/:/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/:/usr/lib/gcc/x86_64-unknown-linux-gnu/
+LIBRARY_PATH=/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/:/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib/:/lib/../lib/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_605ce' '-rdynamic' '-mtune=generic' '-march=x86-64'
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/collect2 -plugin /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/lto-wrapper -plugin-opt=-fresolution=/tmp/cchoAjZ0.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr --hash-style=gnu -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_605ce /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib/crt1.o /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib/crti.o /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/crtbegin.o -L/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0 -L/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib -L/lib/../lib -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../.. CMakeFiles/cmTC_605ce.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/crtend.o /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib/crtn.o
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+Parsed C implicit link information from above output:
+  link line regex: [^( *|.*[/\])(ld|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp]
+  ignore line: []
+  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_605ce/fast"]
+  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_605ce.dir/build.make CMakeFiles/cmTC_605ce.dir/build]
+  ignore line: [make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp']
+  ignore line: [Building C object CMakeFiles/cmTC_605ce.dir/CMakeCCompilerABI.c.o]
+  ignore line: [/usr/bin/cc     -o CMakeFiles/cmTC_605ce.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake-3.5/Modules/CMakeCCompilerABI.c]
+  ignore line: [Linking C executable cmTC_605ce]
+  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_605ce.dir/link.txt --verbose=1]
+  ignore line: [/usr/bin/cc      -v CMakeFiles/cmTC_605ce.dir/CMakeCCompilerABI.c.o  -o cmTC_605ce -rdynamic  ]
+  ignore line: [Using built-in specs.]
+  ignore line: [COLLECT_GCC=/usr/bin/cc]
+  ignore line: [COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/lto-wrapper]
+  ignore line: [Target: x86_64-unknown-linux-gnu]
+  ignore line: [Configured with: /build/gcc-multilib/src/gcc-5-20160209/configure --prefix=/usr --libdir=/usr/lib --libexecdir=/usr/lib --mandir=/usr/share/man --infodir=/usr/share/info --with-bugurl=https://bugs.archlinux.org/ --enable-languages=c,c++,ada,fortran,go,lto,objc,obj-c++ --enable-shared --enable-threads=posix --enable-libmpx --with-system-zlib --with-isl --enable-__cxa_atexit --disable-libunwind-exceptions --enable-clocale=gnu --disable-libstdcxx-pch --disable-libssp --enable-gnu-unique-object --enable-linker-build-id --enable-lto --enable-plugin --enable-install-libiberty --with-linker-hash-style=gnu --enable-gnu-indirect-function --enable-multilib --disable-werror --enable-checking=release]
+  ignore line: [Thread model: posix]
+  ignore line: [gcc version 5.3.0 (GCC) ]
+  ignore line: [COMPILER_PATH=/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/:/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/:/usr/lib/gcc/x86_64-unknown-linux-gnu/:/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/:/usr/lib/gcc/x86_64-unknown-linux-gnu/]
+  ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/:/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib/:/lib/../lib/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../:/lib/:/usr/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_605ce' '-rdynamic' '-mtune=generic' '-march=x86-64']
+  link line: [ /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/collect2 -plugin /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/lto-wrapper -plugin-opt=-fresolution=/tmp/cchoAjZ0.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr --hash-style=gnu -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_605ce /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib/crt1.o /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib/crti.o /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/crtbegin.o -L/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0 -L/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib -L/lib/../lib -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../.. CMakeFiles/cmTC_605ce.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/crtend.o /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib/crtn.o]
+    arg [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/collect2] ==> ignore
+    arg [-plugin] ==> ignore
+    arg [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/liblto_plugin.so] ==> ignore
+    arg [-plugin-opt=/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/lto-wrapper] ==> ignore
+    arg [-plugin-opt=-fresolution=/tmp/cchoAjZ0.res] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [-plugin-opt=-pass-through=-lc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [--build-id] ==> ignore
+    arg [--eh-frame-hdr] ==> ignore
+    arg [--hash-style=gnu] ==> ignore
+    arg [-m] ==> ignore
+    arg [elf_x86_64] ==> ignore
+    arg [-export-dynamic] ==> ignore
+    arg [-dynamic-linker] ==> ignore
+    arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+    arg [-o] ==> ignore
+    arg [cmTC_605ce] ==> ignore
+    arg [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib/crt1.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib/crti.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/crtbegin.o] ==> ignore
+    arg [-L/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0] ==> dir [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0]
+    arg [-L/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib] ==> dir [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib]
+    arg [-L/lib/../lib] ==> dir [/lib/../lib]
+    arg [-L/usr/lib/../lib] ==> dir [/usr/lib/../lib]
+    arg [-L/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../..] ==> dir [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../..]
+    arg [CMakeFiles/cmTC_605ce.dir/CMakeCCompilerABI.c.o] ==> ignore
+    arg [-lgcc] ==> lib [gcc]
+    arg [--as-needed] ==> ignore
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [--no-as-needed] ==> ignore
+    arg [-lc] ==> lib [c]
+    arg [-lgcc] ==> lib [gcc]
+    arg [--as-needed] ==> ignore
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [--no-as-needed] ==> ignore
+    arg [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/crtend.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib/crtn.o] ==> ignore
+  remove lib [gcc]
+  remove lib [gcc_s]
+  remove lib [gcc]
+  remove lib [gcc_s]
+  collapse library dir [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0] ==> [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0]
+  collapse library dir [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib] ==> [/usr/lib]
+  collapse library dir [/lib/../lib] ==> [/lib]
+  collapse library dir [/usr/lib/../lib] ==> [/usr/lib]
+  collapse library dir [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../..] ==> [/usr/lib]
+  implicit libs: [c]
+  implicit dirs: [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0;/usr/lib;/lib]
+  implicit fwks: []
+
+
+
+
+Detecting C [-std=c11] compiler features compiled with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_6c1a1/fast"
+/usr/bin/make -f CMakeFiles/cmTC_6c1a1.dir/build.make CMakeFiles/cmTC_6c1a1.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_6c1a1.dir/feature_tests.c.o
+/usr/bin/cc    -std=c11 -o CMakeFiles/cmTC_6c1a1.dir/feature_tests.c.o   -c /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/feature_tests.c
+Linking C executable cmTC_6c1a1
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_6c1a1.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_6c1a1.dir/feature_tests.c.o  -o cmTC_6c1a1 -rdynamic 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+    Feature record: C_FEATURE:1c_function_prototypes
+    Feature record: C_FEATURE:1c_restrict
+    Feature record: C_FEATURE:1c_static_assert
+    Feature record: C_FEATURE:1c_variadic_macros
+
+
+Detecting C [-std=c99] compiler features compiled with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_8a3c7/fast"
+/usr/bin/make -f CMakeFiles/cmTC_8a3c7.dir/build.make CMakeFiles/cmTC_8a3c7.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_8a3c7.dir/feature_tests.c.o
+/usr/bin/cc    -std=c99 -o CMakeFiles/cmTC_8a3c7.dir/feature_tests.c.o   -c /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/feature_tests.c
+Linking C executable cmTC_8a3c7
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_8a3c7.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_8a3c7.dir/feature_tests.c.o  -o cmTC_8a3c7 -rdynamic 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+    Feature record: C_FEATURE:1c_function_prototypes
+    Feature record: C_FEATURE:1c_restrict
+    Feature record: C_FEATURE:0c_static_assert
+    Feature record: C_FEATURE:1c_variadic_macros
+
+
+Detecting C [-std=c90] compiler features compiled with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_d8551/fast"
+/usr/bin/make -f CMakeFiles/cmTC_d8551.dir/build.make CMakeFiles/cmTC_d8551.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_d8551.dir/feature_tests.c.o
+/usr/bin/cc    -std=c90 -o CMakeFiles/cmTC_d8551.dir/feature_tests.c.o   -c /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/feature_tests.c
+Linking C executable cmTC_d8551
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_d8551.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_d8551.dir/feature_tests.c.o  -o cmTC_d8551 -rdynamic 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+    Feature record: C_FEATURE:1c_function_prototypes
+    Feature record: C_FEATURE:0c_restrict
+    Feature record: C_FEATURE:0c_static_assert
+    Feature record: C_FEATURE:0c_variadic_macros
+Determining if the CXX compiler works passed with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_59e44/fast"
+/usr/bin/make -f CMakeFiles/cmTC_59e44.dir/build.make CMakeFiles/cmTC_59e44.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_59e44.dir/testCXXCompiler.cxx.o
+/usr/bin/c++      -o CMakeFiles/cmTC_59e44.dir/testCXXCompiler.cxx.o -c /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp/testCXXCompiler.cxx
+Linking CXX executable cmTC_59e44
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_59e44.dir/link.txt --verbose=1
+/usr/bin/c++        CMakeFiles/cmTC_59e44.dir/testCXXCompiler.cxx.o  -o cmTC_59e44 -rdynamic 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+Detecting CXX compiler ABI info compiled with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_b55f1/fast"
+/usr/bin/make -f CMakeFiles/cmTC_b55f1.dir/build.make CMakeFiles/cmTC_b55f1.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_b55f1.dir/CMakeCXXCompilerABI.cpp.o
+/usr/bin/c++      -o CMakeFiles/cmTC_b55f1.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake-3.5/Modules/CMakeCXXCompilerABI.cpp
+Linking CXX executable cmTC_b55f1
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b55f1.dir/link.txt --verbose=1
+/usr/bin/c++       -v CMakeFiles/cmTC_b55f1.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_b55f1 -rdynamic  
+Using built-in specs.
+COLLECT_GCC=/usr/bin/c++
+COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/lto-wrapper
+Target: x86_64-unknown-linux-gnu
+Configured with: /build/gcc-multilib/src/gcc-5-20160209/configure --prefix=/usr --libdir=/usr/lib --libexecdir=/usr/lib --mandir=/usr/share/man --infodir=/usr/share/info --with-bugurl=https://bugs.archlinux.org/ --enable-languages=c,c++,ada,fortran,go,lto,objc,obj-c++ --enable-shared --enable-threads=posix --enable-libmpx --with-system-zlib --with-isl --enable-__cxa_atexit --disable-libunwind-exceptions --enable-clocale=gnu --disable-libstdcxx-pch --disable-libssp --enable-gnu-unique-object --enable-linker-build-id --enable-lto --enable-plugin --enable-install-libiberty --with-linker-hash-style=gnu --enable-gnu-indirect-function --enable-multilib --disable-werror --enable-checking=release
+Thread model: posix
+gcc version 5.3.0 (GCC) 
+COMPILER_PATH=/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/:/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/:/usr/lib/gcc/x86_64-unknown-linux-gnu/:/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/:/usr/lib/gcc/x86_64-unknown-linux-gnu/
+LIBRARY_PATH=/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/:/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib/:/lib/../lib/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_b55f1' '-rdynamic' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/collect2 -plugin /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/lto-wrapper -plugin-opt=-fresolution=/tmp/ccGAw79h.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr --hash-style=gnu -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_b55f1 /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib/crt1.o /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib/crti.o /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/crtbegin.o -L/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0 -L/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib -L/lib/../lib -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../.. CMakeFiles/cmTC_b55f1.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/crtend.o /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib/crtn.o
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+Parsed CXX implicit link information from above output:
+  link line regex: [^( *|.*[/\])(ld|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp]
+  ignore line: []
+  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_b55f1/fast"]
+  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_b55f1.dir/build.make CMakeFiles/cmTC_b55f1.dir/build]
+  ignore line: [make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp']
+  ignore line: [Building CXX object CMakeFiles/cmTC_b55f1.dir/CMakeCXXCompilerABI.cpp.o]
+  ignore line: [/usr/bin/c++      -o CMakeFiles/cmTC_b55f1.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake-3.5/Modules/CMakeCXXCompilerABI.cpp]
+  ignore line: [Linking CXX executable cmTC_b55f1]
+  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b55f1.dir/link.txt --verbose=1]
+  ignore line: [/usr/bin/c++       -v CMakeFiles/cmTC_b55f1.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_b55f1 -rdynamic  ]
+  ignore line: [Using built-in specs.]
+  ignore line: [COLLECT_GCC=/usr/bin/c++]
+  ignore line: [COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/lto-wrapper]
+  ignore line: [Target: x86_64-unknown-linux-gnu]
+  ignore line: [Configured with: /build/gcc-multilib/src/gcc-5-20160209/configure --prefix=/usr --libdir=/usr/lib --libexecdir=/usr/lib --mandir=/usr/share/man --infodir=/usr/share/info --with-bugurl=https://bugs.archlinux.org/ --enable-languages=c,c++,ada,fortran,go,lto,objc,obj-c++ --enable-shared --enable-threads=posix --enable-libmpx --with-system-zlib --with-isl --enable-__cxa_atexit --disable-libunwind-exceptions --enable-clocale=gnu --disable-libstdcxx-pch --disable-libssp --enable-gnu-unique-object --enable-linker-build-id --enable-lto --enable-plugin --enable-install-libiberty --with-linker-hash-style=gnu --enable-gnu-indirect-function --enable-multilib --disable-werror --enable-checking=release]
+  ignore line: [Thread model: posix]
+  ignore line: [gcc version 5.3.0 (GCC) ]
+  ignore line: [COMPILER_PATH=/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/:/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/:/usr/lib/gcc/x86_64-unknown-linux-gnu/:/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/:/usr/lib/gcc/x86_64-unknown-linux-gnu/]
+  ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/:/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib/:/lib/../lib/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../:/lib/:/usr/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_b55f1' '-rdynamic' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+  link line: [ /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/collect2 -plugin /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/lto-wrapper -plugin-opt=-fresolution=/tmp/ccGAw79h.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr --hash-style=gnu -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_b55f1 /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib/crt1.o /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib/crti.o /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/crtbegin.o -L/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0 -L/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib -L/lib/../lib -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../.. CMakeFiles/cmTC_b55f1.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/crtend.o /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib/crtn.o]
+    arg [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/collect2] ==> ignore
+    arg [-plugin] ==> ignore
+    arg [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/liblto_plugin.so] ==> ignore
+    arg [-plugin-opt=/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/lto-wrapper] ==> ignore
+    arg [-plugin-opt=-fresolution=/tmp/ccGAw79h.res] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [--build-id] ==> ignore
+    arg [--eh-frame-hdr] ==> ignore
+    arg [--hash-style=gnu] ==> ignore
+    arg [-m] ==> ignore
+    arg [elf_x86_64] ==> ignore
+    arg [-export-dynamic] ==> ignore
+    arg [-dynamic-linker] ==> ignore
+    arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+    arg [-o] ==> ignore
+    arg [cmTC_b55f1] ==> ignore
+    arg [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib/crt1.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib/crti.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/crtbegin.o] ==> ignore
+    arg [-L/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0] ==> dir [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0]
+    arg [-L/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib] ==> dir [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib]
+    arg [-L/lib/../lib] ==> dir [/lib/../lib]
+    arg [-L/usr/lib/../lib] ==> dir [/usr/lib/../lib]
+    arg [-L/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../..] ==> dir [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../..]
+    arg [CMakeFiles/cmTC_b55f1.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+    arg [-lstdc++] ==> lib [stdc++]
+    arg [-lm] ==> lib [m]
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [-lgcc] ==> lib [gcc]
+    arg [-lc] ==> lib [c]
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [-lgcc] ==> lib [gcc]
+    arg [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/crtend.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib/crtn.o] ==> ignore
+  remove lib [gcc_s]
+  remove lib [gcc]
+  remove lib [gcc_s]
+  remove lib [gcc]
+  collapse library dir [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0] ==> [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0]
+  collapse library dir [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../../../lib] ==> [/usr/lib]
+  collapse library dir [/lib/../lib] ==> [/lib]
+  collapse library dir [/usr/lib/../lib] ==> [/usr/lib]
+  collapse library dir [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/../../..] ==> [/usr/lib]
+  implicit libs: [stdc++;m;c]
+  implicit dirs: [/usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0;/usr/lib;/lib]
+  implicit fwks: []
+
+
+
+
+Detecting CXX [-std=c++14] compiler features compiled with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_52aa6/fast"
+/usr/bin/make -f CMakeFiles/cmTC_52aa6.dir/build.make CMakeFiles/cmTC_52aa6.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_52aa6.dir/feature_tests.cxx.o
+/usr/bin/c++     -std=c++14 -o CMakeFiles/cmTC_52aa6.dir/feature_tests.cxx.o -c /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_52aa6
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_52aa6.dir/link.txt --verbose=1
+/usr/bin/c++        CMakeFiles/cmTC_52aa6.dir/feature_tests.cxx.o  -o cmTC_52aa6 -rdynamic 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+    Feature record: CXX_FEATURE:1cxx_aggregate_default_initializers
+    Feature record: CXX_FEATURE:1cxx_alias_templates
+    Feature record: CXX_FEATURE:1cxx_alignas
+    Feature record: CXX_FEATURE:1cxx_alignof
+    Feature record: CXX_FEATURE:1cxx_attributes
+    Feature record: CXX_FEATURE:1cxx_attribute_deprecated
+    Feature record: CXX_FEATURE:1cxx_auto_type
+    Feature record: CXX_FEATURE:1cxx_binary_literals
+    Feature record: CXX_FEATURE:1cxx_constexpr
+    Feature record: CXX_FEATURE:1cxx_contextual_conversions
+    Feature record: CXX_FEATURE:1cxx_decltype
+    Feature record: CXX_FEATURE:1cxx_decltype_auto
+    Feature record: CXX_FEATURE:1cxx_decltype_incomplete_return_types
+    Feature record: CXX_FEATURE:1cxx_default_function_template_args
+    Feature record: CXX_FEATURE:1cxx_defaulted_functions
+    Feature record: CXX_FEATURE:1cxx_defaulted_move_initializers
+    Feature record: CXX_FEATURE:1cxx_delegating_constructors
+    Feature record: CXX_FEATURE:1cxx_deleted_functions
+    Feature record: CXX_FEATURE:1cxx_digit_separators
+    Feature record: CXX_FEATURE:1cxx_enum_forward_declarations
+    Feature record: CXX_FEATURE:1cxx_explicit_conversions
+    Feature record: CXX_FEATURE:1cxx_extended_friend_declarations
+    Feature record: CXX_FEATURE:1cxx_extern_templates
+    Feature record: CXX_FEATURE:1cxx_final
+    Feature record: CXX_FEATURE:1cxx_func_identifier
+    Feature record: CXX_FEATURE:1cxx_generalized_initializers
+    Feature record: CXX_FEATURE:1cxx_generic_lambdas
+    Feature record: CXX_FEATURE:1cxx_inheriting_constructors
+    Feature record: CXX_FEATURE:1cxx_inline_namespaces
+    Feature record: CXX_FEATURE:1cxx_lambdas
+    Feature record: CXX_FEATURE:1cxx_lambda_init_captures
+    Feature record: CXX_FEATURE:1cxx_local_type_template_args
+    Feature record: CXX_FEATURE:1cxx_long_long_type
+    Feature record: CXX_FEATURE:1cxx_noexcept
+    Feature record: CXX_FEATURE:1cxx_nonstatic_member_init
+    Feature record: CXX_FEATURE:1cxx_nullptr
+    Feature record: CXX_FEATURE:1cxx_override
+    Feature record: CXX_FEATURE:1cxx_range_for
+    Feature record: CXX_FEATURE:1cxx_raw_string_literals
+    Feature record: CXX_FEATURE:1cxx_reference_qualified_functions
+    Feature record: CXX_FEATURE:1cxx_relaxed_constexpr
+    Feature record: CXX_FEATURE:1cxx_return_type_deduction
+    Feature record: CXX_FEATURE:1cxx_right_angle_brackets
+    Feature record: CXX_FEATURE:1cxx_rvalue_references
+    Feature record: CXX_FEATURE:1cxx_sizeof_member
+    Feature record: CXX_FEATURE:1cxx_static_assert
+    Feature record: CXX_FEATURE:1cxx_strong_enums
+    Feature record: CXX_FEATURE:1cxx_template_template_parameters
+    Feature record: CXX_FEATURE:1cxx_thread_local
+    Feature record: CXX_FEATURE:1cxx_trailing_return_types
+    Feature record: CXX_FEATURE:1cxx_unicode_literals
+    Feature record: CXX_FEATURE:1cxx_uniform_initialization
+    Feature record: CXX_FEATURE:1cxx_unrestricted_unions
+    Feature record: CXX_FEATURE:1cxx_user_literals
+    Feature record: CXX_FEATURE:1cxx_variable_templates
+    Feature record: CXX_FEATURE:1cxx_variadic_macros
+    Feature record: CXX_FEATURE:1cxx_variadic_templates
+
+
+Detecting CXX [-std=c++11] compiler features compiled with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_1f484/fast"
+/usr/bin/make -f CMakeFiles/cmTC_1f484.dir/build.make CMakeFiles/cmTC_1f484.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_1f484.dir/feature_tests.cxx.o
+/usr/bin/c++     -std=c++11 -o CMakeFiles/cmTC_1f484.dir/feature_tests.cxx.o -c /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_1f484
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_1f484.dir/link.txt --verbose=1
+/usr/bin/c++        CMakeFiles/cmTC_1f484.dir/feature_tests.cxx.o  -o cmTC_1f484 -rdynamic 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+    Feature record: CXX_FEATURE:0cxx_aggregate_default_initializers
+    Feature record: CXX_FEATURE:1cxx_alias_templates
+    Feature record: CXX_FEATURE:1cxx_alignas
+    Feature record: CXX_FEATURE:1cxx_alignof
+    Feature record: CXX_FEATURE:1cxx_attributes
+    Feature record: CXX_FEATURE:0cxx_attribute_deprecated
+    Feature record: CXX_FEATURE:1cxx_auto_type
+    Feature record: CXX_FEATURE:0cxx_binary_literals
+    Feature record: CXX_FEATURE:1cxx_constexpr
+    Feature record: CXX_FEATURE:0cxx_contextual_conversions
+    Feature record: CXX_FEATURE:1cxx_decltype
+    Feature record: CXX_FEATURE:0cxx_decltype_auto
+    Feature record: CXX_FEATURE:1cxx_decltype_incomplete_return_types
+    Feature record: CXX_FEATURE:1cxx_default_function_template_args
+    Feature record: CXX_FEATURE:1cxx_defaulted_functions
+    Feature record: CXX_FEATURE:1cxx_defaulted_move_initializers
+    Feature record: CXX_FEATURE:1cxx_delegating_constructors
+    Feature record: CXX_FEATURE:1cxx_deleted_functions
+    Feature record: CXX_FEATURE:0cxx_digit_separators
+    Feature record: CXX_FEATURE:1cxx_enum_forward_declarations
+    Feature record: CXX_FEATURE:1cxx_explicit_conversions
+    Feature record: CXX_FEATURE:1cxx_extended_friend_declarations
+    Feature record: CXX_FEATURE:1cxx_extern_templates
+    Feature record: CXX_FEATURE:1cxx_final
+    Feature record: CXX_FEATURE:1cxx_func_identifier
+    Feature record: CXX_FEATURE:1cxx_generalized_initializers
+    Feature record: CXX_FEATURE:0cxx_generic_lambdas
+    Feature record: CXX_FEATURE:1cxx_inheriting_constructors
+    Feature record: CXX_FEATURE:1cxx_inline_namespaces
+    Feature record: CXX_FEATURE:1cxx_lambdas
+    Feature record: CXX_FEATURE:0cxx_lambda_init_captures
+    Feature record: CXX_FEATURE:1cxx_local_type_template_args
+    Feature record: CXX_FEATURE:1cxx_long_long_type
+    Feature record: CXX_FEATURE:1cxx_noexcept
+    Feature record: CXX_FEATURE:1cxx_nonstatic_member_init
+    Feature record: CXX_FEATURE:1cxx_nullptr
+    Feature record: CXX_FEATURE:1cxx_override
+    Feature record: CXX_FEATURE:1cxx_range_for
+    Feature record: CXX_FEATURE:1cxx_raw_string_literals
+    Feature record: CXX_FEATURE:1cxx_reference_qualified_functions
+    Feature record: CXX_FEATURE:0cxx_relaxed_constexpr
+    Feature record: CXX_FEATURE:0cxx_return_type_deduction
+    Feature record: CXX_FEATURE:1cxx_right_angle_brackets
+    Feature record: CXX_FEATURE:1cxx_rvalue_references
+    Feature record: CXX_FEATURE:1cxx_sizeof_member
+    Feature record: CXX_FEATURE:1cxx_static_assert
+    Feature record: CXX_FEATURE:1cxx_strong_enums
+    Feature record: CXX_FEATURE:1cxx_template_template_parameters
+    Feature record: CXX_FEATURE:1cxx_thread_local
+    Feature record: CXX_FEATURE:1cxx_trailing_return_types
+    Feature record: CXX_FEATURE:1cxx_unicode_literals
+    Feature record: CXX_FEATURE:1cxx_uniform_initialization
+    Feature record: CXX_FEATURE:1cxx_unrestricted_unions
+    Feature record: CXX_FEATURE:1cxx_user_literals
+    Feature record: CXX_FEATURE:0cxx_variable_templates
+    Feature record: CXX_FEATURE:1cxx_variadic_macros
+    Feature record: CXX_FEATURE:1cxx_variadic_templates
+
+
+Detecting CXX [-std=c++98] compiler features compiled with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_63b33/fast"
+/usr/bin/make -f CMakeFiles/cmTC_63b33.dir/build.make CMakeFiles/cmTC_63b33.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_63b33.dir/feature_tests.cxx.o
+/usr/bin/c++     -std=c++98 -o CMakeFiles/cmTC_63b33.dir/feature_tests.cxx.o -c /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_63b33
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_63b33.dir/link.txt --verbose=1
+/usr/bin/c++        CMakeFiles/cmTC_63b33.dir/feature_tests.cxx.o  -o cmTC_63b33 -rdynamic 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+    Feature record: CXX_FEATURE:0cxx_aggregate_default_initializers
+    Feature record: CXX_FEATURE:0cxx_alias_templates
+    Feature record: CXX_FEATURE:0cxx_alignas
+    Feature record: CXX_FEATURE:0cxx_alignof
+    Feature record: CXX_FEATURE:0cxx_attributes
+    Feature record: CXX_FEATURE:0cxx_attribute_deprecated
+    Feature record: CXX_FEATURE:0cxx_auto_type
+    Feature record: CXX_FEATURE:0cxx_binary_literals
+    Feature record: CXX_FEATURE:0cxx_constexpr
+    Feature record: CXX_FEATURE:0cxx_contextual_conversions
+    Feature record: CXX_FEATURE:0cxx_decltype
+    Feature record: CXX_FEATURE:0cxx_decltype_auto
+    Feature record: CXX_FEATURE:0cxx_decltype_incomplete_return_types
+    Feature record: CXX_FEATURE:0cxx_default_function_template_args
+    Feature record: CXX_FEATURE:0cxx_defaulted_functions
+    Feature record: CXX_FEATURE:0cxx_defaulted_move_initializers
+    Feature record: CXX_FEATURE:0cxx_delegating_constructors
+    Feature record: CXX_FEATURE:0cxx_deleted_functions
+    Feature record: CXX_FEATURE:0cxx_digit_separators
+    Feature record: CXX_FEATURE:0cxx_enum_forward_declarations
+    Feature record: CXX_FEATURE:0cxx_explicit_conversions
+    Feature record: CXX_FEATURE:0cxx_extended_friend_declarations
+    Feature record: CXX_FEATURE:0cxx_extern_templates
+    Feature record: CXX_FEATURE:0cxx_final
+    Feature record: CXX_FEATURE:0cxx_func_identifier
+    Feature record: CXX_FEATURE:0cxx_generalized_initializers
+    Feature record: CXX_FEATURE:0cxx_generic_lambdas
+    Feature record: CXX_FEATURE:0cxx_inheriting_constructors
+    Feature record: CXX_FEATURE:0cxx_inline_namespaces
+    Feature record: CXX_FEATURE:0cxx_lambdas
+    Feature record: CXX_FEATURE:0cxx_lambda_init_captures
+    Feature record: CXX_FEATURE:0cxx_local_type_template_args
+    Feature record: CXX_FEATURE:0cxx_long_long_type
+    Feature record: CXX_FEATURE:0cxx_noexcept
+    Feature record: CXX_FEATURE:0cxx_nonstatic_member_init
+    Feature record: CXX_FEATURE:0cxx_nullptr
+    Feature record: CXX_FEATURE:0cxx_override
+    Feature record: CXX_FEATURE:0cxx_range_for
+    Feature record: CXX_FEATURE:0cxx_raw_string_literals
+    Feature record: CXX_FEATURE:0cxx_reference_qualified_functions
+    Feature record: CXX_FEATURE:0cxx_relaxed_constexpr
+    Feature record: CXX_FEATURE:0cxx_return_type_deduction
+    Feature record: CXX_FEATURE:0cxx_right_angle_brackets
+    Feature record: CXX_FEATURE:0cxx_rvalue_references
+    Feature record: CXX_FEATURE:0cxx_sizeof_member
+    Feature record: CXX_FEATURE:0cxx_static_assert
+    Feature record: CXX_FEATURE:0cxx_strong_enums
+    Feature record: CXX_FEATURE:1cxx_template_template_parameters
+    Feature record: CXX_FEATURE:0cxx_thread_local
+    Feature record: CXX_FEATURE:0cxx_trailing_return_types
+    Feature record: CXX_FEATURE:0cxx_unicode_literals
+    Feature record: CXX_FEATURE:0cxx_uniform_initialization
+    Feature record: CXX_FEATURE:0cxx_unrestricted_unions
+    Feature record: CXX_FEATURE:0cxx_user_literals
+    Feature record: CXX_FEATURE:0cxx_variable_templates
+    Feature record: CXX_FEATURE:0cxx_variadic_macros
+    Feature record: CXX_FEATURE:0cxx_variadic_templates
+Performing C++ SOURCE FILE Test HAVE_THREAD_LOCAL succeeded with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_a57d0/fast"
+/usr/bin/make -f CMakeFiles/cmTC_a57d0.dir/build.make CMakeFiles/cmTC_a57d0.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_a57d0.dir/src.cxx.o
+/usr/bin/c++     -DHAVE_THREAD_LOCAL -std=c++0x   -o CMakeFiles/cmTC_a57d0.dir/src.cxx.o -c /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_a57d0
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a57d0.dir/link.txt --verbose=1
+/usr/bin/c++    -DHAVE_THREAD_LOCAL -std=c++0x    CMakeFiles/cmTC_a57d0.dir/src.cxx.o  -o cmTC_a57d0 -rdynamic -lstdc++ 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+Return value: 1
+Source file was:
+
+	#include <string>
+	thread_local std::string test;
+	int main(int argc, char *argv[]) {
+		test = __LINE__;
+		return 0;
+	}
+	
+Performing C++ SOURCE FILE Test HAVE_FUTURE succeeded with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_94782/fast"
+/usr/bin/make -f CMakeFiles/cmTC_94782.dir/build.make CMakeFiles/cmTC_94782.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_94782.dir/src.cxx.o
+/usr/bin/c++     -DHAVE_FUTURE -std=c++0x -pthread   -o CMakeFiles/cmTC_94782.dir/src.cxx.o -c /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_94782
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_94782.dir/link.txt --verbose=1
+/usr/bin/c++    -DHAVE_FUTURE -std=c++0x -pthread    CMakeFiles/cmTC_94782.dir/src.cxx.o  -o cmTC_94782 -rdynamic -lstdc++ 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+Return value: 1
+Source file was:
+
+	#include <future>
+	int main(int argc, char *argv[]) {
+		std::future<void> updateDrawList_future;
+		bool allow = false;
+		if (updateDrawList_future.valid()) {
+			auto res = updateDrawList_future.wait_for(std::chrono::milliseconds(0));
+			if (res == std::future_status::timeout)
+				allow = false;
+		}
+		if (false)
+			updateDrawList_future = std::async(std::launch::async, [](){ });
+		return 0;
+	}
+	
+Determining if the include file pthread.h exists passed with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_a299d/fast"
+/usr/bin/make -f CMakeFiles/cmTC_a299d.dir/build.make CMakeFiles/cmTC_a299d.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_a299d.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_a299d.dir/CheckIncludeFile.c.o   -c /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_a299d
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a299d.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_a299d.dir/CheckIncludeFile.c.o  -o cmTC_a299d -rdynamic 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+Determining if the function pthread_create exists in the pthread passed with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_6420a/fast"
+/usr/bin/make -f CMakeFiles/cmTC_6420a.dir/build.make CMakeFiles/cmTC_6420a.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_6420a.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_6420a.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_6420a
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_6420a.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTC_6420a.dir/CheckFunctionExists.c.o  -o cmTC_6420a -rdynamic -lpthread -lstdc++ 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+Determining if the function XOpenDisplay exists in the /usr/lib64/libX11.so;/usr/lib64/libXext.so passed with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_a6977/fast"
+/usr/bin/make -f CMakeFiles/cmTC_a6977.dir/build.make CMakeFiles/cmTC_a6977.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_a6977.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -DCHECK_FUNCTION_EXISTS=XOpenDisplay   -o CMakeFiles/cmTC_a6977.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_a6977
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a6977.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=XOpenDisplay    CMakeFiles/cmTC_a6977.dir/CheckFunctionExists.c.o  -o cmTC_a6977 -rdynamic /usr/lib64/libX11.so /usr/lib64/libXext.so -lstdc++ 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+Determining if the function gethostbyname exists passed with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_45830/fast"
+/usr/bin/make -f CMakeFiles/cmTC_45830.dir/build.make CMakeFiles/cmTC_45830.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_45830.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -DCHECK_FUNCTION_EXISTS=gethostbyname   -o CMakeFiles/cmTC_45830.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_45830
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_45830.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=gethostbyname    CMakeFiles/cmTC_45830.dir/CheckFunctionExists.c.o  -o cmTC_45830 -rdynamic -lstdc++ 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+Determining if the function connect exists passed with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_e40f6/fast"
+/usr/bin/make -f CMakeFiles/cmTC_e40f6.dir/build.make CMakeFiles/cmTC_e40f6.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_e40f6.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -DCHECK_FUNCTION_EXISTS=connect   -o CMakeFiles/cmTC_e40f6.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_e40f6
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e40f6.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=connect    CMakeFiles/cmTC_e40f6.dir/CheckFunctionExists.c.o  -o cmTC_e40f6 -rdynamic -lstdc++ 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+Determining if the function remove exists passed with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_3f864/fast"
+/usr/bin/make -f CMakeFiles/cmTC_3f864.dir/build.make CMakeFiles/cmTC_3f864.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_3f864.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -DCHECK_FUNCTION_EXISTS=remove   -o CMakeFiles/cmTC_3f864.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_3f864
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_3f864.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=remove    CMakeFiles/cmTC_3f864.dir/CheckFunctionExists.c.o  -o cmTC_3f864 -rdynamic -lstdc++ 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+Determining if the function shmat exists passed with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_b4bd8/fast"
+/usr/bin/make -f CMakeFiles/cmTC_b4bd8.dir/build.make CMakeFiles/cmTC_b4bd8.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_b4bd8.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -DCHECK_FUNCTION_EXISTS=shmat   -o CMakeFiles/cmTC_b4bd8.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_b4bd8
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b4bd8.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=shmat    CMakeFiles/cmTC_b4bd8.dir/CheckFunctionExists.c.o  -o cmTC_b4bd8 -rdynamic -lstdc++ 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+Determining if the function IceConnectionNumber exists in the ICE passed with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_07883/fast"
+/usr/bin/make -f CMakeFiles/cmTC_07883.dir/build.make CMakeFiles/cmTC_07883.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_07883.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -DCHECK_FUNCTION_EXISTS=IceConnectionNumber   -o CMakeFiles/cmTC_07883.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_07883
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_07883.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=IceConnectionNumber    CMakeFiles/cmTC_07883.dir/CheckFunctionExists.c.o  -o cmTC_07883 -rdynamic -lICE -lstdc++ 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+Determining if the BZ2_bzCompressInit exist passed with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_1b99e/fast"
+/usr/bin/make -f CMakeFiles/cmTC_1b99e.dir/build.make CMakeFiles/cmTC_1b99e.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_1b99e.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_1b99e.dir/CheckSymbolExists.c.o   -c /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_1b99e
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_1b99e.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_1b99e.dir/CheckSymbolExists.c.o  -o cmTC_1b99e -rdynamic /usr/lib64/libbz2.so 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+File /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <bzlib.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef BZ2_bzCompressInit
+  return ((int*)(&BZ2_bzCompressInit))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if files endian.h exist passed with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_45149/fast"
+/usr/bin/make -f CMakeFiles/cmTC_45149.dir/build.make CMakeFiles/cmTC_45149.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_45149.dir/CheckIncludeFiles.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_45149.dir/CheckIncludeFiles.c.o   -c /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp/CheckIncludeFiles.c
+Linking C executable cmTC_45149
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_45149.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_45149.dir/CheckIncludeFiles.c.o  -o cmTC_45149 -rdynamic 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+Determining if the function fcntl exists passed with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_12351/fast"
+/usr/bin/make -f CMakeFiles/cmTC_12351.dir/build.make CMakeFiles/cmTC_12351.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_12351.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -DCHECK_FUNCTION_EXISTS=fcntl   -o CMakeFiles/cmTC_12351.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_12351
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_12351.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=fcntl    CMakeFiles/cmTC_12351.dir/CheckFunctionExists.c.o  -o cmTC_12351 -rdynamic -lstdc++ 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+Determining if the function poll exists passed with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_409f8/fast"
+/usr/bin/make -f CMakeFiles/cmTC_409f8.dir/build.make CMakeFiles/cmTC_409f8.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_409f8.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -DCHECK_FUNCTION_EXISTS=poll   -o CMakeFiles/cmTC_409f8.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_409f8
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_409f8.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=poll    CMakeFiles/cmTC_409f8.dir/CheckFunctionExists.c.o  -o cmTC_409f8 -rdynamic -lstdc++ 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+Determining if the function getaddrinfo exists passed with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_14025/fast"
+/usr/bin/make -f CMakeFiles/cmTC_14025.dir/build.make CMakeFiles/cmTC_14025.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_14025.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -DCHECK_FUNCTION_EXISTS=getaddrinfo   -o CMakeFiles/cmTC_14025.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_14025
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_14025.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=getaddrinfo    CMakeFiles/cmTC_14025.dir/CheckFunctionExists.c.o  -o cmTC_14025 -rdynamic -lstdc++ 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+Determining if the function getnameinfo exists passed with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_fbe86/fast"
+/usr/bin/make -f CMakeFiles/cmTC_fbe86.dir/build.make CMakeFiles/cmTC_fbe86.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_fbe86.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -DCHECK_FUNCTION_EXISTS=getnameinfo   -o CMakeFiles/cmTC_fbe86.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_fbe86
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_fbe86.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=getnameinfo    CMakeFiles/cmTC_fbe86.dir/CheckFunctionExists.c.o  -o cmTC_fbe86 -rdynamic -lstdc++ 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+Determining if the function gethostbyname_r exists passed with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_1e9a3/fast"
+/usr/bin/make -f CMakeFiles/cmTC_1e9a3.dir/build.make CMakeFiles/cmTC_1e9a3.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_1e9a3.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -DCHECK_FUNCTION_EXISTS=gethostbyname_r   -o CMakeFiles/cmTC_1e9a3.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_1e9a3
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_1e9a3.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=gethostbyname_r    CMakeFiles/cmTC_1e9a3.dir/CheckFunctionExists.c.o  -o cmTC_1e9a3 -rdynamic -lstdc++ 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+Determining if the function gethostbyaddr_r exists passed with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_c565f/fast"
+/usr/bin/make -f CMakeFiles/cmTC_c565f.dir/build.make CMakeFiles/cmTC_c565f.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_c565f.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -DCHECK_FUNCTION_EXISTS=gethostbyaddr_r   -o CMakeFiles/cmTC_c565f.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_c565f
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c565f.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=gethostbyaddr_r    CMakeFiles/cmTC_c565f.dir/CheckFunctionExists.c.o  -o cmTC_c565f -rdynamic -lstdc++ 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+Determining if the function inet_pton exists passed with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_7b85b/fast"
+/usr/bin/make -f CMakeFiles/cmTC_7b85b.dir/build.make CMakeFiles/cmTC_7b85b.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_7b85b.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -DCHECK_FUNCTION_EXISTS=inet_pton   -o CMakeFiles/cmTC_7b85b.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_7b85b
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_7b85b.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=inet_pton    CMakeFiles/cmTC_7b85b.dir/CheckFunctionExists.c.o  -o cmTC_7b85b -rdynamic -lstdc++ 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+Determining if the function inet_ntop exists passed with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_0c4d3/fast"
+/usr/bin/make -f CMakeFiles/cmTC_0c4d3.dir/build.make CMakeFiles/cmTC_0c4d3.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_0c4d3.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -DCHECK_FUNCTION_EXISTS=inet_ntop   -o CMakeFiles/cmTC_0c4d3.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_0c4d3
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0c4d3.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=inet_ntop    CMakeFiles/cmTC_0c4d3.dir/CheckFunctionExists.c.o  -o cmTC_0c4d3 -rdynamic -lstdc++ 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+
+Performing C SOURCE FILE Test HAS_MSGHDR_FLAGS succeeded with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_b02fd/fast"
+/usr/bin/make -f CMakeFiles/cmTC_b02fd.dir/build.make CMakeFiles/cmTC_b02fd.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_b02fd.dir/src.c.o
+/usr/bin/cc    -DHAS_MSGHDR_FLAGS   -o CMakeFiles/cmTC_b02fd.dir/src.c.o   -c /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_b02fd
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b02fd.dir/link.txt --verbose=1
+/usr/bin/cc   -DHAS_MSGHDR_FLAGS    CMakeFiles/cmTC_b02fd.dir/src.c.o  -o cmTC_b02fd -rdynamic -lstdc++ 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+Source file was:
+
+#include <sys/types.h>
+#include <sys/socket.h>
+
+int main()
+{
+   (void)sizeof(((struct msghdr *)0)->msg_flags);
+   return 0;
+}
+
+Determining size of socklen_t passed with the following output:
+Change Dir: /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_b3ef9/fast"
+/usr/bin/make -f CMakeFiles/cmTC_b3ef9.dir/build.make CMakeFiles/cmTC_b3ef9.dir/build
+make[1]: Entering directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_b3ef9.dir/HAS_SOCKLEN_T.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_b3ef9.dir/HAS_SOCKLEN_T.c.o   -c /home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CheckTypeSize/HAS_SOCKLEN_T.c
+Linking C executable cmTC_b3ef9
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b3ef9.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_b3ef9.dir/HAS_SOCKLEN_T.c.o  -o cmTC_b3ef9 -rdynamic -lstdc++ 
+make[1]: Leaving directory '/home/xunto/Programming/freeminer/km-freeminer/__build/CMakeFiles/CMakeTmp'
+
+

@@ -36,9 +36,6 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "xCGUITTFont.h"
 
-#define CHAT_TIME 12000
-#define DEFAULT_WIDTH_MOD 0.49
-
 inline u32 clamp_u8(s32 value)
 {
 	return (u32) MYMIN(MYMAX(value, 0), 255);
@@ -53,16 +50,14 @@ GUIChatConsole::GUIChatConsole(
 		Client* client
 ):
 	IGUIElement(gui::EGUIET_ELEMENT, env, parent, id,
-			core::rect<s32>(0,0,0,0)),
+			core::rect<s32>(0,0,100,100)),
 	m_chat_backend(backend),
 	m_client(client),
 	m_screensize(v2u32(0,0)),
 	m_animate_time_old(0),
 	m_open(false),
-    m_msg_open(true),
 	m_close_on_return(false),
 	m_height(0),
-	m_width(0),
 	m_desired_height(0),
 	m_desired_height_fraction(0.0),
 	m_height_speed(5.0),
@@ -95,7 +90,7 @@ GUIChatConsole::GUIChatConsole(
 		m_background_color.setBlue(clamp_u8(myround(console_color.Z)));
 	}
 
-	m_font = g_fontengine->getFont(26, FM_Mono);
+	m_font = g_fontengine->getFont(FONT_SIZE_UNSPECIFIED, FM_Mono);
 
 	if (m_font == NULL)
 	{
@@ -112,10 +107,6 @@ GUIChatConsole::GUIChatConsole(
 
 	// set default cursor options
 	setCursor(true, true, 2.0, 0.1);
-
-	m_desired_height_fraction = 0.9;
-    
-    parent->sendToBack(this);
 }
 
 GUIChatConsole::~GUIChatConsole()
@@ -126,7 +117,6 @@ GUIChatConsole::~GUIChatConsole()
 
 void GUIChatConsole::openConsole(float height, bool close_on_return)
 {
-    m_client->sendChatOpened(true);
 	m_open = true;
 	m_close_on_return = close_on_return;
 	m_desired_height_fraction = height;
@@ -146,15 +136,12 @@ bool GUIChatConsole::isOpenInhibited() const
 
 void GUIChatConsole::closeConsole()
 {
-    m_client->sendChatOpened(false);
 	m_open = false;
 }
 
 void GUIChatConsole::closeConsoleAtOnce()
 {
-    m_client->sendChatOpened(false);
 	m_open = false;
-    m_msg_open = false;
 	m_height = 0;
 	recalculateConsolePosition();
 }
@@ -190,9 +177,8 @@ void GUIChatConsole::setCursor(
 
 void GUIChatConsole::draw()
 {
-
 	if(!IsVisible)
-        return;
+		return;
 
 	video::IVideoDriver* driver = Environment->getVideoDriver();
 
@@ -204,33 +190,22 @@ void GUIChatConsole::draw()
 		// scale current console height to new window size
 		if (m_screensize.Y != 0)
 			m_height = m_height * screensize.Y / m_screensize.Y;
-		m_desired_height = m_desired_height_fraction * screensize.Y;
-        
-        m_width = DEFAULT_WIDTH_MOD * screensize.X;
-        
+		m_desired_height = m_desired_height_fraction * m_screensize.Y;
 		m_screensize = screensize;
 		reformatConsole();
 	}
-    
-	// Animation
-    u32 now = getTimeMs();
 
-    if ((now-m_chat_backend->get_last_msg_time()<CHAT_TIME) & !m_open){
-        m_msg_open = true;
-    }
-    else {
-        m_msg_open = false;
-    }
-    
-    animate(now - m_animate_time_old);
-    m_animate_time_old = now;
-    
+	// Animation
+	u32 now = getTimeMs();
+	animate(now - m_animate_time_old);
+	m_animate_time_old = now;
+
 	// Draw console elements if visible
 	if (m_height > 0)
 	{
 		drawBackground();
 		drawText();
-		if(!m_msg_open) drawPrompt();
+		drawPrompt();
 	}
 
 	gui::IGUIElement::draw();
@@ -238,7 +213,7 @@ void GUIChatConsole::draw()
 
 void GUIChatConsole::reformatConsole()
 {
-	s32 cols = m_width / m_fontsize.X - 2; // make room for a margin (looks better)
+	s32 cols = m_screensize.X / m_fontsize.X - 2; // make room for a margin (looks better)
 	s32 rows = m_desired_height / m_fontsize.Y - 1; // make room for the input prompt
 	if (cols <= 0 || rows <= 0)
 		cols = rows = 0;
@@ -247,7 +222,7 @@ void GUIChatConsole::reformatConsole()
 
 void GUIChatConsole::recalculateConsolePosition()
 {
-	core::rect<s32> rect(0, 0, m_width, m_height);
+	core::rect<s32> rect(0, 0, m_screensize.X, m_height);
 	DesiredRect = rect;
 	recalculateAbsolutePosition(false);
 }
@@ -255,10 +230,8 @@ void GUIChatConsole::recalculateConsolePosition()
 void GUIChatConsole::animate(u32 msec)
 {
 	// animate the console height
-	s32 goal = ( m_open || m_msg_open ) ? m_desired_height : 0;
-    m_height = goal;
-    
-	/*if (m_height != goal)
+	s32 goal = m_open ? m_desired_height : 0;
+	if (m_height != goal)
 	{
 		s32 max_change = msec * m_screensize.Y * (m_height_speed / 1000.0);
 		if (max_change == 0)
@@ -280,9 +253,9 @@ void GUIChatConsole::animate(u32 msec)
 			else
 				m_height = goal;
 		}
-	}*/
-		recalculateConsolePosition();
 
+		recalculateConsolePosition();
+	}
 
 	// blink the cursor
 	if (m_cursor_blink_speed != 0.0)
@@ -305,7 +278,7 @@ void GUIChatConsole::drawBackground()
 	video::IVideoDriver* driver = Environment->getVideoDriver();
 	if (m_background != NULL)
 	{
-		core::rect<s32> sourcerect(0, -m_height, m_width, 0);
+		core::rect<s32> sourcerect(0, -m_height, m_screensize.X, 0);
 		driver->draw2DImage(
 			m_background,
 			v2s32(0, 0),
@@ -318,7 +291,7 @@ void GUIChatConsole::drawBackground()
 	{
 		driver->draw2DRectangle(
 			m_background_color,
-			core::rect<s32>(0, 0, m_width, m_height),
+			core::rect<s32>(0, 0, m_screensize.X, m_height),
 			&AbsoluteClippingRect);
 	}
 }
