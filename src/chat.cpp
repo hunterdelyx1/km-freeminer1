@@ -672,7 +672,7 @@ void ChatPrompt::clampView()
 
 ChatBackend::ChatBackend():
 	m_console_buffer(500),
-	m_recent_buffer(6),
+	m_recent_buffer(500),
     m_last_msg_time(0),
 	m_prompt(L"]", 500)
 {
@@ -757,6 +757,7 @@ ChatPrompt& ChatBackend::getPrompt()
 void ChatBackend::reformat(u32 cols, u32 rows)
 {
 	m_console_buffer.reformat(cols, rows);
+	m_recent_buffer.reformat(cols, rows);
 
 	// no need to reformat m_recent_buffer, its formatted lines
 	// are not used
@@ -772,7 +773,7 @@ void ChatBackend::clearRecentChat()
 void ChatBackend::step(float dtime)
 {
 	m_recent_buffer.step(dtime);
-	m_recent_buffer.deleteByAge(60.0);
+	m_recent_buffer.deleteByAge(10.0);
 
 	// no need to age messages in anything but m_recent_buffer
 }
@@ -780,14 +781,19 @@ void ChatBackend::step(float dtime)
 void ChatBackend::scroll(s32 rows)
 {
 	m_console_buffer.scroll(rows);
+    m_recent_buffer.scroll(rows);
+
 }
 
 void ChatBackend::scrollPageDown()
 {
 	m_console_buffer.scroll(m_console_buffer.getRows());
+    m_recent_buffer.scroll(m_recent_buffer.getRows());
+
 }
 
 void ChatBackend::scrollPageUp()
 {
 	m_console_buffer.scroll(-(s32)m_console_buffer.getRows());
+    m_recent_buffer.scroll(-(s32)m_recent_buffer.getRows());
 }

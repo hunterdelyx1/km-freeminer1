@@ -38,6 +38,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "filesys.h"
 #include "gettext.h"
 #include "guiChatConsole.h"
+#include "guiKmChat.h"
 #include "guiFormSpecMenu.h"
 #include "guiKeyChangeMenu.h"
 #include "guiPasswordChange.h"
@@ -1215,34 +1216,34 @@ static void updateChat(Client &client, f32 dtime, bool show_debug,
 	// Remove old messages
 	chat_backend.step(dtime);
 
-	// Display all messages in a static text element
-	unsigned int recent_chat_count = chat_backend.getRecentBuffer().getLineCount();
-	std::wstring recent_chat       = chat_backend.getRecentChat();
-	unsigned int line_height       = g_fontengine->getLineHeight();
+	//// Display all messages in a static text element
+	//unsigned int recent_chat_count = chat_backend.getRecentBuffer().getLineCount();
+	//std::wstring recent_chat       = chat_backend.getRecentChat();
+	//unsigned int line_height       = g_fontengine->getLineHeight();
 
-	guitext_chat->setText(recent_chat.c_str());
+	//guitext_chat->setText(recent_chat.c_str());
 
-	// Update gui element size and position
-	s32 chat_y = 5 + line_height;
+	//// Update gui element size and position
+	//s32 chat_y = 5 + line_height;
 
-	if (show_debug)
-		chat_y += line_height;
+	//if (show_debug)
+		//chat_y += line_height;
 
-	// first pass to calculate height of text to be set
-	s32 width = std::min(g_fontengine->getTextWidth(recent_chat) + 10,
-			     porting::getWindowSize().X - 20);
-	core::rect<s32> rect(10, chat_y, width, chat_y + porting::getWindowSize().Y);
-	guitext_chat->setRelativePosition(rect);
+	//// first pass to calculate height of text to be set
+	//s32 width = std::min(g_fontengine->getTextWidth(recent_chat) + 10,
+			     //porting::getWindowSize().X - 20);
+	//core::rect<s32> rect(10, chat_y, width, chat_y + porting::getWindowSize().Y);
+	//guitext_chat->setRelativePosition(rect);
 
-	//now use real height of text and adjust rect according to this size
-	rect = core::rect<s32>(10, chat_y, width,
-			       chat_y + guitext_chat->getTextHeight());
+	////now use real height of text and adjust rect according to this size
+	//rect = core::rect<s32>(10, chat_y, width,
+			       //chat_y + guitext_chat->getTextHeight());
 
 
-	guitext_chat->setRelativePosition(rect);
-	// Don't show chat if disabled or empty or profiler is enabled
-	guitext_chat->setVisible(
-		show_chat && recent_chat_count != 0 && !show_profiler);
+	//guitext_chat->setRelativePosition(rect);
+	//// Don't show chat if disabled or empty or profiler is enabled
+	//guitext_chat->setVisible(
+		//show_chat && recent_chat_count != 0 && !show_profiler);
 }
 
 
@@ -1552,6 +1553,9 @@ protected:
 	void dropSelectedStack();
 	void openInventory();
 	void openConsole(float height = CHAT_SIZE, bool close_on_return = false, const std::wstring& input = L"");
+    
+    void openKmChat(const std::wstring& input = L"");
+
 	void toggleFreeMove(float *statustext_time);
 	void toggleFreeMoveAlt(float *statustext_time, float *jump_timer);
 	void toggleFast(float *statustext_time);
@@ -1640,6 +1644,9 @@ private:
 	QuicktuneShortcutter *quicktune;
 
 	GUIChatConsole *gui_chat_console; // Free using ->Drop()
+    
+    GUIKmChat *gui_km_chat; // Free using ->Drop()
+
 	MapDrawControl *draw_control;
 	Camera *camera;
 	Clouds *clouds;	                  // Free using ->Drop()
@@ -2287,6 +2294,15 @@ bool Game::initGui()
 		return false;
 	}
     
+	// Chat backend and console
+	gui_km_chat = new GUIKmChat(guienv, guienv->getRootGUIElement(),
+			-1, chat_backend, client);
+	if (!gui_km_chat) {
+		*error_message = "Could not allocate memory for km chat";
+		errorstream << *error_message << std::endl;
+		return false;
+	}
+        
 	// Profiler text (size is updated when text is updated)
 	guitext_profiler = guienv->addStaticText(
 			L"<Profiler>",
@@ -2742,7 +2758,8 @@ void Game::processUserInput(VolatileRunFlags *flags,
 	// Reset input if window not active or some menu is active
 	if (device->isWindowActive() == false
 			|| noMenuActive() == false
-			|| guienv->hasFocus(gui_chat_console)) {
+			|| guienv->hasFocus(gui_chat_console)
+            || guienv->hasFocus(gui_km_chat)) {
 		input->clear();
 	}
 
@@ -2752,10 +2769,20 @@ void Game::processUserInput(VolatileRunFlags *flags,
 			//gui_chat_console->closeConsoleAtOnce();
 		}
 	}
+    
+	if (gui_km_chat->isOpen()) {
+		if (gui_km_chat->getAndroidUIInput()) {
+			//gui_chat_console->closeConsoleAtOnce();
+		}
+	}
 #endif
 
 	if (!guienv->hasFocus(gui_chat_console) && gui_chat_console->isOpen()) {
 		gui_chat_console->closeConsoleAtOnce();
+	}
+    
+    if (!guienv->hasFocus(gui_km_chat) && gui_km_chat->isOpen()) {
+		gui_km_chat->close();
 	}
 
 	// Input handler step() (used by the random input generator)
@@ -2817,9 +2844,9 @@ void Game::processKeyboardInput(VolatileRunFlags *flags,
 		show_pause_menu(&current_formspec, client, gamedef, texture_src, device,
 				simple_singleplayer_mode);
 	} else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_CHAT])) {
-		openConsole(CHAT_SIZE, true);
+		openKmChat();
 	} else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_CMD])) {
-		openConsole(CHAT_SIZE, true, L"/");
+        openKmChat(L"/");
 	//} else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_MSG])) {
 	//	openConsole(CHAT_SIZE, true, L"/msg ");
 	} else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_CONSOLE])) {
@@ -3070,6 +3097,28 @@ void Game::openConsole(float height, bool close_on_return, const std::wstring& i
 	}
 }
 
+void Game::openKmChat(const std::wstring& input)
+{
+	if (!gui_km_chat->isOpenInhibited()) {
+		// Set initial console prompt
+		if (!input.empty()) {
+			gui_km_chat->setPrompt(input);
+		}
+		gui_km_chat->open();
+		guienv->setFocus(gui_km_chat);
+
+#ifdef __ANDROID__
+		if (porting::canKeyboard() >= 2) {
+			// fmtodo: invisible input text before pressing enter
+			porting::displayKeyboard(true, porting::app_global, porting::jnienv);
+		} else {
+			int type = 1;
+			porting::showInputDialog(_("ok"), "", wide_to_narrow(gui_km_chat->getText()), type);
+		}
+#endif
+
+	}
+}
 
 void Game::toggleFreeMove(float *statustext_time)
 {

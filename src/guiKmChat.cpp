@@ -1,26 +1,4 @@
-/*
-guiChatConsole.cpp
-Copyright (C) 2013 celeron55, Perttu Ahola <celeron55@gmail.com>
-*/
-
-/*
-This file is part of Freeminer.
-
-Freeminer is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Freeminer  is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-#include "guiChatConsole.h"
+#include "guiKmChat.h"
 #include "chat.h"
 #include "client.h"
 #include "debug.h"
@@ -42,7 +20,7 @@ inline u32 clamp_u8(s32 value)
 }
 
 
-GUIChatConsole::GUIChatConsole(
+GUIKmChat::GUIKmChat(
 		gui::IGUIEnvironment* env,
 		gui::IGUIElement* parent,
 		s32 id,
@@ -58,9 +36,7 @@ GUIChatConsole::GUIChatConsole(
 	m_open(false),
 	m_close_on_return(false),
 	m_height(0),
-	m_desired_height(0),
-	m_desired_height_fraction(0.0),
-	m_height_speed(5.0),
+    m_width(0),
 	m_open_inhibited(0),
 	m_cursor_blink(0.0),
 	m_cursor_blink_speed(0.0),
@@ -94,7 +70,7 @@ GUIChatConsole::GUIChatConsole(
 
 	if (m_font == NULL)
 	{
-		errorstream << "GUIChatConsole: Unable to load mono font ";
+		errorstream << "GUIKmChat: Unable to load mono font ";
 	}
 	else
 	{
@@ -107,51 +83,44 @@ GUIChatConsole::GUIChatConsole(
 
 	// set default cursor options
 	setCursor(true, true, 2.0, 0.1);
+    
+    m_screensize = Environment->getVideoDriver()->getScreenSize();
+    m_height = 0.8 * m_screensize.Y;
+    m_width  = 0.65 * m_screensize.X;
+    
+    
+    parent->sendToBack(this);
 }
 
-GUIChatConsole::~GUIChatConsole()
+GUIKmChat::~GUIKmChat()
 {
 	if (m_font)
 		m_font->drop();
 }
 
-void GUIChatConsole::openConsole(float height, bool close_on_return)
+void GUIKmChat::open()
 {
-	m_open = true;
-	m_close_on_return = close_on_return;
-	m_desired_height_fraction = height;
-	m_desired_height = height * m_screensize.Y;
+    m_open = true;
+    
 	reformatConsole();
 }
 
-bool GUIChatConsole::isOpen() const
+bool GUIKmChat::isOpen() const
 {
 	return m_open;
 }
 
-bool GUIChatConsole::isOpenInhibited() const
+bool GUIKmChat::isOpenInhibited() const
 {
 	return m_open_inhibited > 0;
 }
 
-void GUIChatConsole::closeConsole()
+void GUIKmChat::close()
 {
 	m_open = false;
 }
 
-void GUIChatConsole::closeConsoleAtOnce()
-{
-	m_open = false;
-	m_height = 0;
-	recalculateConsolePosition();
-}
-
-f32 GUIChatConsole::getDesiredHeight() const
-{
-	return m_desired_height_fraction;
-}
-
-void GUIChatConsole::setCursor(
+void GUIKmChat::setCursor(
 	bool visible, bool blinking, f32 blink_speed, f32 relative_height)
 {
 	if (visible)
@@ -175,7 +144,7 @@ void GUIChatConsole::setCursor(
 	m_cursor_height = relative_height;
 }
 
-void GUIChatConsole::draw()
+void GUIKmChat::draw()
 {
 	if(!IsVisible)
 		return;
@@ -188,9 +157,10 @@ void GUIChatConsole::draw()
 	{
 		// screen size has changed
 		// scale current console height to new window size
-		if (m_screensize.Y != 0)
+		if (m_screensize.Y != 0) {
 			m_height = m_height * screensize.Y / m_screensize.Y;
-		m_desired_height = m_desired_height_fraction * m_screensize.Y;
+			m_width  = m_width  * screensize.X / m_screensize.X;
+        }
 		m_screensize = screensize;
 		reformatConsole();
 	}
@@ -201,61 +171,36 @@ void GUIChatConsole::draw()
 	m_animate_time_old = now;
 
 	// Draw console elements if visible
-	if (m_height > 0)
+	if (m_open)
 	{
 		drawBackground();
 		drawText();
 		drawPrompt();
-	}
+	} else drawNewMessageText();
 
 	gui::IGUIElement::draw();
 }
 
-void GUIChatConsole::reformatConsole()
+void GUIKmChat::reformatConsole()
 {
-	s32 cols = m_screensize.X / m_fontsize.X - 2; // make room for a margin (looks better)
-	s32 rows = m_desired_height / m_fontsize.Y - 1; // make room for the input prompt
+	s32 cols = m_width / m_fontsize.X - 2; // make room for a margin (looks better)
+	s32 rows = m_height / m_fontsize.Y - 1; // make room for the input prompt
 	if (cols <= 0 || rows <= 0)
 		cols = rows = 0;
+        
 	m_chat_backend->reformat(cols, rows);
 }
 
-void GUIChatConsole::recalculateConsolePosition()
+void GUIKmChat::recalculateConsolePosition()
 {
-	core::rect<s32> rect(0, 0, m_screensize.X, m_height);
+	core::rect<s32> rect(0, 0, m_width, m_height);
 	DesiredRect = rect;
 	recalculateAbsolutePosition(false);
 }
 
-void GUIChatConsole::animate(u32 msec)
+void GUIKmChat::animate(u32 msec)
 {
-	// animate the console height
-	s32 goal = m_open ? m_desired_height : 0;
-	if (m_height != goal)
-	{
-		s32 max_change = msec * m_screensize.Y * (m_height_speed / 1000.0);
-		if (max_change == 0)
-			max_change = 1;
-
-		if (m_height < goal)
-		{
-			// increase height
-			if (m_height + max_change < goal)
-				m_height += max_change;
-			else
-				m_height = goal;
-		}
-		else
-		{
-			// decrease height
-			if (m_height > goal + max_change)
-				m_height -= max_change;
-			else
-				m_height = goal;
-		}
-
-		recalculateConsolePosition();
-	}
+    recalculateConsolePosition();
 
 	// blink the cursor
 	if (m_cursor_blink_speed != 0.0)
@@ -273,12 +218,12 @@ void GUIChatConsole::animate(u32 msec)
 		m_open_inhibited = 0;
 }
 
-void GUIChatConsole::drawBackground()
+void GUIKmChat::drawBackground()
 {
 	video::IVideoDriver* driver = Environment->getVideoDriver();
 	if (m_background != NULL)
 	{
-		core::rect<s32> sourcerect(0, -m_height, m_screensize.X, 0);
+		core::rect<s32> sourcerect(0, -m_height, m_width, 0);
 		driver->draw2DImage(
 			m_background,
 			v2s32(0, 0),
@@ -291,12 +236,12 @@ void GUIChatConsole::drawBackground()
 	{
 		driver->draw2DRectangle(
 			m_background_color,
-			core::rect<s32>(0, 0, m_screensize.X, m_height),
+			core::rect<s32>(0, 0, m_width, m_height),
 			&AbsoluteClippingRect);
 	}
 }
 
-void GUIChatConsole::drawText()
+void GUIKmChat::drawText()
 {
 	if (m_font == NULL)
 		return;
@@ -304,6 +249,7 @@ void GUIChatConsole::drawText()
 	irr::gui::CGUITTFont *tmp = static_cast<irr::gui::CGUITTFont*>(m_font);
 
 	ChatBuffer& buf = m_chat_backend->getConsoleBuffer();
+
 	for (u32 row = 0; row < buf.getRows(); ++row)
 	{
 		const ChatFormattedLine& line = buf.getFormattedLine(row);
@@ -311,7 +257,7 @@ void GUIChatConsole::drawText()
 			continue;
 
 		s32 line_height = m_fontsize.Y;
-		s32 y = row * line_height + m_height - m_desired_height;
+		s32 y = row * line_height;
 		if (y + line_height < 0)
 			continue;
 
@@ -332,14 +278,53 @@ void GUIChatConsole::drawText()
 	}
 }
 
-void GUIChatConsole::drawPrompt()
+void GUIKmChat::drawNewMessageText()
+{
+	if (m_font == NULL)
+		return;
+
+	irr::gui::CGUITTFont *tmp = static_cast<irr::gui::CGUITTFont*>(m_font);
+
+	ChatBuffer& buf = m_chat_backend->getRecentBuffer();
+    buf.scrollBottom();
+    
+	for (u32 row = 0; row < buf.getRows(); ++row)
+	{
+		const ChatFormattedLine& line = buf.getFormattedLine(row);
+		if (line.fragments.empty())
+			continue;
+
+		s32 line_height = m_fontsize.Y;
+		s32 y = row * line_height;
+		if (y + line_height < 0)
+			continue;
+        
+		for (u32 i = 0; i < line.fragments.size(); ++i)
+		{
+			const ChatFormattedFragment& fragment = line.fragments[i];
+			s32 x = (fragment.column + 1) * m_fontsize.X;
+			core::rect<s32> destrect(
+				x, y, x + m_fontsize.X * fragment.text.size(), y + m_fontsize.Y);
+
+			tmp->draw(
+				fragment.text.c_str(),
+				destrect,
+				fragment.text.getColors(),
+				false,
+				false,
+				&AbsoluteClippingRect);
+		}
+	}
+}
+
+void GUIKmChat::drawPrompt()
 {
 	if (m_font == NULL)
 		return;
 
 	u32 row = m_chat_backend->getConsoleBuffer().getRows();
 	s32 line_height = m_fontsize.Y;
-	s32 y = row * line_height + m_height - m_desired_height;
+	s32 y = row * line_height;
 
 	ChatPrompt& prompt = m_chat_backend->getPrompt();
 	std::wstring prompt_text = prompt.getVisiblePortion();
@@ -381,10 +366,9 @@ void GUIChatConsole::drawPrompt()
 				&AbsoluteClippingRect);
 		}
 	}
-
 }
 
-void GUIChatConsole::setPrompt(const std::wstring& input) {
+void GUIKmChat::setPrompt(const std::wstring& input) {
 	m_chat_backend->getPrompt().cursorOperation(
 			ChatPrompt::CURSOROP_DELETE,
 			ChatPrompt::CURSOROP_DIR_LEFT,
@@ -394,18 +378,18 @@ void GUIChatConsole::setPrompt(const std::wstring& input) {
 	}
 }
 
-bool GUIChatConsole::getAndroidUIInput() {
+bool GUIKmChat::getAndroidUIInput() {
 #ifdef __ANDROID__
 	if (porting::getInputDialogState() == 0) {
 		std::string text = porting::getInputDialogValue();
 		std::wstring wtext = narrow_to_wide(text);
-		//errorstream<<"GUIChatConsole::getAndroidUIInput() text=["<<text<<"] "<<std::endl;
+		//errorstream<<"GUIKmChat::getAndroidUIInput() text=["<<text<<"] "<<std::endl;
 		m_chat_backend->getPrompt().input(wtext);
 		std::wstring wrtext = m_chat_backend->getPrompt().submit();
 		m_client->typeChatMessage(wide_to_narrow(wrtext));
 
 		if (m_close_on_return) {
-			closeConsole();
+			close();
 			Environment->removeFocus(this);
 		}
 
@@ -415,24 +399,15 @@ bool GUIChatConsole::getAndroidUIInput() {
 	return false;
 }
 
-bool GUIChatConsole::OnEvent(const SEvent& event)
+bool GUIKmChat::OnEvent(const SEvent& event)
 {
 	if(event.EventType == EET_KEY_INPUT_EVENT && event.KeyInput.PressedDown)
 	{
 		KeyPress kp(event.KeyInput);
 		// Key input
-		if(KeyPress(event.KeyInput) == getKeySetting("keymap_console"))
+		if (kp == EscapeKey || kp == CancelKey)
 		{
-			closeConsole();
-			Environment->removeFocus(this);
-
-			// inhibit open so the_game doesn't reopen immediately
-			m_open_inhibited = 50;
-			return true;
-		}
-		else if (kp == EscapeKey || kp == CancelKey)
-		{
-			closeConsoleAtOnce();
+			close();
 			Environment->removeFocus(this);
 			// the_game will open the pause menu
 			return true;
@@ -452,10 +427,7 @@ bool GUIChatConsole::OnEvent(const SEvent& event)
 			std::string text = wide_to_narrow(m_chat_backend->getPrompt().submit());
 			m_client->typeChatMessage(text);
 
-			if (m_close_on_return) {
-				closeConsole();
-				Environment->removeFocus(this);
-			}
+            Environment->removeFocus(this);
 			return true;
 		}
 		else if(event.KeyInput.Key == KEY_UP && event.KeyInput.Char == 0)

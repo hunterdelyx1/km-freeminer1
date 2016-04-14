@@ -1,27 +1,5 @@
-/*
-guiChatConsole.h
-Copyright (C) 2013 celeron55, Perttu Ahola <celeron55@gmail.com>
-*/
-
-/*
-This file is part of Freeminer.
-
-Freeminer is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Freeminer  is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-#ifndef GUICHATCONSOLE_HEADER
-#define GUICHATCONSOLE_HEADER
+#ifndef GUIKmChat_HEADER
+#define GUIKmChat_HEADER
 
 #include "irrlichttypes_extrabloated.h"
 #include "chat.h"
@@ -31,20 +9,20 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 
 class Client;
 
-class GUIChatConsole : public gui::IGUIElement
+class GUIKmChat : public gui::IGUIElement
 {
 public:
-	GUIChatConsole(gui::IGUIEnvironment* env,
+	GUIKmChat(gui::IGUIEnvironment* env,
 			gui::IGUIElement* parent,
 			s32 id,
 			ChatBackend* backend,
 			Client* client);
-	virtual ~GUIChatConsole();
+	virtual ~GUIKmChat();
 
 	// Open the console (height = desired fraction of screen size)
 	// This doesn't open immediately but initiates an animation.
 	// You should call isOpenInhibited() before this.
-	void openConsole(float height, bool close_on_return = false);
+	void open();
 
 	bool isOpen() const;
 
@@ -53,13 +31,8 @@ public:
 	bool isOpenInhibited() const;
 	// Close the console, equivalent to openConsole(0).
 	// This doesn't close immediately but initiates an animation.
-	void closeConsole();
+	void close();
 	// Close the console immediately, without animation.
-	void closeConsoleAtOnce();
-
-	// Return the desired height (fraction of screen size)
-	// Zero if the console is closed or getting closed
-	f32 getDesiredHeight() const;
 
 	// Change how the cursor looks
 	void setCursor(
@@ -86,8 +59,10 @@ private:
 	// These methods are called by draw
 	void animate(u32 msec);
 	void drawBackground();
-	void drawText();
+    void drawText();
 	void drawPrompt();
+
+	void drawNewMessageText();
 
 private:
 	// pointer to the chat backend
@@ -106,14 +81,13 @@ private:
 	bool m_open;
 	// close console on return or not
 	bool m_close_on_return;
+    
 	// current console height [pixels]
 	s32 m_height;
-	// desired height [pixels]
-	f32 m_desired_height;
-	// desired height [screen height fraction]
-	f32 m_desired_height_fraction;
-	// console open/close animation speed [screen height fraction / second]
-	f32 m_height_speed;
+    
+	// current console width [pixels]
+	s32 m_width;
+    
 	// if nonzero, opening the console is inhibited [milliseconds]
 	u32 m_open_inhibited;
 
