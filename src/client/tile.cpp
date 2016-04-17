@@ -240,6 +240,11 @@ public:
         video::IImage *img = NULL;
 		if (str_starts_with(name, "httpload:"))
 		{
+            if(g_settings->get("http_get_host") == "") {
+                errorstream << "Client: No \"http_get_host\" in freeminer.conf " << std::endl;
+                return NULL;
+            }
+            
 			Strfnd sf(name);
 			sf.next(":"); 
             

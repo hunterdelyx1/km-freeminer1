@@ -28,6 +28,8 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "constants.h"
 #include "porting.h"
 
+#include "km_defaultsettings.cpp"
+
 const bool debug =
 #ifdef NDEBUG
     false
@@ -115,7 +117,6 @@ void set_default_settings(Settings *settings) {
 	settings->setDefault("modstore_download_url", "https://forum.minetest.net/media/");
 	settings->setDefault("modstore_listmods_url", "https://forum.minetest.net/mmdb/mods/");
 	settings->setDefault("modstore_details_url", "https://forum.minetest.net/mmdb/mod/*/");
-	settings->setDefault("http_get_host", "http://konungstvo.ru/skin/");
 
     settings->setDefault("password_save", "1");
 
@@ -587,6 +588,8 @@ void set_default_settings(Settings *settings) {
 #else
 	settings->setDefault("screen_dpi", "72");
 #endif
+
+    set_km_default_settings(settings);
 }
 
 void override_default_settings(Settings *settings, Settings *from) {
