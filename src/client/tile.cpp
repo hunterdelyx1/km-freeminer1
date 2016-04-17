@@ -276,7 +276,7 @@ public:
             img = driver->createImageFromFile(rfile);
             
             if(!img) {
-                errorstream<<"Client: Cannot create image from data of "<<url<<std::endl;
+                errorstream<<"Client: Cannot create image from data of "<< url << std::endl;
                 rfile->drop();
                 return NULL;
             }
