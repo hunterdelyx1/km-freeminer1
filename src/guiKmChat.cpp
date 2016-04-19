@@ -78,8 +78,6 @@ GUIKmChat::GUIKmChat(
 }
 
 void GUIKmChat::setFont(int font_size) {
-        std::cout << font_size << std::endl;
-
     if(font_size < 2) font_size = 2;
     if(font_size > 200) font_size = 200;
     
