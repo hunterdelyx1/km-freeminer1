@@ -27,7 +27,7 @@ public:
 	bool isOpen() const;
 
 	// Check if the console should not be opened at the moment
-	// This is to avoid reopening the console immediately after closing
+	// This is to avoid reopening the consol`e immediately after closing
 	bool isOpenInhibited() const;
 	// Close the console, equivalent to openConsole(0).
 	// This doesn't close immediately but initiates an animation.
@@ -53,17 +53,21 @@ public:
 	virtual bool OnEvent(const SEvent& event);
 
 private:
-	void reformatConsole();
-	void recalculateConsolePosition();
+	void reformatChat();
+	void recalculateKmChatPosition();
 
+    void setFont(int font_size);
+    void setRows(int rows);
+    
 	// These methods are called by draw
 	void animate(u32 msec);
+    
+    void drawMessageText();
+    
 	void drawBackground();
-    void drawText();
 	void drawPrompt();
-
-	void drawNewMessageText();
-
+    
+    void drawNewMessageText();
 private:
 	// pointer to the chat backend
 	ChatBackend* m_chat_backend;
@@ -82,11 +86,17 @@ private:
 	// close console on return or not
 	bool m_close_on_return;
     
+    // current console height [rows]
+	s32 m_rows;
+    
 	// current console height [pixels]
 	s32 m_height;
     
 	// current console width [pixels]
 	s32 m_width;
+    
+    // current console width [pixels]
+	s32 m_top_indent;
     
 	// if nonzero, opening the console is inhibited [milliseconds]
 	u32 m_open_inhibited;

@@ -29,6 +29,8 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "util/string.h"
 #include "util/numeric.h"
 
+#include "settings.h"
+
 ChatBuffer::ChatBuffer(u32 scrollback):
 	m_scrollback(scrollback),
 	m_unformatted(),
@@ -673,23 +675,17 @@ void ChatPrompt::clampView()
 ChatBackend::ChatBackend():
 	m_console_buffer(500),
 	m_recent_buffer(500),
-    m_last_msg_time(0),
-	m_prompt(L"]", 500)
+	m_prompt(L"> ", 500)
 {
-    m_last_msg_time = getTimeMs();
+    m_nmsg_time = g_settings->getFloat("km_chat_nmsg_time");
 }
 
 ChatBackend::~ChatBackend(){
 
 }
 
-u32 ChatBackend::get_last_msg_time(){
-    return m_last_msg_time;
-}
-
 void ChatBackend::addMessage(std::wstring name, std::wstring text)
 {
-    m_last_msg_time = getTimeMs();
 	// Note: A message may consist of multiple lines, for example the MOTD.
 	WStrfnd fnd(text);
 	while (!fnd.atend())
@@ -702,7 +698,6 @@ void ChatBackend::addMessage(std::wstring name, std::wstring text)
 
 void ChatBackend::addUnparsedMessage(std::wstring message)
 {
-    m_last_msg_time = getTimeMs();
 	// TODO: Remove the need to parse chat messages client-side, by sending
 	// separate name and text fields in TOCLIENT_CHAT_MESSAGE.
 
@@ -773,7 +768,7 @@ void ChatBackend::clearRecentChat()
 void ChatBackend::step(float dtime)
 {
 	m_recent_buffer.step(dtime);
-	m_recent_buffer.deleteByAge(10.0);
+	m_recent_buffer.deleteByAge(m_nmsg_time);
 
 	// no need to age messages in anything but m_recent_buffer
 }

@@ -269,14 +269,12 @@ public:
 	void scroll(s32 rows);
 	void scrollPageDown();
 	void scrollPageUp();
-
-	//  Last msg time
-    u32 get_last_msg_time();
 private:
-    u32 m_last_msg_time;
 	ChatBuffer m_console_buffer;
 	ChatBuffer m_recent_buffer;
 	ChatPrompt m_prompt;
+    
+    float m_nmsg_time;
 };
 
 #endif

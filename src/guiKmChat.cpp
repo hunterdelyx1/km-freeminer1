@@ -14,6 +14,9 @@
 
 #include "xCGUITTFont.h"
 
+#define PROMPT_TOP_INDENT 0
+#define PROMPT_BOT_INDENT 10
+
 inline u32 clamp_u8(s32 value)
 {
 	return (u32) MYMIN(MYMAX(value, 0), 255);
@@ -35,6 +38,7 @@ GUIKmChat::GUIKmChat(
 	m_animate_time_old(0),
 	m_open(false),
 	m_close_on_return(false),
+	m_rows(0),
 	m_height(0),
     m_width(0),
 	m_open_inhibited(0),
@@ -49,25 +53,36 @@ GUIKmChat::GUIKmChat(
 	m_animate_time_old = getTimeMs();
 
 	// load background settings
-	s32 console_alpha = g_settings->getS32("console_alpha");
-	m_background_color.setAlpha(clamp_u8(console_alpha));
+	s32 backgrount_alpha = g_settings->getS32("km_chat_alpha");
+	m_background_color.setAlpha(clamp_u8(backgrount_alpha));
 
-	// load the background texture depending on settings
-	ITextureSource *tsrc = client->getTextureSource();
-	if (tsrc->isKnownSourceImage("background_chat.jpg")) {
-		m_background = tsrc->getTexture("background_chat.jpg");
-		m_background_color.setRed(255);
-		m_background_color.setGreen(255);
-		m_background_color.setBlue(255);
-	} else {
-		v3f console_color = g_settings->getV3F("console_color");
-		m_background_color.setRed(clamp_u8(myround(console_color.X)));
-		m_background_color.setGreen(clamp_u8(myround(console_color.Y)));
-		m_background_color.setBlue(clamp_u8(myround(console_color.Z)));
-	}
+    v3f console_color = g_settings->getV3F("km_chat_color");
+    m_background_color.setRed(clamp_u8(myround(console_color.X)));
+    m_background_color.setGreen(clamp_u8(myround(console_color.Y)));
+    m_background_color.setBlue(clamp_u8(myround(console_color.Z)));
+    
+	int font_size = g_settings->getS32("km_chat_font_size");
+    setFont(font_size);
+        
+    int rows = g_settings->getS32("km_chat_rows");
+    setRows(rows);
+    
+    // set default cursor options
+	setCursor(true, true, 2.0, 0.1);
+    
+    m_screensize = Environment->getVideoDriver()->getScreenSize();
+    
+    m_width  = 0.65 * m_screensize.X;
+    
+    parent->sendToBack(this);
+}
 
-	m_font = g_fontengine->getFont(FONT_SIZE_UNSPECIFIED, FM_Mono);
-
+void GUIKmChat::setFont(int font_size) {
+    if(font_size < 2) font_size = 2;
+    if(font_size > 200) font_size = 200;
+    
+    m_font = g_fontengine->getFont(font_size, FM_Mono);
+    
 	if (m_font == NULL)
 	{
 		errorstream << "GUIKmChat: Unable to load mono font ";
@@ -78,18 +93,24 @@ GUIKmChat::GUIKmChat(
 		m_fontsize = v2u32(dim.Width, dim.Height);
 		m_font->grab();
 	}
+    
 	m_fontsize.X = MYMAX(m_fontsize.X, 1);
 	m_fontsize.Y = MYMAX(m_fontsize.Y, 1);
+    
+    if (font_size != g_settings->getS32("km_chat_font_size")) {
+        g_settings->set("km_chat_font_size", std::to_string(font_size));
+    }
+}
 
-	// set default cursor options
-	setCursor(true, true, 2.0, 0.1);
+void GUIKmChat::setRows(int rows) {
+    if(rows < 1) rows = 1;
+    if(rows > 500) rows = 500;
     
-    m_screensize = Environment->getVideoDriver()->getScreenSize();
-    m_height = 0.8 * m_screensize.Y;
-    m_width  = 0.65 * m_screensize.X;
+    m_rows = rows;
     
-    
-    parent->sendToBack(this);
+    if (rows != g_settings->getS32("km_chat_rows")) {
+        g_settings->set("km_chat_rows", std::to_string(rows));
+    }
 }
 
 GUIKmChat::~GUIKmChat()
@@ -102,7 +123,7 @@ void GUIKmChat::open()
 {
     m_open = true;
     
-	reformatConsole();
+	reformatChat();
 }
 
 bool GUIKmChat::isOpen() const
@@ -158,11 +179,11 @@ void GUIKmChat::draw()
 		// screen size has changed
 		// scale current console height to new window size
 		if (m_screensize.Y != 0) {
-			m_height = m_height * screensize.Y / m_screensize.Y;
 			m_width  = m_width  * screensize.X / m_screensize.X;
         }
+        
 		m_screensize = screensize;
-		reformatConsole();
+		reformatChat();
 	}
 
 	// Animation
@@ -173,34 +194,37 @@ void GUIKmChat::draw()
 	// Draw console elements if visible
 	if (m_open)
 	{
-		drawBackground();
-		drawText();
-		drawPrompt();
-	} else drawNewMessageText();
-
+        drawPrompt();
+		drawMessageText();
+	} else {
+        drawNewMessageText();
+    }
+    
 	gui::IGUIElement::draw();
 }
 
-void GUIKmChat::reformatConsole()
+void GUIKmChat::reformatChat()
 {
 	s32 cols = m_width / m_fontsize.X - 2; // make room for a margin (looks better)
-	s32 rows = m_height / m_fontsize.Y - 1; // make room for the input prompt
-	if (cols <= 0 || rows <= 0)
-		cols = rows = 0;
+
+	if (cols <= 0)
+		cols = 0;
         
-	m_chat_backend->reformat(cols, rows);
+	m_chat_backend->reformat(cols, m_rows);
 }
 
-void GUIKmChat::recalculateConsolePosition()
+void GUIKmChat::recalculateKmChatPosition()
 {
-	core::rect<s32> rect(0, 0, m_width, m_height);
+	s32 line_height = m_fontsize.Y;
+
+	core::rect<s32> rect(0, m_screensize.Y - ((m_rows + 1) * line_height +  + PROMPT_TOP_INDENT + PROMPT_BOT_INDENT), m_width, m_screensize.Y);
 	DesiredRect = rect;
 	recalculateAbsolutePosition(false);
 }
 
 void GUIKmChat::animate(u32 msec)
 {
-    recalculateConsolePosition();
+    recalculateKmChatPosition();
 
 	// blink the cursor
 	if (m_cursor_blink_speed != 0.0)
@@ -218,56 +242,42 @@ void GUIKmChat::animate(u32 msec)
 		m_open_inhibited = 0;
 }
 
-void GUIKmChat::drawBackground()
-{
-	video::IVideoDriver* driver = Environment->getVideoDriver();
-	if (m_background != NULL)
-	{
-		core::rect<s32> sourcerect(0, -m_height, m_width, 0);
-		driver->draw2DImage(
-			m_background,
-			v2s32(0, 0),
-			sourcerect,
-			&AbsoluteClippingRect,
-			m_background_color,
-			false);
-	}
-	else
-	{
-		driver->draw2DRectangle(
-			m_background_color,
-			core::rect<s32>(0, 0, m_width, m_height),
-			&AbsoluteClippingRect);
-	}
-}
-
-void GUIKmChat::drawText()
+void GUIKmChat::drawMessageText()
 {
 	if (m_font == NULL)
 		return;
-
-	irr::gui::CGUITTFont *tmp = static_cast<irr::gui::CGUITTFont*>(m_font);
+        
+    video::IVideoDriver* driver = Environment->getVideoDriver();
+	irr::gui::CGUITTFont *font = static_cast<irr::gui::CGUITTFont*>(m_font);
 
 	ChatBuffer& buf = m_chat_backend->getConsoleBuffer();
 
 	for (u32 row = 0; row < buf.getRows(); ++row)
 	{
 		const ChatFormattedLine& line = buf.getFormattedLine(row);
-		if (line.fragments.empty())
-			continue;
 
 		s32 line_height = m_fontsize.Y;
-		s32 y = row * line_height;
+		s32 y = m_screensize.Y - ((m_rows - row + 1) * line_height + 2 *  + PROMPT_TOP_INDENT + PROMPT_BOT_INDENT);
+        
+        driver->draw2DRectangle(
+            m_background_color,
+            core::rect<s32>(0, y, m_width, y + line_height),
+            &AbsoluteClippingRect);
+        
+		if (line.fragments.empty())
+			continue;
+            
 		if (y + line_height < 0)
 			continue;
-
+                
 		for (u32 i = 0; i < line.fragments.size(); ++i)
 		{
 			const ChatFormattedFragment& fragment = line.fragments[i];
 			s32 x = (fragment.column + 1) * m_fontsize.X;
 			core::rect<s32> destrect(
 				x, y, x + m_fontsize.X * fragment.text.size(), y + m_fontsize.Y);
-			tmp->draw(
+
+			font->draw(
 				fragment.text.c_str(),
 				destrect,
 				fragment.text.getColors(),
@@ -282,8 +292,9 @@ void GUIKmChat::drawNewMessageText()
 {
 	if (m_font == NULL)
 		return;
-
-	irr::gui::CGUITTFont *tmp = static_cast<irr::gui::CGUITTFont*>(m_font);
+        
+    video::IVideoDriver* driver = Environment->getVideoDriver();
+	irr::gui::CGUITTFont *font = static_cast<irr::gui::CGUITTFont*>(m_font);
 
 	ChatBuffer& buf = m_chat_backend->getRecentBuffer();
     buf.scrollBottom();
@@ -291,14 +302,21 @@ void GUIKmChat::drawNewMessageText()
 	for (u32 row = 0; row < buf.getRows(); ++row)
 	{
 		const ChatFormattedLine& line = buf.getFormattedLine(row);
+        
 		if (line.fragments.empty())
 			continue;
 
 		s32 line_height = m_fontsize.Y;
-		s32 y = row * line_height;
+		s32 y = m_screensize.Y - ((m_rows - row + 1) * line_height + 2 *  + PROMPT_TOP_INDENT + PROMPT_BOT_INDENT);
+        
+        driver->draw2DRectangle(
+            m_background_color,
+            core::rect<s32>(0, y, m_width, y + line_height),
+            &AbsoluteClippingRect);
+            
 		if (y + line_height < 0)
 			continue;
-        
+                
 		for (u32 i = 0; i < line.fragments.size(); ++i)
 		{
 			const ChatFormattedFragment& fragment = line.fragments[i];
@@ -306,7 +324,7 @@ void GUIKmChat::drawNewMessageText()
 			core::rect<s32> destrect(
 				x, y, x + m_fontsize.X * fragment.text.size(), y + m_fontsize.Y);
 
-			tmp->draw(
+			font->draw(
 				fragment.text.c_str(),
 				destrect,
 				fragment.text.getColors(),
@@ -322,12 +340,18 @@ void GUIKmChat::drawPrompt()
 	if (m_font == NULL)
 		return;
 
-	u32 row = m_chat_backend->getConsoleBuffer().getRows();
+    video::IVideoDriver* driver = Environment->getVideoDriver();
+
 	s32 line_height = m_fontsize.Y;
-	s32 y = row * line_height;
+	s32 y = m_screensize.Y - (line_height +  + PROMPT_TOP_INDENT + PROMPT_BOT_INDENT);
 
 	ChatPrompt& prompt = m_chat_backend->getPrompt();
 	std::wstring prompt_text = prompt.getVisiblePortion();
+
+    driver->draw2DRectangle(
+        m_background_color,
+        core::rect<s32>(0, y, m_width, y + line_height),
+        &AbsoluteClippingRect);
 
 	// FIXME Draw string at once, not character by character
 	// That will only work with the cursor once we have a monospace font
@@ -337,6 +361,7 @@ void GUIKmChat::drawPrompt()
 		s32 x = (1 + i) * m_fontsize.X;
 		core::rect<s32> destrect(
 			x, y, x + m_fontsize.X, y + m_fontsize.Y);
+
 		m_font->draw(
 			ws,
 			destrect,
@@ -562,6 +587,30 @@ bool GUIKmChat::OnEvent(const SEvent& event)
 			m_chat_backend->getPrompt().nickCompletion(names, backwards);
 			return true;
 		}
+        else if((event.KeyInput.Key == KEY_PLUS or event.KeyInput.Key == KEY_MINUS) && event.KeyInput.Control)
+		{
+            if(event.KeyInput.Key == KEY_PLUS) {
+                setFont(g_settings->getS32("km_font_size") + 1);
+            }
+            else {
+                setFont(g_settings->getS32("km_font_size") - 1);
+            }
+            
+            reformatChat();
+            recalculateKmChatPosition();
+        }
+        else if((event.KeyInput.Key == KEY_PRIOR or event.KeyInput.Key == KEY_NEXT) && event.KeyInput.Control)
+		{
+            if(event.KeyInput.Key == KEY_PRIOR) {
+                setRows(g_settings->getS32("km_chat_rows") + 1);
+            }
+            else {
+                setRows(g_settings->getS32("km_chat_rows") - 1);
+            }
+            
+            reformatChat();
+            recalculateKmChatPosition();
+        }
 		else if(event.KeyInput.Char != 0 && !event.KeyInput.Control)
 		{
 			#if (defined(linux) || defined(__linux) || defined(__FreeBSD__)) and IRRLICHT_VERSION_10000 < 10900
