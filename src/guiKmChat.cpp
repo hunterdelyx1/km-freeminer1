@@ -78,6 +78,8 @@ GUIKmChat::GUIKmChat(
 }
 
 void GUIKmChat::setFont(int font_size) {
+        std::cout << font_size << std::endl;
+
     if(font_size < 2) font_size = 2;
     if(font_size > 200) font_size = 200;
     
@@ -590,10 +592,10 @@ bool GUIKmChat::OnEvent(const SEvent& event)
         else if((event.KeyInput.Key == KEY_PLUS or event.KeyInput.Key == KEY_MINUS) && event.KeyInput.Control)
 		{
             if(event.KeyInput.Key == KEY_PLUS) {
-                setFont(g_settings->getS32("km_font_size") + 1);
+                setFont(g_settings->getS32("km_chat_font_size") + 1);
             }
             else {
-                setFont(g_settings->getS32("km_font_size") - 1);
+                setFont(g_settings->getS32("km_chat_font_size") - 1);
             }
             
             reformatChat();
