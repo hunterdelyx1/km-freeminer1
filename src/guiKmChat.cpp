@@ -203,7 +203,7 @@ void GUIKmChat::reformatChat()
 	if (cols <= 0)
 		cols = 0;
         
-	m_chat_backend->reformat(cols, m_rows);
+	m_chat_backend->reformatChat(cols, m_rows);
 }
 
 void GUIKmChat::recalculateKmChatPosition()
@@ -243,7 +243,7 @@ void GUIKmChat::drawMessageText()
     video::IVideoDriver* driver = Environment->getVideoDriver();
 	irr::gui::CGUITTFont *font = static_cast<irr::gui::CGUITTFont*>(m_font);
 
-	ChatBuffer& buf = m_chat_backend->getConsoleBuffer();
+	ChatBuffer& buf = m_chat_backend->getChatBuffer();
 
 	for (u32 row = 0; row < buf.getRows(); ++row)
 	{
@@ -430,12 +430,12 @@ bool GUIKmChat::OnEvent(const SEvent& event)
 			// the_game will open the pause menu
 			return true;
 		}
-		else if(event.KeyInput.Key == KEY_PRIOR && event.KeyInput.Char == 0)
+		else if(event.KeyInput.Key == KEY_PRIOR && event.KeyInput.Char == 0 && !event.KeyInput.Control)
 		{
 			m_chat_backend->scrollPageUp();
 			return true;
 		}
-		else if(event.KeyInput.Key == KEY_NEXT && event.KeyInput.Char == 0)
+		else if(event.KeyInput.Key == KEY_NEXT && event.KeyInput.Char == 0 && !event.KeyInput.Control)
 		{
 			m_chat_backend->scrollPageDown();
 			return true;

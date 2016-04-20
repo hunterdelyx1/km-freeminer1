@@ -249,6 +249,9 @@ public:
 
 	// Get the console buffer
 	ChatBuffer& getConsoleBuffer();
+    
+	// Get the chat buffer
+	ChatBuffer& getChatBuffer();
 	// Get the recent messages buffer
 	ChatBuffer& getRecentBuffer();
 	// Concatenate all recent messages
@@ -258,7 +261,10 @@ public:
 
 	// Reformat all buffers
 	void reformat(u32 cols, u32 rows);
-
+    
+	// Reformat chat buffers
+    void reformatChat(u32 cols, u32 rows);
+    
 	// Clear all recent messages
 	void clearRecentChat();
 
@@ -271,6 +277,8 @@ public:
 	void scrollPageUp();
 private:
 	ChatBuffer m_console_buffer;
+    
+	ChatBuffer m_chat_buffer;
 	ChatBuffer m_recent_buffer;
 	ChatPrompt m_prompt;
     

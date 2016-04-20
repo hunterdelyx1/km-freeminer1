@@ -674,6 +674,7 @@ void ChatPrompt::clampView()
 
 ChatBackend::ChatBackend():
 	m_console_buffer(500),
+	m_chat_buffer(500),
 	m_recent_buffer(500),
 	m_prompt(L"> ", 500)
 {
@@ -692,7 +693,10 @@ void ChatBackend::addMessage(std::wstring name, std::wstring text)
 	{
 		std::wstring line = fnd.next(L"\n");
 		m_console_buffer.addLine(name, line);
+        
+        m_chat_buffer.addLine(name, line);
 		m_recent_buffer.addLine(name, line);
+        
 	}
 }
 
@@ -717,6 +721,11 @@ void ChatBackend::addUnparsedMessage(std::wstring message)
 
 	// Unable to parse, probably a server message.
 	addMessage(L"", message);
+}
+
+ChatBuffer& ChatBackend::getChatBuffer()
+{
+	return m_chat_buffer;
 }
 
 ChatBuffer& ChatBackend::getConsoleBuffer()
@@ -749,15 +758,20 @@ ChatPrompt& ChatBackend::getPrompt()
 	return m_prompt;
 }
 
-void ChatBackend::reformat(u32 cols, u32 rows)
+void ChatBackend::reformatChat(u32 cols, u32 rows)
 {
-	m_console_buffer.reformat(cols, rows);
+	m_chat_buffer.reformat(cols, rows);
 	m_recent_buffer.reformat(cols, rows);
 
 	// no need to reformat m_recent_buffer, its formatted lines
 	// are not used
 
 	m_prompt.reformat(cols);
+}
+
+void ChatBackend::reformat(u32 cols, u32 rows)
+{
+	m_console_buffer.reformat(cols, rows);
 }
 
 void ChatBackend::clearRecentChat()
@@ -776,19 +790,23 @@ void ChatBackend::step(float dtime)
 void ChatBackend::scroll(s32 rows)
 {
 	m_console_buffer.scroll(rows);
+    
+	m_chat_buffer.scroll(rows);
     m_recent_buffer.scroll(rows);
-
 }
 
 void ChatBackend::scrollPageDown()
 {
 	m_console_buffer.scroll(m_console_buffer.getRows());
+    
+    m_chat_buffer.scroll(m_chat_buffer.getRows());
     m_recent_buffer.scroll(m_recent_buffer.getRows());
-
 }
 
 void ChatBackend::scrollPageUp()
 {
 	m_console_buffer.scroll(-(s32)m_console_buffer.getRows());
+    
+    m_chat_buffer.scroll(-(s32)m_chat_buffer.getRows());
     m_recent_buffer.scroll(-(s32)m_recent_buffer.getRows());
 }
