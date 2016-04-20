@@ -70,10 +70,6 @@ GUIKmChat::GUIKmChat(
     // set default cursor options
 	setCursor(true, true, 2.0, 0.1);
     
-    m_screensize = Environment->getVideoDriver()->getScreenSize();
-    
-    m_width  = 0.65 * m_screensize.X;
-    
     parent->sendToBack(this);
 }
 
@@ -169,20 +165,17 @@ void GUIKmChat::draw()
 {
 	if(!IsVisible)
 		return;
+    
+    reformatChat();
 
 	video::IVideoDriver* driver = Environment->getVideoDriver();
 
 	// Check screen size
 	v2u32 screensize = driver->getScreenSize();
 	if (screensize != m_screensize)
-	{
-		// screen size has changed
-		// scale current console height to new window size
-		if (m_screensize.Y != 0) {
-			m_width  = m_width  * screensize.X / m_screensize.X;
-        }
-        
+	{       
 		m_screensize = screensize;
+        m_width  = 0.65 * m_screensize.X;
 		reformatChat();
 	}
 
