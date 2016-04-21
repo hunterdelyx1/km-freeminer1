@@ -117,6 +117,7 @@ ItemStack::ItemStack(std::string name_, u16 count_,
 		IItemDefManager *itemdef)
 {
 	name = itemdef->getAlias(name_);
+    inventoryLabel = "";
 	count = count_;
 	wear = wear_;
 	metadata = metadata_;
@@ -338,8 +339,11 @@ ItemStack ItemStack::addItem(const ItemStack &newitem_,
 		*this = newitem;
 		newitem.clear();
 	}
+    
 	// If item name differs, bail out
-	else if(name != newitem.name)
+	else if(name != newitem.name or
+            inventoryLabel != newitem.inventoryLabel or
+            metadata != newitem.metadata)
 	{
 		// cannot be added
 	}
@@ -378,7 +382,9 @@ bool ItemStack::itemFits(const ItemStack &newitem_,
 		newitem.clear();
 	}
 	// If item name differs, bail out
-	else if(name != newitem.name)
+	else if(name != newitem.name or
+            inventoryLabel != newitem.inventoryLabel or
+            metadata != newitem.metadata)
 	{
 		// cannot be added
 	}
