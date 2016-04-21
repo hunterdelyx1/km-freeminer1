@@ -2229,11 +2229,12 @@ void GUIFormSpecMenu::drawList(const ListDrawSpec &s, int phase)
                 std::string name = item.getDefinition(m_gamedef->idef()).description;
                 
                 if (item.inventoryLabel != "") {
-                    if(str_starts_with(item.inventoryLabel, "--")) {
-                        tooltip_text = item.inventoryLabel;
-                        tooltip_text.erase(0, 2);
-                    }
-                    else {
+                    //if(str_starts_with(item.inventoryLabel, "--")) {
+                        //tooltip_text = item.inventoryLabel;
+                        //tooltip_text.erase(0, 2);
+                    //}
+                    //else 
+                    {
                         tooltip_text = name + "\n" + item.inventoryLabel;
                     }
                 }
