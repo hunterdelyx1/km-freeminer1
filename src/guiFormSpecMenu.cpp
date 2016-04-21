@@ -2225,8 +2225,22 @@ void GUIFormSpecMenu::drawList(const ListDrawSpec &s, int phase)
 
 			// Draw tooltip
 			std::string tooltip_text = "";
-			if (hovering && !m_selected_item)
-				tooltip_text = item.getDefinition(m_gamedef->idef()).description;
+			if (hovering && !m_selected_item) {
+                std::string name = item.getDefinition(m_gamedef->idef()).description;
+                
+                if (item.inventoryLabel != "") {
+                    if(str_starts_with(item.inventoryLabel, "--")) {
+                        tooltip_text = item.inventoryLabel;
+                        tooltip_text.erase(0, 2);
+                    }
+                    else {
+                        tooltip_text = name + "\n" + item.inventoryLabel;
+                    }
+                }
+                else tooltip_text = name;
+                
+                // IMPORTANT PLACE
+            }
 			if (tooltip_text != "") {
 				std::vector<std::string> tt_rows = str_split(tooltip_text, '\n');
 				m_tooltip_element->setBackgroundColor(m_default_tooltip_bgcolor);
@@ -2235,7 +2249,7 @@ void GUIFormSpecMenu::drawList(const ListDrawSpec &s, int phase)
 				this->bringToFront(m_tooltip_element);
 				m_tooltip_element->setText(utf8_to_wide(tooltip_text).c_str());
 				s32 tooltip_width = m_tooltip_element->getTextWidth() + m_btn_height;
-				s32 tooltip_height = m_tooltip_element->getTextHeight() * tt_rows.size() + 5;
+				s32 tooltip_height = m_tooltip_element->getTextHeight() + 5;
 				v2u32 screenSize = driver->getScreenSize();
 				int tooltip_offset_x = m_btn_height;
 				int tooltip_offset_y = m_btn_height;

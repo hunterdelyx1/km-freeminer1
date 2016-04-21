@@ -78,6 +78,31 @@ int LuaItemStack::l_set_name(lua_State *L)
 	return 1;
 }
 
+// get_inventory_label(self) -> string
+int LuaItemStack::l_get_inventory_label(lua_State *L)
+{
+	NO_MAP_LOCK_REQUIRED;
+	LuaItemStack *o = checkobject(L, 1);
+	ItemStack &item = o->m_stack;
+	lua_pushlstring(L, item.inventoryLabel.c_str(), item.inventoryLabel.size());
+	return 1;
+}
+
+// set_inventory_label(self, string)
+int LuaItemStack::l_set_inventory_label(lua_State *L)
+{
+	NO_MAP_LOCK_REQUIRED;
+	LuaItemStack *o = checkobject(L, 1);
+	ItemStack &item = o->m_stack;
+
+	size_t len = 0;
+	const char *ptr = luaL_checklstring(L, 2, &len);
+	item.inventoryLabel.assign(ptr, len);
+    
+	lua_pushboolean(L, true);
+	return 1;
+}
+
 // get_count(self) -> number
 int LuaItemStack::l_get_count(lua_State *L)
 {
@@ -442,6 +467,8 @@ const luaL_reg LuaItemStack::methods[] = {
 	luamethod(LuaItemStack, is_empty),
 	luamethod(LuaItemStack, get_name),
 	luamethod(LuaItemStack, set_name),
+	luamethod(LuaItemStack, get_inventory_label),
+	luamethod(LuaItemStack, set_inventory_label),
 	luamethod(LuaItemStack, get_count),
 	luamethod(LuaItemStack, set_count),
 	luamethod(LuaItemStack, get_wear),

@@ -47,6 +47,12 @@ private:
 	// set_name(self, name)
 	static int l_set_name(lua_State *L);
 
+	// get_inventory_label(self) -> string
+	static int l_get_inventory_label(lua_State *L);
+
+	// set_inventory_label(self, string)
+	static int l_set_inventory_label(lua_State *L);
+
 	// get_count(self) -> number
 	static int l_get_count(lua_State *L);
 
