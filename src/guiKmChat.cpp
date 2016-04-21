@@ -118,7 +118,8 @@ GUIKmChat::~GUIKmChat()
 void GUIKmChat::open()
 {
     m_open = true;
-    
+    m_client->sendChatOpened(true);
+
 	reformatChat();
 }
 
@@ -135,6 +136,7 @@ bool GUIKmChat::isOpenInhibited() const
 void GUIKmChat::close()
 {
 	m_open = false;
+    m_client->sendChatOpened(false);
 }
 
 void GUIKmChat::setCursor(
