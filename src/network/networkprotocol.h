@@ -1294,4 +1294,10 @@ const static std::string accessDeniedStrings[SERVER_ACCESSDENIED_MAX] = {
 	"This server has experienced an internal error. You will now be disconnected."
 };
 
+
+#define TOSERVER_IS_CHAT_OPENED 0x666
+enum {
+	TOSERVER_IS_OPENED
+};
+
 #endif

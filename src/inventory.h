@@ -35,7 +35,7 @@ struct ToolCapabilities;
 
 struct ItemStack
 {
-	ItemStack(): name(""), count(0), wear(0), metadata("") {}
+	ItemStack(): name(""), inventoryLabel(""), count(0), wear(0), metadata("") {}
 	ItemStack(std::string name_, u16 count_,
 			u16 wear, std::string metadata_,
 			IItemDefManager *itemdef);
@@ -62,7 +62,8 @@ struct ItemStack
 	void clear()
 	{
 		name = "";
-		count = 0;
+        inventoryLabel = "";
+    	count = 0;
 		wear = 0;
 		metadata = "";
 	}
@@ -168,6 +169,7 @@ struct ItemStack
 		Properties
 	*/
 	std::string name;
+	std::string inventoryLabel;
 	u16 count;
 	u16 wear;
 	std::string metadata;

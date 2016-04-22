@@ -498,6 +498,7 @@ void Server::handleCommand_PlayerPos(NetworkPacket* pkt) {
 		return;
 	}
 
+	if(command == TOSERVER_PLAYERPOS)
 	// If player is dead we don't care of this packet
 
 	if (player->hp != 0 && playersao->m_ms_from_last_respawn > 1000)
@@ -1487,4 +1488,11 @@ void Server::handleCommand_Drawcontrol(NetworkPacket* pkt) {
 	client->farmesh  = packet[TOSERVER_DRAWCONTROL_FARMESH].as<u8>();
 	client->fov  = packet[TOSERVER_DRAWCONTROL_FOV].as<f32>();
 	//client->block_overflow = packet[TOSERVER_DRAWCONTROL_BLOCK_OVERFLOW].as<bool>();
+//==================================================================================    
+    else if(command == TOSERVER_IS_CHAT_OPENED)
+	{
+        bool chatOpened = packet[TOSERVER_IS_OPENED].as<bool>();
+        player->setChatOpened(chatOpened);
+    }
+//==================================================================================    
 }

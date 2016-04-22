@@ -690,6 +690,8 @@ public:
 	bool use_weather = false;
 	unsigned int overload = 0;
 	void sendDrawControl();
+    
+    void sendChatOpened(bool opened);
 private:
 
 	// Storage for mesh data for creating multiple instances of the same mesh

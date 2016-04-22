@@ -21,7 +21,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <ICameraSceneNode.h>
-#include <ITextSceneNode.h>
+#include <IBillboardTextSceneNode.h>
 #include <IBillboardSceneNode.h>
 #include <IMeshManipulator.h>
 #include <IAnimatedMeshSceneNode.h>
@@ -48,6 +48,8 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "camera.h" // CameraModes
 #include "wieldmesh.h"
 #include "log.h"
+
+#define NICK_SCALE 0.2
 
 class Settings;
 struct ToolCapabilities;
@@ -1822,7 +1824,8 @@ void GenericCAO::processMessage(const std::string &data)
 		readU8(is); // version
 		m_prop.nametag_color = readARGB8(is);
 		if (m_nametag != NULL) {
-			m_nametag->nametag_color = m_prop.nametag_color;
+			m_textnode->setTextColor(m_nametag_color);
+
 		}
 	}
 }
