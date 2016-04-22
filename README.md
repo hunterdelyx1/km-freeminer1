@@ -5,7 +5,6 @@ Kmfreeminer is an open source sandbox game inspired by [Minecraft](https://minec
 Kmfreeminer is based on freeminer which is developed by a [number of contributors](https://github.com/freeminer/freeminer/graphs/contributors) from all over the globe.
 
 ## Installing
-Building from source is only available option now.
 
 ## Default controls
 - `W` `A` `S` `D`: move
