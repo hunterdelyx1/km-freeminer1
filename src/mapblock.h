@@ -34,7 +34,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "nodetimer.h"
 #include "modifiedstate.h"
 #include "util/numeric.h" // getContainerPos
-#include "util/lock.h"
+#include "threading/lock.h"
 #include "settings.h"
 
 class Map;
@@ -74,6 +74,7 @@ enum{
 	// The block and all its neighbors have been generated
 	BLOCKGEN_FULLY_GENERATED=6
 };*/
+static MapNode ignoreNode(CONTENT_IGNORE);
 
 #if 0
 enum
@@ -99,7 +100,7 @@ public:
 			return getNode(p);
 		}
 		catch(InvalidPositionException &e){
-			return MapNode(CONTENT_IGNORE);
+			return ignoreNode;
 		}
 	}
 };
@@ -171,21 +172,22 @@ public:
 			memset(data, 0, nodecount * sizeof(MapNode));
 		else
 		for (u32 i = 0; i < nodecount; i++)
-			data[i] = MapNode(CONTENT_IGNORE);
+			data[i] = ignoreNode;
 	}
 
 	/*
 		Flags
 	*/
 
-	void raiseModified(u32 mod);
+	enum modified_light {modified_light_no = 0, modified_light_yes};
+	void raiseModified(u32 mod, modified_light light = modified_light_no);
 
 	////
 	//// Modification tracking methods
 	////
 	void raiseModified(u32 mod, u32 reason)
 	{
-		raiseModified(mod);
+		raiseModified(mod, modified_light_no);
 #ifdef WTFdebug
 		if (mod > m_modified) {
 			m_modified = mod;
@@ -329,7 +331,7 @@ public:
 		*valid_position = isValidPosition(p.X, p.Y, p.Z);
 
 		if (!*valid_position)
-			return MapNode(CONTENT_IGNORE);
+			return ignoreNode;
 
 		auto lock = lock_shared_rec();
 		return data[p.Z * zstride + p.Y * ystride + p.X];
@@ -346,7 +348,7 @@ public:
 	{
 		auto lock = try_lock_shared_rec();
 		if (!lock->owns_lock())
-			return MapNode(CONTENT_IGNORE);
+			return ignoreNode;
 		return getNodeNoLock(p);
 	}
 
@@ -366,7 +368,7 @@ public:
 	MapNode getNodeNoLock(v3POS p)
 	{
 		if (!data)
-			return MapNode(CONTENT_IGNORE);
+			return ignoreNode;
 		return data[p.Z*zstride + p.Y*ystride + p.X];
 	}
 
@@ -378,7 +380,7 @@ public:
 	{
 		*valid_position = data != NULL;
 		if (!valid_position)
-			return MapNode(CONTENT_IGNORE);
+			return ignoreNode;
 
 		auto lock = lock_shared_rec();
 		return data[z * zstride + y * ystride + x];
@@ -488,7 +490,7 @@ public:
 
 	inline void resetUsageTimer()
 	{
-		std::lock_guard<std::mutex> lock(m_usage_timer_mutex);
+		std::lock_guard<Mutex> lock(m_usage_timer_mutex);
 		m_usage_timer = 0;
 	}
 
@@ -496,7 +498,7 @@ public:
 
 	inline float getUsageTimer()
 	{
-		std::lock_guard<std::mutex> lock(m_usage_timer_mutex);
+		std::lock_guard<Mutex> lock(m_usage_timer_mutex);
 		return m_usage_timer;
 	}
 
@@ -549,7 +551,7 @@ public:
 
 	// These don't write or read version by itself
 	// Set disk to true for on-disk format, false for over-the-network format
-	// Precondition: version >= SER_FMT_CLIENT_VER_LOWEST
+	// Precondition: version >= SER_FMT_VER_LOWEST_WRITE
 	void serialize(std::ostream &os, u8 version, bool disk, bool use_content_only = false);
 	// If disk == true: In addition to doing other things, will add
 	// unknown blocks from id-name mapping to wndef
@@ -599,7 +601,7 @@ public:
 #ifndef SERVER // Only on client
 	mesh_type mesh, mesh_old;
 	mesh_type mesh2, mesh4, mesh8, mesh16;
-	unsigned int mesh_size;
+	std::atomic_uint mesh_size;
 #endif
 
 	NodeMetadataList m_node_metadata;
@@ -608,7 +610,9 @@ public:
 	
 	std::atomic_short heat;
 	std::atomic_short humidity;
-	u32 heat_last_update;
+	std::atomic_short heat_add;
+	std::atomic_short humidity_add;
+	std::atomic_ulong heat_last_update;
 	u32 humidity_last_update;
 	float m_uptime_timer_last;
 
@@ -617,7 +621,7 @@ public:
 	u32 m_next_analyze_timestamp;
 	typedef std::list<abm_trigger_one> abm_triggers_type;
 	std::unique_ptr<abm_triggers_type> abm_triggers;
-	std::mutex abm_triggers_mutex;
+	Mutex abm_triggers_mutex;
 	void abmTriggersRun(ServerEnvironment * m_env, u32 time, bool activate = false);
 	u32 m_abm_timestamp;
 
@@ -634,20 +638,8 @@ public:
 	// Set to content type of a node if the block consists solely of nodes of one type, otherwise set to CONTENT_IGNORE
 	content_t content_only;
 	u8 content_only_param1, content_only_param2;
-	content_t analyzeContent() {
-		auto lock = lock_shared_rec();
-		content_only = data[0].param0;
-		content_only_param1 = data[0].param1;
-		content_only_param2 = data[0].param2;
-		for (int i = 1; i<MAP_BLOCKSIZE*MAP_BLOCKSIZE*MAP_BLOCKSIZE; ++i) {
-			if (data[i].param0 != content_only || data[i].param1 != content_only_param1 || data[i].param2 != content_only_param2) {
-				content_only = CONTENT_IGNORE;
-				break;
-			}
-		}
-		return content_only;
-	}
-	std::atomic_bool lighting_broken;
+	content_t analyzeContent();
+	std::atomic_short lighting_broken;
 
 	static const u32 ystride = MAP_BLOCKSIZE;
 	static const u32 zstride = MAP_BLOCKSIZE * MAP_BLOCKSIZE;
@@ -726,7 +718,7 @@ private:
 		Map will unload the block when this reaches a timeout.
 	*/
 	float m_usage_timer;
-	std::mutex m_usage_timer_mutex;
+	Mutex m_usage_timer_mutex;
 
 	/*
 		Reference count; currently used for determining if this block is in
@@ -736,6 +728,18 @@ private:
 };
 
 typedef std::vector<MapBlock*> MapBlockVect;
+
+inline bool objectpos_over_limit(v3f p)
+{
+	const static float map_gen_limit_bs = MYMIN(MAX_MAP_GENERATION_LIMIT,
+		g_settings->getU16("map_generation_limit")) * BS;
+	return (p.X < -map_gen_limit_bs
+		|| p.X >  map_gen_limit_bs
+		|| p.Y < -map_gen_limit_bs
+		|| p.Y >  map_gen_limit_bs
+		|| p.Z < -map_gen_limit_bs
+		|| p.Z >  map_gen_limit_bs);
+}
 
 inline bool blockpos_over_limit(v3s16 p)
 {

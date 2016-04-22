@@ -21,12 +21,17 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #error This file may only be compiled for android!
 #endif
 
+#include "util/numeric.h"
 #include "porting.h"
 #include "porting_android.h"
+#include "threading/thread.h"
 #include "config.h"
 #include "filesys.h"
 #include "log.h"
+
 #include <sstream>
+#include <exception>
+#include <stdlib.h>
 
 #include "settings.h"
 
@@ -41,30 +46,27 @@ void android_main(android_app *app)
 	int retval = 0;
 	porting::app_global = app;
 
-	porting::setThreadName("MainThread");
+	Thread::setName("Main");
 
 	try {
 		app_dummy();
-		char *argv[] = { (char*) "freeminer" };
-		main(sizeof(argv) / sizeof(argv[0]), argv);
-		}
-	catch(BaseException e) {
-		std::stringstream msg;
-		msg << "Exception handled by main: " << e.what();
-		const char* message = msg.str().c_str();
-		__android_log_print(ANDROID_LOG_ERROR, PROJECT_NAME, "%s", message);
-		errorstream << msg.str() << std::endl;
+		char *argv[] = {strdup(PROJECT_NAME), NULL};
+		main(ARRLEN(argv) - 1, argv);
+		free(argv[0]);
+#if !EXEPTION_DEBUG
+	} catch (std::exception &e) {
+		errorstream << "Uncaught exception in main thread: " << e.what() << std::endl;
 		retval = -1;
-	}
-	catch(...) {
-		__android_log_print(ANDROID_LOG_ERROR, PROJECT_NAME,
-				"Some exception occured");
+	} catch (...) {
 		errorstream << "Uncaught exception in main thread!" << std::endl;
 		retval = -1;
+#else
+	} catch (int) { // impossible
+#endif
 	}
 
 	porting::cleanupAndroid();
-	errorstream << "Shutting down freeminer." << std::endl;
+	infostream << "Shutting down." << std::endl;
 	exit(retval);
 }
 
@@ -89,17 +91,6 @@ std::string path_storage = DIR_DELIM "sdcard" DIR_DELIM;
 android_app* app_global;
 JNIEnv*      jnienv;
 jclass       nativeActivity;
-
-void handleAndroidActivityEvents()
-{
-	int ident;
-	int events;
-	struct android_poll_source *source;
-
-	while ( (ident = ALooper_pollOnce(0, NULL, &events, (void**)&source)) >= 0)
-		if (source)
-			source->process(porting::app_global, source);
-}
 
 int android_version_sdk_int = 0;
 
@@ -141,7 +132,7 @@ void initAndroid()
 	JavaVM *jvm = app_global->activity->vm;
 	JavaVMAttachArgs lJavaVMAttachArgs;
 	lJavaVMAttachArgs.version = JNI_VERSION_1_6;
-	lJavaVMAttachArgs.name = "freeminerNativeThread";
+	lJavaVMAttachArgs.name = PROJECT_NAME_C "NativeThread";
 	lJavaVMAttachArgs.group = NULL;
 #ifdef NDEBUG
 	// This is a ugly hack as arm v7a non debuggable builds crash without this
@@ -162,7 +153,7 @@ void initAndroid()
 
 #ifdef GPROF
 	/* in the start-up code */
-	__android_log_print(ANDROID_LOG_ERROR, PROJECT_NAME,
+	__android_log_print(ANDROID_LOG_ERROR, PROJECT_NAME_C,
 			"Initializing GPROF profiler");
 	monstartup("libfreeminer.so");
 #endif
@@ -199,29 +190,68 @@ void cleanupAndroid()
 	ANativeActivity_finish(app_global->activity);
 }
 
-void setExternalStorageDir(JNIEnv* lJNIEnv)
+static std::string javaStringToUTF8(jstring js)
 {
-	// Android: Retrieve ablsolute path to external storage device (sdcard)
-	jclass ClassEnv      = lJNIEnv->FindClass("android/os/Environment");
-	jmethodID MethodDir  =
-			lJNIEnv->GetStaticMethodID(ClassEnv,
-					"getExternalStorageDirectory","()Ljava/io/File;");
-	jobject ObjectFile   = lJNIEnv->CallStaticObjectMethod(ClassEnv, MethodDir);
-	jclass ClassFile     = lJNIEnv->FindClass("java/io/File");
+	std::string str;
+	// Get string as a UTF-8 c-string
+	const char *c_str = jnienv->GetStringUTFChars(js, NULL);
+	// Save it
+	str = c_str;
+	// And free the c-string
+	jnienv->ReleaseStringUTFChars(js, c_str);
+	return str;
+}
 
-	jmethodID MethodPath =
-			lJNIEnv->GetMethodID(ClassFile, "getAbsolutePath",
-					"()Ljava/lang/String;");
-	jstring StringPath   =
-			(jstring) lJNIEnv->CallObjectMethod(ObjectFile, MethodPath);
+// Calls static method if obj is NULL
+static std::string getAndroidPath(jclass cls, jobject obj, jclass cls_File,
+		jmethodID mt_getAbsPath, const char *getter)
+{
+	// Get getter method
+	jmethodID mt_getter;
+	if (obj)
+		mt_getter = jnienv->GetMethodID(cls, getter,
+				"()Ljava/io/File;");
+	else
+		mt_getter = jnienv->GetStaticMethodID(cls, getter,
+				"()Ljava/io/File;");
 
-	const char *externalPath = lJNIEnv->GetStringUTFChars(StringPath, NULL);
-	std::string userPath(externalPath);
-	lJNIEnv->ReleaseStringUTFChars(StringPath, externalPath);
+	// Call getter
+	jobject ob_file;
+	if (obj)
+		ob_file = jnienv->CallObjectMethod(obj, mt_getter);
+	else
+		ob_file = jnienv->CallStaticObjectMethod(cls, mt_getter);
 
-	path_storage             = userPath;
-	path_user                = userPath + DIR_DELIM + PROJECT_NAME;
-	path_share               = userPath + DIR_DELIM + PROJECT_NAME;
+	// Call getAbsolutePath
+	jstring js_path = (jstring) jnienv->CallObjectMethod(ob_file,
+			mt_getAbsPath);
+
+	return javaStringToUTF8(js_path);
+}
+
+void initializePathsAndroid()
+{
+	// Get Environment class
+	jclass cls_Env = jnienv->FindClass("android/os/Environment");
+	// Get File class
+	jclass cls_File = jnienv->FindClass("java/io/File");
+	// Get getAbsolutePath method
+	jmethodID mt_getAbsPath = jnienv->GetMethodID(cls_File,
+				"getAbsolutePath", "()Ljava/lang/String;");
+
+	path_cache   = getAndroidPath(nativeActivity, app_global->activity->clazz,
+			cls_File, mt_getAbsPath, "getCacheDir");
+	path_storage = getAndroidPath(cls_Env, NULL, cls_File, mt_getAbsPath,
+			"getExternalStorageDirectory");
+/*
+	path_user    = path_storage + DIR_DELIM + PROJECT_NAME_C;
+	path_share   = path_storage + DIR_DELIM + PROJECT_NAME_C;
+*/
+	path_user    = path_storage + DIR_DELIM + PROJECT_NAME;
+	path_share   = path_storage + DIR_DELIM + PROJECT_NAME;
+	path_locale  = path_share + DIR_DELIM + "locale";
+
+	migrateCachePath();
 }
 
 void showInputDialog(const std::string& acceptButton, const  std::string& hint,
@@ -274,7 +304,7 @@ std::string getInputDialogValue()
 	return text;
 }
 
-#if not defined(SERVER)
+#ifndef SERVER
 float getDisplayDensity()
 {
 	static bool firstrun = true;
@@ -289,6 +319,38 @@ float getDisplayDensity()
 		}
 
 		value = jnienv->CallFloatMethod(app_global->activity->clazz, getDensity);
+		firstrun = false;
+	}
+	return value;
+}
+
+float get_dpi() {
+	static bool firstrun = true;
+	static float value = 0;
+
+	if (firstrun) {
+		auto method = jnienv->GetMethodID(nativeActivity, "get_ydpi", "()F");
+
+		if (!method)
+			return 160;
+
+		value = jnienv->CallFloatMethod(app_global->activity->clazz, method);
+		firstrun = false;
+	}
+	return value;
+}
+
+int get_densityDpi() {
+	static bool firstrun = true;
+	static int value = 0;
+
+	if (firstrun) {
+		auto method = jnienv->GetMethodID(nativeActivity, "get_densityDpi", "()I");
+
+		if (!method)
+			return 160;
+
+		value = jnienv->CallFloatMethod(app_global->activity->clazz, method);
 		firstrun = false;
 	}
 	return value;
@@ -324,7 +386,7 @@ v2u32 getDisplaySize()
 	}
 	return retval;
 }
-#endif //SERVER
+#endif // ndef SERVER
 
 
 int canKeyboard() {

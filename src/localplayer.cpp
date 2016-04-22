@@ -47,9 +47,13 @@ LocalPlayer::LocalPlayer(IGameDef *gamedef, const char *name):
 	last_pitch(0),
 	last_yaw(0),
 	last_keyPressed(0),
+	camera_impact(0.f),
 	last_animation(NO_ANIM),
+	/*
 	hotbar_image(""),
+	hotbar_image_items(0),
 	hotbar_selected_image(""),
+	*/
 	light_color(255,255,255,255),
 	m_sneak_node(32767,32767,32767),
 	m_sneak_node_exists(false),
@@ -202,7 +206,7 @@ void LocalPlayer::move(f32 dtime, Environment *env, f32 pos_max_d,
 	*/
 	if (control.sneak && m_sneak_node_exists &&
 			!(fly_allowed && g_settings->getBool("free_move")) && !in_liquid &&
-			physics_override_sneak) {
+			physics_override_sneak && !got_teleported) {
 		f32 maxd = 0.5 * BS + sneak_max;
 		v3f lwn_f = intToFloat(m_sneak_node, BS);
 		auto old_pos = position;
@@ -233,18 +237,22 @@ void LocalPlayer::move(f32 dtime, Environment *env, f32 pos_max_d,
 		}
 	}
 
+	if (got_teleported)
+		got_teleported = false;
+
 	// this shouldn't be hardcoded but transmitted from server
 	float player_stepheight = touching_ground ? (BS*0.6) : (BS*0.2);
 
-	if (control.aux1 || g_settings->getBool("autojump")) {
+	static const auto autojump = g_settings->getBool("autojump");
+	if (control.aux1 || autojump) {
 		player_stepheight += (0.5 * BS);
 	}
 
 	v3f accel_f = v3f(0,0,0);
 
 	collisionMoveResult result = collisionMoveSimple(env, m_gamedef,
-			pos_max_d, m_collisionbox, player_stepheight, dtime,
-			position, m_speed, accel_f);
+		pos_max_d, m_collisionbox, player_stepheight, dtime,
+		&position, &m_speed, accel_f);
 
 	/*
 		If the player's feet touch the topside of any node, this is
@@ -339,7 +347,8 @@ void LocalPlayer::move(f32 dtime, Environment *env, f32 pos_max_d,
 		if (sneak_node_found) {
 			f32 cb_max = 0;
 			MapNode n = map->getNodeNoEx(m_sneak_node);
-			std::vector<aabb3f> nodeboxes = n.getCollisionBoxes(nodemgr);
+			std::vector<aabb3f> nodeboxes;
+			n.getCollisionBoxes(nodemgr, &nodeboxes);
 			for (std::vector<aabb3f>::iterator it = nodeboxes.begin();
 					it != nodeboxes.end(); ++it) {
 				aabb3f box = *it;
@@ -374,7 +383,7 @@ void LocalPlayer::move(f32 dtime, Environment *env, f32 pos_max_d,
 		}
 	}
 
-	if(!touching_ground_was && touching_ground){
+	if(!result.standing_on_object && !touching_ground_was && touching_ground) {
 		MtEvent *e = new SimpleTriggerEvent("PlayerRegainGround");
 		m_gamedef->event()->put(e);
 
@@ -435,7 +444,8 @@ bool LocalPlayer::canPlaceNode(const v3s16& p, const MapNode& n)
 	// NOTE: This is to be eventually implemented by a mod as client-side Lua
 
 	if (m_gamedef->ndef()->get(n).walkable && !noclip && !g_settings->getBool("enable_build_where_you_stand")) {
-		auto nodeboxes = n.getNodeBoxes(m_gamedef->ndef());
+		std::vector<aabb3f> nodeboxes;
+		n.getNodeBoxes(m_gamedef->ndef(), &nodeboxes);
 		aabb3f player_box = m_collisionbox;
 		v3f position(getPosition());
 		v3f node_pos(p.X, p.Y, p.Z);
@@ -575,15 +585,16 @@ void LocalPlayer::applyControl(float dtime, ClientEnvironment *env)
 		}
 	}
 
-	if(continuous_forward)
+	if (continuous_forward)
 		speedH += move_direction;
 
-	if(control.up)
-	{
-		if(continuous_forward)
-			superspeed = true;
-		else
+	if (control.up) {
+		if (continuous_forward) {
+			if (fast_move)
+				superspeed = true;
+		} else {
 			speedH += move_direction;
+		}
 	}
 	if(control.down)
 	{
@@ -669,7 +680,8 @@ void LocalPlayer::applyControl(float dtime, ClientEnvironment *env)
 		// better air control when falling fast
 		float speed = m_speed.getLength();
 		if (!superspeed && speed > movement_speed_fast && (control.down || control.up || control.left || control.right)) {
-			v3f rotate = move_direction * (speed / (BS * 110)); // 80 - good wingsuit
+			v3f rotate = move_direction * (speed / (movement_fall_aerodynamics * BS));
+
 			if(control.up)		rotate = rotate.crossProduct(v3f(0,1,0));
 			if(control.down)	rotate = rotate.crossProduct(v3f(0,-1,0));
 			if(control.left)	rotate *=-1;
@@ -705,3 +717,47 @@ v3s16 LocalPlayer::getStandingNodePos()
 		return m_sneak_node;
 	return floatToInt(getPosition() - v3f(0, BS, 0), BS);
 }
+
+// Horizontal acceleration (X and Z), Y direction is ignored
+void LocalPlayer::accelerateHorizontal(const v3f &target_speed, const f32 max_increase, float slippery)
+{
+        if (max_increase == 0)
+                return;
+
+        v3f d_wanted = target_speed - m_speed;
+
+	if (slippery && !free_move)
+	{
+		if (target_speed == v3f(0))
+			d_wanted = -m_speed*(1-slippery/100)/2;
+		else
+			d_wanted = target_speed*(1-slippery/100) - m_speed*(1-slippery/100);
+	}
+
+        d_wanted.Y = 0;
+        f32 dl = d_wanted.getLength();
+        if (dl > max_increase)
+                dl = max_increase;
+
+        v3f d = d_wanted.normalize() * dl;
+
+        m_speed.X += d.X;
+        m_speed.Z += d.Z;
+
+}
+
+// Vertical acceleration (Y), X and Z directions are ignored
+void LocalPlayer::accelerateVertical(const v3f &target_speed, const f32 max_increase)
+{
+        if (max_increase == 0)
+                return;
+
+        f32 d_wanted = target_speed.Y - m_speed.Y;
+        if (d_wanted > max_increase)
+                d_wanted = max_increase;
+        else if (d_wanted < -max_increase)
+                d_wanted = -max_increase;
+
+        m_speed.Y += d_wanted;
+}
+

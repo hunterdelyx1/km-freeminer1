@@ -34,6 +34,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "fontengine.h"
 #include "clientlauncher.h"
 
+#include "debug.h"
+
 /* mainmenumanager.h
  */
 gui::IGUIEnvironment *guienv = NULL;
@@ -81,6 +83,7 @@ ClientLauncher::~ClientLauncher()
 
 	if (device) {
 		device->closeDevice();
+		device->run();
 		device->drop();
 	}
 }
@@ -94,7 +97,7 @@ bool ClientLauncher::run(GameParams &game_params, const Settings &cmd_args)
 	if (list_video_modes)
 		return print_video_modes();
 
-	if (!init_engine(game_params.log_level)) {
+	if (!init_engine()) {
 		errorstream << "Could not initialize game engine." << std::endl;
 		return false;
 	}
@@ -147,8 +150,6 @@ bool ClientLauncher::run(GameParams &game_params, const Settings &cmd_args)
 	skin->setColor(gui::EGDC_HIGH_LIGHT, video::SColor(255, 56, 121, 65));
 	skin->setColor(gui::EGDC_HIGH_LIGHT_TEXT, video::SColor(255, 255, 255, 255));
 
-	g_fontengine = new FontEngine(g_settings, guienv);
-	FATAL_ERROR_IF(g_fontengine == NULL, "Font engine creation failed.");
 
 #if (IRRLICHT_VERSION_MAJOR >= 1 && IRRLICHT_VERSION_MINOR >= 8) || IRRLICHT_VERSION_MAJOR >= 2
 	// Irrlicht 1.8 input colours
@@ -165,8 +166,15 @@ bool ClientLauncher::run(GameParams &game_params, const Settings &cmd_args)
 	g_menuclouds->update(v2f(0, 0), video::SColor(255, 200, 200, 255));
 	scene::ICameraSceneNode* camera;
 	camera = g_menucloudsmgr->addCameraSceneNode(0,
-				v3f(0, 0, 0), v3f(0, 60, 100));
+				v3f(0, 0, 0), v3f(0, 120, 100));
 	camera->setFarValue(10000);
+
+#ifdef __ANDROID__
+	wait_data();
+#endif
+
+	g_fontengine = new FontEngine(g_settings, guienv);
+	FATAL_ERROR_IF(g_fontengine == NULL, "Font engine creation failed.");
 
 	/*
 		GUI stuff
@@ -194,10 +202,6 @@ bool ClientLauncher::run(GameParams &game_params, const Settings &cmd_args)
 		device->setWindowCaption((utf8_to_wide(PROJECT_NAME_C) + L" [" + text + L"]").c_str());
 		delete[] text;
 
-#ifdef __ANDROID__
-		porting::handleAndroidActivityEvents();
-#endif
-
 		try {	// This is used for catching disconnects
 
 			guienv->clear();
@@ -211,6 +215,9 @@ bool ClientLauncher::run(GameParams &game_params, const Settings &cmd_args)
 
 			bool game_has_run = launch_game(error_message, reconnect_requested,
 				game_params, cmd_args);
+
+			// Reset the reconnect_requested flag
+			reconnect_requested = false;
 
 			// If skip_main_menu, we only want to startup once
 			if (skip_main_menu && !first_loop)
@@ -246,8 +253,10 @@ bool ClientLauncher::run(GameParams &game_params, const Settings &cmd_args)
 					video::ETCF_CREATE_MIP_MAPS, g_settings->getBool("mip_map"));
 
 #ifdef HAVE_TOUCHSCREENGUI
+		if (g_settings->getBool("touchscreen")) {
 			receiver->m_touchscreengui = new TouchScreenGUI(device, receiver);
 			g_touchscreengui = receiver->m_touchscreengui;
+		}
 #endif
 			int tries = simple_singleplayer_mode ? 1 : g_settings->getU16("reconnects");
 			int n = 0;
@@ -288,7 +297,7 @@ bool ClientLauncher::run(GameParams &game_params, const Settings &cmd_args)
 			errorstream << error_message << std::endl;
 		}
 
-#ifdef NDEBUG
+#if !EXEPTION_DEBUG
 		catch (std::exception &e) {
 			std::string error_message = "Some exception: \"";
 			error_message += e.what();
@@ -357,10 +366,10 @@ void ClientLauncher::init_args(GameParams &game_params, const Settings &cmd_args
 	autoexit = autoexit_;
 }
 
-bool ClientLauncher::init_engine(int log_level)
+bool ClientLauncher::init_engine()
 {
 	receiver = new MyEventReceiver();
-	create_engine_device(log_level);
+	create_engine_device();
 	return device != NULL;
 }
 
@@ -372,6 +381,7 @@ bool ClientLauncher::launch_game(std::string &error_message,
 	MainMenuData menudata;
 	menudata.address                         = address;
 	menudata.name                            = playername;
+	menudata.password                        = password;
 	menudata.port                            = itos(game_params.socket_port);
 	menudata.script_data.errormessage        = error_message;
 	menudata.script_data.reconnect_requested = reconnect_requested;
@@ -433,7 +443,7 @@ bool ClientLauncher::launch_game(std::string &error_message,
 	}
 
 	if (menudata.name.empty())
-		playername = menudata.name = std::string("Guest") + itos(myrand_range(10000, 90000));
+		playername = menudata.name = std::string("Guest") + itos(myrand_range(100000, 999999));
 	else
 		playername = menudata.name;
 
@@ -496,7 +506,7 @@ bool ClientLauncher::launch_game(std::string &error_message,
 
 		if (game_params.game_spec.isValid() &&
 				game_params.game_spec.id != worldspec.gameid) {
-			errorstream << "WARNING: Overriding gamespec from \""
+			warningstream << "Overriding gamespec from \""
 			            << worldspec.gameid << "\" to \""
 			            << game_params.game_spec.id << "\"" << std::endl;
 			gamespec = game_params.game_spec;
@@ -515,6 +525,7 @@ bool ClientLauncher::launch_game(std::string &error_message,
 
 void ClientLauncher::main_menu(MainMenuData *menudata)
 {
+	//ServerList::lan_get();
 	bool *kill = porting::signal_handler_killstatus();
 	video::IVideoDriver *driver = device->getVideoDriver();
 
@@ -539,22 +550,12 @@ void ClientLauncher::main_menu(MainMenuData *menudata)
 	GUIEngine mymenu(device, guiroot, &g_menumgr, smgr, menudata, *kill);
 
 	smgr->clear();	/* leave scene manager in a clean state */
+
+	ServerList::lan_adv_client.stop();
 }
 
-bool ClientLauncher::create_engine_device(int log_level)
+bool ClientLauncher::create_engine_device()
 {
-	static const irr::ELOG_LEVEL irr_log_level[5] = {
-		ELL_NONE,
-		ELL_ERROR,
-		ELL_WARNING,
-		ELL_INFORMATION,
-#if (IRRLICHT_VERSION_MAJOR == 1 && IRRLICHT_VERSION_MINOR < 8)
-		ELL_INFORMATION
-#else
-		ELL_DEBUG
-#endif
-	};
-
 	// Resolution selection
 	bool fullscreen = g_settings->getBool("fullscreen");
 	u16 screenW = g_settings->getU16("screenW");
@@ -564,6 +565,9 @@ bool ClientLauncher::create_engine_device(int log_level)
 	bool vsync = g_settings->getBool("vsync");
 	u16 bits = g_settings->getU16("fullscreen_bpp");
 	u16 fsaa = g_settings->getU16("fsaa");
+
+	// stereo buffer required for pageflip stereo
+	bool stereo_buffer = g_settings->get("3d_mode") == "pageflip";
 
 	// Determine driver
 	video::E_DRIVER_TYPE driverType = video::EDT_OPENGL;
@@ -589,12 +593,16 @@ bool ClientLauncher::create_engine_device(int log_level)
 	params.Bits          = bits;
 	params.AntiAlias     = fsaa;
 	params.Fullscreen    = fullscreen;
-	params.Stencilbuffer = false;
+	params.Stencilbuffer = g_settings->getBool("shadows");
+	params.Stereobuffer  = stereo_buffer;
 	params.Vsync         = vsync;
 	params.EventReceiver = receiver;
 	params.HighPrecisionFPU = g_settings->getBool("high_precision_fpu");
+	params.ZBufferBits   = 24;
 #ifdef __ANDROID__
 	params.PrivateData = porting::app_global;
+#endif
+#if defined(_IRR_COMPILE_WITH_OGLES2_)
 	params.OGLES2ShaderPath = std::string(porting::path_user + DIR_DELIM +
 			"media" + DIR_DELIM + "Shaders" + DIR_DELIM).c_str();
 #endif
@@ -602,10 +610,6 @@ bool ClientLauncher::create_engine_device(int log_level)
 	device = createDeviceEx(params);
 
 	if (device) {
-		// Map our log level to irrlicht engine one.
-		ILogger* irr_logger = device->getLogger();
-		irr_logger->setLogLevel(irr_log_level[log_level]);
-
 		porting::initIrrlicht(device);
 	}
 
@@ -692,14 +696,14 @@ void ClientLauncher::speed_tests()
 		infostream << "Around 5000/ms should do well here." << std::endl;
 		TimeTaker timer("Testing mutex speed");
 
-		JMutex m;
+		Mutex m;
 		u32 n = 0;
 		u32 i = 0;
 		do {
 			n += 10000;
 			for (; i < n; i++) {
-				m.Lock();
-				m.Unlock();
+				m.lock();
+				m.unlock();
 			}
 		}
 		// Do at least 10ms
@@ -737,7 +741,7 @@ bool ClientLauncher::print_video_modes()
 		return false;
 	}
 
-	dstream << _("Available video modes (WxHxD):") << std::endl;
+	std::cout << _("Available video modes (WxHxD):") << std::endl;
 
 	video::IVideoModeList *videomode_list = nulldevice->getVideoModeList();
 
@@ -748,14 +752,14 @@ bool ClientLauncher::print_video_modes()
 		for (s32 i = 0; i < videomode_count; ++i) {
 			videomode_res = videomode_list->getVideoModeResolution(i);
 			videomode_depth = videomode_list->getVideoModeDepth(i);
-			dstream << videomode_res.Width << "x" << videomode_res.Height
+			std::cout << videomode_res.Width << "x" << videomode_res.Height
 			        << "x" << videomode_depth << std::endl;
 		}
 
-		dstream << _("Active video mode (WxHxD):") << std::endl;
+		std::cout << _("Active video mode (WxHxD):") << std::endl;
 		videomode_res = videomode_list->getDesktopResolution();
 		videomode_depth = videomode_list->getDesktopDepth();
-		dstream << videomode_res.Width << "x" << videomode_res.Height
+		std::cout << videomode_res.Width << "x" << videomode_res.Height
 		        << "x" << videomode_depth << std::endl;
 
 	}
@@ -764,4 +768,46 @@ bool ClientLauncher::print_video_modes()
 	delete receiver;
 
 	return videomode_list != NULL;
+}
+
+
+//freeminer:
+void ClientLauncher::wait_data() {
+	device->run();
+	bool wait = false;
+	std::vector<std::string> check_path { porting::path_share + DIR_DELIM + "builtin" + DIR_DELIM + "init.lua", g_settings->get("font_path") };
+	for (auto p : check_path)
+		if (!fs::PathExists(p)) {
+			wait = true;
+			break;
+		}
+	bool &kill = *porting::signal_handler_killstatus();
+	for (int i = 0; i < 1000; ++i) { // 100s max
+		if (i || wait) {
+			auto driver = device->getVideoDriver();
+			g_menuclouds->step(4);
+			driver->beginScene(true, true, video::SColor(255, 140, 186, 250));
+			g_menucloudsmgr->drawAll();
+			guienv->drawAll();
+			driver->endScene();
+			device->run();
+			device->sleep(100);
+		}
+		int no = 0;
+		if (! (i % 10) ) { //every second
+			for (auto p : check_path)
+				if (!fs::PathExists(p)) {
+					++no;
+					break;
+				}
+			if (!no || kill || !device->run())
+				break;
+			infostream << "waiting assets i= " << i << " path="<< porting::path_share << std::endl;
+		}
+	}
+
+	if (wait) {
+		device->run();
+		device->sleep(300);
+	}
 }

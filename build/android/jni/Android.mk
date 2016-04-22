@@ -10,7 +10,7 @@ include $(PREBUILT_STATIC_LIBRARY)
 ifeq ($(HAVE_LEVELDB), 1)
 	include $(CLEAR_VARS)
 	LOCAL_MODULE := LevelDB
-	LOCAL_SRC_FILES := deps/leveldb/libleveldb.a
+	LOCAL_SRC_FILES := deps/leveldb/out-static/libleveldb.a
 	include $(PREBUILT_STATIC_LIBRARY)
 endif
 
@@ -65,7 +65,7 @@ include $(PREBUILT_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := msgpack
-LOCAL_SRC_FILES := deps/msgpack/libmsgpack.a
+LOCAL_SRC_FILES := deps/msgpack/libmsgpackc.a
 include $(PREBUILT_STATIC_LIBRARY)
 
 ifeq ($(USE_LUAJIT), 1)
@@ -77,6 +77,7 @@ endif
 
 ifeq ($(USE_ENET), 1)
 include $(CLEAR_VARS)
+LOCAL_CFLAGS := -DHAS_INET_PTON=1 -DHAS_INET_NTOP=1 -DHAS_GETHOSTBYNAME_R=1 -DHAS_GETADDRINFO=1 -DHAS_GETNAMEINFO=1 -DHAS_FCNTL=1 -DHAS_POLL=1 -DHAS_MSGHDR_FLAGS=1 -DHAS_SOCKLEN_T=1
 LOCAL_MODULE := enet
 LOCAL_C_INCLUDES := jni/src/enet/include
 LOCAL_SRC_FILES := $(wildcard $(LOCAL_PATH)/jni/src/enet/*.c)
@@ -111,9 +112,9 @@ LOCAL_CFLAGS := -D_IRR_ANDROID_PLATFORM_      \
 				-DUSE_FREETYPE=1              \
 				-DUSE_LEVELDB=$(HAVE_LEVELDB) \
 				$(GPROF_DEF)                  \
-				-DHAS_INET_PTON=1 -DHAS_INET_NTOP=1 -DHAS_GETHOSTBYNAME_R=1 -DHAS_GETADDRINFO=1 -DHAS_GETNAMEINFO=1 -DHAS_FCNTL=1 -DHAS_POLL=1 -DHAS_MSGHDR_FLAGS=1 \
 				-DUSE_MANDELBULBER=1 \
 				-DHAVE_THREAD_LOCAL=1 \
+				-DGAMES_VERSION=\"$(GAMES_VERSION)\" \
 				-DUSE_GETTEXT=1 \
 				-DPROJECT_NAME_C=\"$(PROJECT_NAME_C)\" \
 				-pipe -fstrict-aliasing
@@ -124,7 +125,7 @@ LOCAL_CFLAGS := -D_IRR_ANDROID_PLATFORM_      \
 ifndef NDEBUG
 LOCAL_CFLAGS += -g -D_DEBUG -O0 -fno-omit-frame-pointer
 else
-LOCAL_CFLAGS += -fexpensive-optimizations -O3
+LOCAL_CFLAGS += -O3
 endif
 
 ifdef GPROF
@@ -167,12 +168,27 @@ LOCAL_SRC_FILES +=                                \
 		jni/src/guiTextInputMenu.cpp              \
 		jni/src/FMColoredString.cpp               \
 		jni/src/FMStaticText.cpp                  \
-		jni/src/fmbitset.cpp                      \
+		jni/src/fm_bitset.cpp                     \
 		jni/src/fm_liquid.cpp                     \
 		jni/src/fm_map.cpp                        \
 		jni/src/key_value_storage.cpp             \
 		jni/src/log_types.cpp                     \
-		jni/src/areastore.cpp                     \
+		jni/src/mapgen_indev.cpp                  \
+		jni/src/mapgen_math.cpp                   \
+		jni/src/threading/lock.cpp                \
+		jni/src/threading/thread_pool.cpp         \
+		jni/src/circuit.cpp                       \
+		jni/src/circuit_element_virtual.cpp       \
+		jni/src/circuit_element.cpp               \
+		jni/src/stat.cpp                          \
+		jni/src/contrib/environment.cpp           \
+		jni/src/contrib/fallingsao.cpp            \
+		jni/src/contrib/itemsao.cpp               \
+		jni/src/contrib/l_env.cpp                 \
+		jni/src/network/fm_lan.cpp                \
+
+
+LOCAL_SRC_FILES +=                                \
 		jni/src/ban.cpp                           \
 		jni/src/camera.cpp                        \
 		jni/src/cavegen.cpp                       \
@@ -233,12 +249,13 @@ LOCAL_SRC_FILES +=                                \
 		jni/src/mapblock.cpp                      \
 		jni/src/mapblock_mesh.cpp                 \
 		jni/src/mapgen.cpp                        \
-		jni/src/mapgen_indev.cpp                  \
-		jni/src/mapgen_math.cpp                   \
+		jni/src/mapgen_flat.cpp                   \
+		jni/src/mapgen_fractal.cpp                \
 		jni/src/mapgen_singlenode.cpp             \
 		jni/src/mapgen_v5.cpp                     \
 		jni/src/mapgen_v6.cpp                     \
 		jni/src/mapgen_v7.cpp                     \
+		jni/src/mapgen_valleys.cpp                \
 		jni/src/mapnode.cpp                       \
 		jni/src/mapsector.cpp                     \
 		jni/src/mesh.cpp                          \
@@ -280,6 +297,7 @@ LOCAL_SRC_FILES +=                                \
 		jni/src/version.cpp                       \
 		jni/src/voxel.cpp                         \
 		jni/src/voxelalgorithms.cpp               \
+		jni/src/util/areastore.cpp                \
 		jni/src/util/auth.cpp                     \
 		jni/src/util/base64.cpp                   \
 		jni/src/util/directiontables.cpp          \
@@ -311,12 +329,6 @@ LOCAL_SRC_FILES +=                                \
 		jni/src/unittest/test_voxelalgorithms.cpp \
 		jni/src/unittest/test_voxelmanipulator.cpp \
 		jni/src/touchscreengui.cpp                \
-		jni/src/util/lock.cpp                     \
-		jni/src/util/thread_pool.cpp              \
-		jni/src/circuit.cpp                       \
-		jni/src/circuit_element_virtual.cpp       \
-		jni/src/circuit_element.cpp               \
-		jni/src/stat.cpp               \
 		jni/src/database-leveldb.cpp              \
 		jni/src/settings.cpp                      \
 		jni/src/wieldmesh.cpp                     \
@@ -369,6 +381,7 @@ LOCAL_SRC_FILES +=                                \
 		jni/src/script/lua_api/l_rollback.cpp     \
 		jni/src/script/lua_api/l_server.cpp       \
 		jni/src/script/lua_api/l_settings.cpp     \
+		jni/src/script/lua_api/l_http.cpp         \
 		jni/src/script/lua_api/l_util.cpp         \
 		jni/src/script/lua_api/l_vmanip.cpp       \
 		jni/src/script/scripting_game.cpp         \
@@ -413,13 +426,15 @@ LOCAL_SRC_FILES +=                                \
 		jni/src/lua/src/print.c
 endif
 
-# sqlite
+# SQLite3
 LOCAL_SRC_FILES += deps/sqlite/sqlite3.c
 
-# jthread
-LOCAL_SRC_FILES +=                                \
-		jni/src/jthread/pthread/jevent.cpp        \
-		jni/src/jthread/pthread/jsemaphore.cpp
+# Threading
+LOCAL_SRC_FILES += \
+		jni/src/threading/event.cpp \
+		jni/src/threading/mutex.cpp \
+		jni/src/threading/semaphore.cpp \
+		jni/src/threading/thread.cpp
 
 LOCAL_SHARED_LIBRARIES := iconv openal ogg vorbis gmp
 LOCAL_STATIC_LIBRARIES := Irrlicht freetype curl ssl crypto android_native_app_glue $(PROFILER_LIBS)

@@ -24,13 +24,13 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include <algorithm>
 #include <sstream>
 #include <IFileSystem.h>
-#include "jthread/jmutexautolock.h"
+#include "threading/mutex_auto_lock.h"
 #include "util/auth.h"
 #include "util/directiontables.h"
 #include "util/pointedthing.h"
 #include "util/serialize.h"
 #include "util/string.h"
-#include "strfnd.h"
+#include "util/strfnd.h"
 #include "util/srp.h"
 #include "client.h"
 #include "network/clientopcodes.h"
@@ -67,6 +67,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #if !MINETEST_PROTO
 #include "network/fm_clientpacketsender.cpp"
 #endif
+#include "chat.h"
 
 
 extern gui::IGUIEnvironment* guienv;
@@ -87,7 +88,7 @@ MeshUpdateQueue::~MeshUpdateQueue()
 
 unsigned int MeshUpdateQueue::addBlock(v3POS p, std::shared_ptr<MeshMakeData> data, bool urgent)
 {
-	DSTACK(__FUNCTION_NAME);
+	DSTACK(FUNCTION_NAME);
 
 	auto lock = m_queue.lock_unique_rec();
 	unsigned int range = urgent ? 0 : 1 + data->range + data->step * 10;
@@ -158,7 +159,7 @@ void MeshUpdateThread::doUpdate()
 		sleep_ms(1); // dont overflow gpu, fix lag and spikes on drawtime
 #endif
 
-#ifdef NDEBUG
+#if !EXEPTION_DEBUG
 		} catch (BaseException &e) {
 			errorstream<<"MeshUpdateThread: exception: "<<e.what()<<std::endl;
 		} catch(std::exception &e) {
@@ -213,6 +214,8 @@ Client::Client(
 	m_particle_manager(&m_env),
 	m_con(PROTOCOL_ID, is_simple_singleplayer_game ? MAX_PACKET_SIZE_SINGLEPLAYER : MAX_PACKET_SIZE, CONNECTION_TIMEOUT, ipv6, this),
 	m_device(device),
+	m_camera(NULL),
+	m_minimap_disabled_by_server(false),
 	m_server_ser_ver(SER_FMT_VER_INVALID),
 	m_proto_ver(0),
 	m_playeritem(0),
@@ -220,11 +223,9 @@ Client::Client(
 	m_inventory_updated(false),
 	m_inventory_from_server(NULL),
 	m_inventory_from_server_age(0.0),
-	m_show_highlighted(false),
 	m_animation_time(0),
 	m_crack_level(-1),
 	m_crack_pos(0,0,0),
-	m_highlighted_pos(0,0,0),
 	m_map_seed(0),
 	m_password(password),
 	m_chosen_auth_mech(AUTH_MECHANISM_NONE),
@@ -253,30 +254,31 @@ Client::Client(
 
 	m_cache_smooth_lighting = g_settings->getBool("smooth_lighting");
 	m_cache_enable_shaders  = g_settings->getBool("enable_shaders");
+	m_cache_use_tangent_vertices = m_cache_enable_shaders && (
+		g_settings->getBool("enable_bumpmapping") ||
+		g_settings->getBool("enable_parallax_occlusion"));
 }
 
 void Client::Stop()
 {
 	//request all client managed threads to stop
-	m_mesh_update_thread.Stop();
-	m_mesh_update_thread.Wait();
+	m_mesh_update_thread.stop();
+	// Save local server map
 	if (m_localdb) {
 		actionstream << "Local map saving ended" << std::endl;
 		m_localdb->endSave();
 	}
 
-	if (m_localserver)
-		delete m_localserver;
-	if (m_localdb)
-		delete m_localdb;
+	delete m_localserver;
+	delete m_localdb;
 }
 
 Client::~Client()
 {
 	m_con.Disconnect();
 
-	m_mesh_update_thread.Stop();
-	m_mesh_update_thread.Wait();
+	m_mesh_update_thread.stop();
+	m_mesh_update_thread.wait();
 /*
 	while (!m_mesh_update_thread.m_queue_out.empty()) {
 		MeshUpdateResult r = m_mesh_update_thread.m_queue_out.pop_frontNoEx();
@@ -303,13 +305,14 @@ Client::~Client()
 	}
 
 	delete m_mapper;
+	delete m_media_downloader;
 }
 
 void Client::connect(Address address,
 		const std::string &address_name,
 		bool is_local_server)
 {
-	DSTACK(__FUNCTION_NAME);
+	DSTACK(FUNCTION_NAME);
 
 	initLocalMapSaving(address, address_name, is_local_server);
 
@@ -318,7 +321,7 @@ void Client::connect(Address address,
 
 void Client::step(float dtime)
 {
-	DSTACK(__FUNCTION_NAME);
+	DSTACK(FUNCTION_NAME);
 
 	m_uptime += dtime;
 
@@ -371,31 +374,36 @@ void Client::step(float dtime)
 			Player *myplayer = m_env.getLocalPlayer();
 			FATAL_ERROR_IF(myplayer == NULL, "Local player not found in environment.");
 
-			// Send TOSERVER_INIT_LEGACY
-			// [0] u16 TOSERVER_INIT_LEGACY
-			// [2] u8 SER_FMT_VER_HIGHEST_READ
-			// [3] u8[20] player_name
-			// [23] u8[28] password (new in some version)
-			// [51] u16 minimum supported network protocol version (added sometime)
-			// [53] u16 maximum supported network protocol version (added later than the previous one)
+			u16 proto_version_min = g_settings->getFlag("send_pre_v25_init") ?
+				CLIENT_PROTOCOL_VERSION_MIN_LEGACY : CLIENT_PROTOCOL_VERSION_MIN;
 
-/*
-			char pName[PLAYERNAME_SIZE];
-			char pPassword[PASSWORD_SIZE];
-			memset(pName, 0, PLAYERNAME_SIZE * sizeof(char));
-			memset(pPassword, 0, PASSWORD_SIZE * sizeof(char));
+			if (proto_version_min < 25) {
+				// Send TOSERVER_INIT_LEGACY
+				// [0] u16 TOSERVER_INIT_LEGACY
+				// [2] u8 SER_FMT_VER_HIGHEST_READ
+				// [3] u8[20] player_name
+				// [23] u8[28] password (new in some version)
+				// [51] u16 minimum supported network protocol version (added sometime)
+				// [53] u16 maximum supported network protocol version (added later than the previous one)
 
-*/
-			std::string hashed_password = translatePassword(myplayer->getName(), m_password);
-/*
-			snprintf(pName, PLAYERNAME_SIZE, "%s", myplayer->getName());
-			snprintf(pPassword, PASSWORD_SIZE, "%s", hashed_password.c_str());
+				/*
+				char pName[PLAYERNAME_SIZE];
+				char pPassword[PASSWORD_SIZE];
+				memset(pName, 0, PLAYERNAME_SIZE * sizeof(char));
+				memset(pPassword, 0, PASSWORD_SIZE * sizeof(char));
+				*/
 
-			sendLegacyInit(pName, pPassword);
-*/
-			sendLegacyInit(myplayer->getName(), hashed_password);
+				std::string hashed_password = translate_password(myplayer->getName(), m_password);
 
-			if (LATEST_PROTOCOL_VERSION >= 25)
+				/*
+				snprintf(pName, PLAYERNAME_SIZE, "%s", myplayer->getName());
+				snprintf(pPassword, PASSWORD_SIZE, "%s", hashed_password.c_str());
+
+				sendLegacyInit(pName, pPassword);
+				*/
+				sendLegacyInit(myplayer->getName(), hashed_password);
+			}
+			if (CLIENT_PROTOCOL_VERSION_MAX >= 25)
 				sendInit(myplayer->getName());
 		}
 
@@ -554,12 +562,6 @@ void Client::step(float dtime)
 						do_mapper_update = false;
 				}
 
-				if (r.mesh && r.mesh->getMesh()->getMeshBufferCount() == 0) {
-					//delete r.mesh;
-				} else {
-					// Replace with the new mesh
-					block->mesh = r.mesh;
-				}
 			} else {
 				//delete r.mesh;
 			}
@@ -614,7 +616,8 @@ void Client::step(float dtime)
 	{
 		for(std::map<int, u16>::iterator
 				i = m_sounds_to_objects.begin();
-				i != m_sounds_to_objects.end(); i++) {
+				i != m_sounds_to_objects.end(); ++i)
+		{
 			int client_id = i->first;
 			u16 object_id = i->second;
 			ClientActiveObject *cao = m_env.getActiveObject(object_id);
@@ -640,8 +643,8 @@ void Client::step(float dtime)
 		{
 			s32 server_id = i->first;
 			int client_id = i->second;
-			i++;
-			if(!m_sound->soundExists(client_id)){
+			++i;
+			if(!m_sound->soundExists(client_id)) {
 				m_sounds_server_to_client.erase(server_id);
 				m_sounds_client_to_server.erase(client_id);
 				m_sounds_to_objects.erase(client_id);
@@ -667,6 +670,11 @@ void Client::step(float dtime)
 
 bool Client::loadMedia(const std::string &data, const std::string &filename)
 {
+
+#ifdef __ANDROID__
+	m_device->run();
+#endif
+
 	// Silly irrlicht's const-incorrectness
 	Buffer<char> data_rw(data.c_str(), data.size());
 
@@ -848,8 +856,8 @@ void Client::initLocalMapSaving(const Address &address,
 
 void Client::ReceiveAll()
 {
-	DSTACK(__FUNCTION_NAME);
-	auto end_ms = porting::getTimeMs() + 10;
+	DSTACK(FUNCTION_NAME);
+	auto end_ms = porting::getTimeMs() + 20 + (overload ? 30 : 0);
 	for(;;)
 	{
 #if MINETEST_PROTO
@@ -875,11 +883,30 @@ void Client::ReceiveAll()
 		if(porting::getTimeMs() > end_ms)
 			break;
 	}
+
+
+	auto events = m_con.events_size();
+	if (events) {
+		g_profiler->add("Client: Queue", events);
+		//errorstream<<"Client: queue=" << events << "\n";
+	}
+	if (m_state == LC_Ready && events > 100) {
+		if (!overload)
+			infostream<<"Client: Enabling overload mode queue=" << events << "\n";
+		if (overload < events)
+			overload = events;
+	} else {
+		if (overload)
+			infostream<<"Client: Disabling overload mode queue=" << events << "\n";
+		overload = 0;
+	}
+
+
 }
 
 bool Client::Receive()
 {
-	DSTACK(__FUNCTION_NAME);
+	DSTACK(FUNCTION_NAME);
 	NetworkPacket pkt;
 	if (!m_con.Receive(&pkt))
 		return false;
@@ -887,9 +914,6 @@ bool Client::Receive()
 	ProcessData(&pkt);
 	return true;
 }
-
-//FMTODO
-#if MINETEST_PROTO
 
 inline void Client::handleCommand(NetworkPacket* pkt)
 {
@@ -902,7 +926,12 @@ inline void Client::handleCommand(NetworkPacket* pkt)
 */
 void Client::ProcessData(NetworkPacket *pkt)
 {
-	DSTACK(__FUNCTION_NAME);
+	DSTACK(FUNCTION_NAME);
+
+#if !MINETEST_PROTO
+	if (!pkt->packet_unpack())
+		return;
+#endif
 
 	ToClientCommand command = (ToClientCommand) pkt->getCommand();
 	u32 sender_peer_id = pkt->getPeerId();
@@ -928,6 +957,13 @@ void Client::ProcessData(NetworkPacket *pkt)
 		return;
 	}
 
+	if (overload) {
+		if (command == TOCLIENT_ACTIVE_OBJECT_MESSAGES || command == TOCLIENT_ADD_PARTICLESPAWNER || command == TOCLIENT_ADDNODE
+			|| command == TOCLIENT_REMOVENODE || command == TOCLIENT_PLAY_SOUND)
+			return;
+		//errorstream << "overload cmd=" << command << " n="<< toClientCommandTable[command].name << "\n";
+	}
+
 	/*
 	 * Those packets are handled before m_server_ser_ver is set, it's normal
 	 * But we must use the new ToClientConnectionState in the future,
@@ -951,13 +987,12 @@ void Client::ProcessData(NetworkPacket *pkt)
 
 	handleCommand(pkt);
 }
-#endif
 
 
 /*
 void Client::Send(u16 channelnum, SharedBuffer<u8> data, bool reliable)
 {
-	//JMutexAutoLock lock(m_con_mutex); //bulk comment-out
+	//MutexAutoLock lock(m_con_mutex); //bulk comment-out
 	m_con.Send(PEER_ID_SERVER, channelnum, data, reliable);
 }
 */
@@ -1001,6 +1036,7 @@ void Client::interact(u8 action, const PointedThing& pointed)
 		2: digging completed
 		3: place block or item (to abovesurface)
 		4: use item
+		5: perform secondary action of item
 	*/
 
 	NetworkPacket pkt(TOSERVER_INTERACT, 1 + 2 + 0);
@@ -1055,15 +1091,18 @@ void Client::sendLegacyInit(const std::string &playerName, const std::string &pl
 	NetworkPacket pkt(TOSERVER_INIT_LEGACY,
 			1 + PLAYERNAME_SIZE + PASSWORD_SIZE + 2 + 2);
 
+	u16 proto_version_min = g_settings->getFlag("send_pre_v25_init") ?
+		CLIENT_PROTOCOL_VERSION_MIN_LEGACY : CLIENT_PROTOCOL_VERSION_MIN;
+
 	pkt << (u8) SER_FMT_VER_HIGHEST_READ;
-	
+
 	std::string tmp = playerName;
 	tmp.resize(tmp.size()+PLAYERNAME_SIZE);
 	pkt.putRawString(tmp.c_str(),PLAYERNAME_SIZE);
 	tmp = playerPassword;
 	tmp.resize(tmp.size()+PASSWORD_SIZE);
 	pkt.putRawString(tmp.c_str(), PASSWORD_SIZE);
-	pkt << (u16) CLIENT_PROTOCOL_VERSION_MIN << (u16) CLIENT_PROTOCOL_VERSION_MAX;
+	pkt << (u16) proto_version_min << (u16) CLIENT_PROTOCOL_VERSION_MAX;
 
 	Send(&pkt);
 }
@@ -1074,8 +1113,12 @@ void Client::sendInit(const std::string &playerName)
 
 	// we don't support network compression yet
 	u16 supp_comp_modes = NETPROTO_COMPRESSION_NONE;
+
+	u16 proto_version_min = g_settings->getFlag("send_pre_v25_init") ?
+		CLIENT_PROTOCOL_VERSION_MIN_LEGACY : CLIENT_PROTOCOL_VERSION_MIN;
+
 	pkt << (u8) SER_FMT_VER_HIGHEST_READ << (u16) supp_comp_modes;
-	pkt << (u16) CLIENT_PROTOCOL_VERSION_MIN << (u16) CLIENT_PROTOCOL_VERSION_MAX;
+	pkt << (u16) proto_version_min << (u16) CLIENT_PROTOCOL_VERSION_MAX;
 	pkt << playerName;
 
 	Send(&pkt);
@@ -1088,18 +1131,14 @@ void Client::startAuth(AuthMechanism chosen_auth_mechanism)
 	switch (chosen_auth_mechanism) {
 		case AUTH_MECHANISM_FIRST_SRP: {
 			// send srp verifier to server
+			std::string verifier;
+			std::string salt;
+			generate_srp_verifier_and_salt(getPlayerName(), m_password,
+				&verifier, &salt);
+
 			NetworkPacket resp_pkt(TOSERVER_FIRST_SRP, 0);
-			char *salt, *bytes_v;
-			std::size_t len_salt, len_v;
-			salt = NULL;
-			getSRPVerifier(getPlayerName(), m_password,
-				&salt, &len_salt, &bytes_v, &len_v);
-			resp_pkt
-				<< std::string((char*)salt, len_salt)
-				<< std::string((char*)bytes_v, len_v)
-				<< (u8)((m_password == "") ? 1 : 0);
-			free(salt);
-			free(bytes_v);
+			resp_pkt << salt << verifier << (u8)((m_password == "") ? 1 : 0);
+
 			Send(&resp_pkt);
 			break;
 		}
@@ -1108,7 +1147,7 @@ void Client::startAuth(AuthMechanism chosen_auth_mechanism)
 			u8 based_on = 1;
 
 			if (chosen_auth_mechanism == AUTH_MECHANISM_LEGACY_PASSWORD) {
-				m_password = translatePassword(getPlayerName(), m_password);
+				m_password = translate_password(getPlayerName(), m_password);
 				based_on = 0;
 			}
 
@@ -1119,8 +1158,10 @@ void Client::startAuth(AuthMechanism chosen_auth_mechanism)
 				m_password.length(), NULL, NULL);
 			char *bytes_A = 0;
 			size_t len_A = 0;
-			srp_user_start_authentication((struct SRPUser *) m_auth_data,
-				NULL, NULL, 0, (unsigned char **) &bytes_A, &len_A);
+			SRP_Result res = srp_user_start_authentication(
+				(struct SRPUser *) m_auth_data, NULL, NULL, 0,
+				(unsigned char **) &bytes_A, &len_A);
+			FATAL_ERROR_IF(res != SRP_OK, "Creating local SRP user failed.");
 
 			NetworkPacket resp_pkt(TOSERVER_SRP_BYTES_A, 0);
 			resp_pkt << std::string(bytes_A, len_A) << based_on;
@@ -1166,7 +1207,7 @@ void Client::sendRemovedSounds(std::vector<s32> &soundList)
 	pkt << (u16) (server_ids & 0xFFFF);
 
 	for(std::vector<s32>::iterator i = soundList.begin();
-			i != soundList.end(); i++)
+			i != soundList.end(); ++i)
 		pkt << *i;
 
 	Send(&pkt);
@@ -1252,8 +1293,8 @@ void Client::sendChangePassword(const std::string &oldpassword,
 		m_new_password = newpassword;
 		startAuth(choseAuthMech(m_sudo_auth_methods));
 	} else {
-		std::string oldpwd = translatePassword(playername, oldpassword);
-		std::string newpwd = translatePassword(playername, newpassword);
+		std::string oldpwd = translate_password(playername, oldpassword);
+		std::string newpwd = translate_password(playername, newpassword);
 
 		NetworkPacket pkt(TOSERVER_PASSWORD_LEGACY, 2 * PASSWORD_SIZE);
 
@@ -1271,7 +1312,7 @@ void Client::sendChangePassword(const std::string &oldpassword,
 
 void Client::sendDamage(u8 damage)
 {
-	DSTACK(__FUNCTION_NAME);
+	DSTACK(FUNCTION_NAME);
 
 	NetworkPacket pkt(TOSERVER_DAMAGE, sizeof(u8));
 	pkt << damage;
@@ -1280,7 +1321,7 @@ void Client::sendDamage(u8 damage)
 
 void Client::sendBreath(u16 breath)
 {
-	DSTACK(__FUNCTION_NAME);
+	DSTACK(FUNCTION_NAME);
 
 	NetworkPacket pkt(TOSERVER_BREATH, sizeof(u16));
 	pkt << breath;
@@ -1289,7 +1330,7 @@ void Client::sendBreath(u16 breath)
 
 void Client::sendRespawn()
 {
-	DSTACK(__FUNCTION_NAME);
+	DSTACK(FUNCTION_NAME);
 
 	NetworkPacket pkt(TOSERVER_RESPAWN, 0);
 	Send(&pkt);
@@ -1297,7 +1338,7 @@ void Client::sendRespawn()
 
 void Client::sendReady()
 {
-	DSTACK(__FUNCTION_NAME);
+	DSTACK(FUNCTION_NAME);
 
 	NetworkPacket pkt(TOSERVER_CLIENT_READY,
 			1 + 1 + 1 + 1 + 2 + sizeof(char) * strlen(g_version_hash));
@@ -1331,7 +1372,7 @@ void Client::sendPlayerPos()
 
 	u16 our_peer_id;
 	{
-		//JMutexAutoLock lock(m_con_mutex); //bulk comment-out
+		//MutexAutoLock lock(m_con_mutex); //bulk comment-out
 		our_peer_id = m_con.GetPeerID();
 	}
 
@@ -1537,13 +1578,13 @@ ClientActiveObject * Client::getSelectedActiveObject(
 	{
 		ClientActiveObject *obj = objects[i].obj;
 
-		core::aabbox3d<f32> *selection_box = obj->getSelectionBox();
+		aabb3f *selection_box = obj->getSelectionBox();
 		if(selection_box == NULL)
 			continue;
 
 		v3f pos = obj->getPosition();
 
-		core::aabbox3d<f32> offsetted_box(
+		aabb3f offsetted_box(
 				selection_box->MinEdge + pos,
 				selection_box->MaxEdge + pos
 		);
@@ -1570,15 +1611,6 @@ float Client::getAnimationTime()
 int Client::getCrackLevel()
 {
 	return m_crack_level;
-}
-
-void Client::setHighlighted(v3s16 pos, bool show_highlighted)
-{
-	m_show_highlighted = show_highlighted;
-	v3s16 old_highlighted_pos = m_highlighted_pos;
-	m_highlighted_pos = pos;
-	addUpdateMeshTaskForNode(old_highlighted_pos, true);
-	addUpdateMeshTaskForNode(m_highlighted_pos, true);
 }
 
 void Client::setCrack(int level, v3s16 pos)
@@ -1629,15 +1661,18 @@ void Client::typeChatMessage(const std::string &message)
 	if(message.empty())
 		return;
 
-	// Send to others
-	sendChatMessage(message);
-
-	// Show locally
-	if (message[0] == '/')
-	{
-		m_chat_queue.push("issued command: " + message);
+	if (message[0] == '/') {
+		// TODO register client commands in help
+		std::string command = message.substr(1,-1);
+		// Clears on-screen chat messages
+		if (command.compare("clear") == 0) {
+			chat_backend->clearRecentChat();
+			return;
+		// it's kinda self-evident when you run a local command
+		} else {
+			m_chat_queue.push("issued command: " + message);
+		}
 	}
-
 	//freeminer display self message after recieving from server
 #if MINETEST_PROTO
 	else
@@ -1648,6 +1683,9 @@ void Client::typeChatMessage(const std::string &message)
 		m_chat_queue.push(std::string() + "<" + name + "> " + message);
 	}
 #endif
+
+	// Send to others
+	sendChatMessage(message);
 }
 
 void Client::addUpdateMeshTask(v3s16 p, bool urgent, int step)
@@ -1661,7 +1699,9 @@ void Client::addUpdateMeshTask(v3s16 p, bool urgent, int step)
 		Create a task to update the mesh of the block
 	*/
 	auto & draw_control = m_env.getClientMap().getControl();
-	std::shared_ptr<MeshMakeData> data(new MeshMakeData(this, m_cache_enable_shaders, m_env.getMap(), draw_control));
+	std::shared_ptr<MeshMakeData> data(new MeshMakeData(this, m_cache_enable_shaders,
+		m_cache_use_tangent_vertices,
+		m_env.getMap(), draw_control));
 
 	{
 		//TimeTaker timer("data fill");
@@ -1675,7 +1715,6 @@ void Client::addUpdateMeshTask(v3s16 p, bool urgent, int step)
 #endif
 
 		data->setCrack(m_crack_level, m_crack_pos);
-		data->setHighlighted(m_highlighted_pos, m_show_highlighted);
 		data->setSmoothLighting(m_cache_smooth_lighting);
 		data->step = step ? step : getFarmeshStep(data->draw_control, getNodeBlockPos(floatToInt(m_env.getLocalPlayer()->getPosition(), BS)), p);
 		data->range = getNodeBlockPos(floatToInt(m_env.getLocalPlayer()->getPosition(), BS)).getDistanceFrom(p);
@@ -1805,13 +1844,19 @@ void texture_update_progress(void *args, u32 progress, u32 max_progress)
 			draw_load_screen(strm.str(), targs->device, targs->guienv, 0,
 				72 + (u16) ((18. / 100.) * (double) targs->last_percent));
 		}
+
+#ifdef __ANDROID__
+		else {
+			targs->device->run();
+		}
+#endif
 }
 
 void Client::afterContentReceived(IrrlichtDevice *device)
 {
 	//infostream<<"Client::afterContentReceived() started"<<std::endl;
 
-	bool headless_optimize = g_settings->getBool("headless_optimize"); //device->getVideoDriver()->getDriverType() == video::EDT_NULL;
+	static auto headless_optimize = g_settings->getBool("headless_optimize"); //device->getVideoDriver()->getDriverType() == video::EDT_NULL;
 	//bool no_output = device->getVideoDriver()->getDriverType() == video::EDT_NULL;
 
 	const wchar_t* text = wgettext("Loading textures...");
@@ -1861,34 +1906,11 @@ void Client::afterContentReceived(IrrlichtDevice *device)
 	delete[] tu_args.text_base;
 	}
 
-	// Preload item textures and meshes if configured to
-	if(!headless_optimize && g_settings->getBool("preload_item_visuals"))
-	{
-		verbosestream<<"Updating item textures and meshes"<<std::endl;
-		text = wgettext("Item textures...");
-		draw_load_screen(text, device, guienv, 0, 0);
-		std::set<std::string> names = m_itemdef->getAll();
-		size_t size = names.size();
-		size_t count = 0;
-		int percent = 0;
-		for(std::set<std::string>::const_iterator
-				i = names.begin(); i != names.end(); ++i)
-		{
-			// Asking for these caches the result
-			m_itemdef->getInventoryTexture(*i, this);
-			m_itemdef->getWieldMesh(*i, this);
-			count++;
-			percent = (count * 100 / size * 0.2) + 80;
-			draw_load_screen(text, device, guienv, 0, percent);
-		}
-		delete[] text;
-	}
-
 	if (!headless_optimize) {
 	// Start mesh update thread after setting up content definitions
-		auto threads = !g_settings->getBool("more_threads") ? 1 : (porting::getNumberOfProcessors() - (m_simple_singleplayer_mode ? 3 : 1));
+		int threads = !g_settings->getBool("more_threads") ? 1 : (Thread::getNumberOfProcessors() - (m_simple_singleplayer_mode ? 3 : 1));
 		infostream<<"- Starting mesh update threads = "<<threads<<std::endl;
-		m_mesh_update_thread.Start(threads < 1 ? 1 : threads);
+		m_mesh_update_thread.start(threads < 1 ? 1 : threads);
 	}
 
 	m_state = LC_Ready;
@@ -1944,12 +1966,21 @@ void Client::makeScreenshot(const std::string & name, IrrlichtDevice *device)
 	char timetstamp_c[64];
 	strftime(timetstamp_c, sizeof(timetstamp_c), "%Y%m%d_%H%M%S", tm);
 
-	std::string filename_base = g_settings->get("screenshot_path")
+	std::string screenshot_path = porting::path_user + DIR_DELIM + g_settings->get("screenshot_path");
+	if (!fs::CreateDir(screenshot_path)) {
+		errorstream << "Failed to save screenshot: can't create directory for screenshots (\"" << screenshot_path << "\")." << std::endl;
+		return;
+	}
+
+	std::string screenshot_name = name + std::string(timetstamp_c);
+	std::string filename_base = screenshot_path
 			+ DIR_DELIM
-			+ name
-			+ std::string(timetstamp_c);
-	std::string filename_ext = ".png";
+			+ screenshot_name;
+	std::string filename_ext = "." + g_settings->get("screenshot_format");
 	std::string filename;
+
+	u32 quality = (u32)g_settings->getS32("screenshot_quality");
+	quality = MYMIN(MYMAX(quality, 0), 100) / 100.0 * 255;
 
 	// Try to find a unique filename
 	unsigned serial = 0;
@@ -1963,7 +1994,7 @@ void Client::makeScreenshot(const std::string & name, IrrlichtDevice *device)
 	}
 
 	if (serial == SCREENSHOT_MAX_SERIAL_TRIES) {
-		infostream << "Could not find suitable filename for screenshot" << std::endl;
+		errorstream << "Could not find suitable filename for screenshot" << std::endl;
 	} else {
 		irr::video::IImage* const image =
 				driver->createImage(video::ECF_R8G8B8, raw_image->getDimension());
@@ -1972,11 +2003,11 @@ void Client::makeScreenshot(const std::string & name, IrrlichtDevice *device)
 			raw_image->copyTo(image);
 
 			std::ostringstream sstr;
-			if (driver->writeImageToFile(image, filename.c_str())) {
+			if (driver->writeImageToFile(image, filename.c_str(), quality)) {
 				if (name == "screenshot_")
-				sstr << "Saved screenshot to '" << filename << "'";
+					sstr << "Saved screenshot to '" << screenshot_name << filename_ext << "'";
 			} else {
-				sstr << "Failed to save screenshot '" << filename << "'";
+				sstr << "Failed to save screenshot '" << screenshot_name << filename_ext << "'";
 			}
 			m_chat_queue.push(sstr.str());
 			infostream << sstr.str() << std::endl;
@@ -2037,8 +2068,10 @@ ParticleManager* Client::getParticleManager()
 
 scene::IAnimatedMesh* Client::getMesh(const std::string &filename)
 {
+	static auto headless_optimize = g_settings->getBool("headless_optimize");
 	StringMap::const_iterator it = m_mesh_data.find(filename);
 	if (it == m_mesh_data.end()) {
+	  if (!headless_optimize)
 		errorstream << "Client::getMesh(): Mesh not found: \"" << filename
 			<< "\"" << std::endl;
 		return NULL;

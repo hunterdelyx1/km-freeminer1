@@ -26,15 +26,15 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "irrlichttypes_bloated.h"
 #include "inventory.h"
 #include "constants.h" // BS
-#include "jthread/jmutexautolock.h"
-#include "jthread/jmutex.h"
+#include "threading/mutex.h"
 #include <list>
-#include "util/lock.h"
+#include "threading/lock.h"
 #include "json/json.h"
 
 #define PLAYERNAME_SIZE 20
 
 #define PLAYERNAME_ALLOWED_CHARS "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
+#define PLAYERNAME_ALLOWED_CHARS_USER_EXPL "'a' to 'z', 'A' to 'Z', '0' to '9', '-', '_'"
 
 struct PlayerControl
 {
@@ -124,22 +124,21 @@ public:
 
 	v3f getSpeed()
 	{
-		auto lock = lock_shared();
+		auto lock = lock_shared_rec();
 		return m_speed;
 	}
 
 	void setSpeed(v3f speed)
 	{
-		auto lock = lock_unique();
+		auto lock = lock_unique_rec();
 		m_speed = speed;
 	}
 
-	void accelerateHorizontal(v3f target_speed, f32 max_increase, float slippery=0);
-	void accelerateVertical(v3f target_speed, f32 max_increase);
+	void addSpeed(v3f speed);
 
 	v3f getPosition()
 	{
-		auto lock = lock_shared();
+		auto lock = lock_shared_rec();
 		return m_position;
 	}
 
@@ -153,49 +152,49 @@ public:
 
 	v3f getEyePosition()
 	{
-		auto lock = lock_shared();
+		auto lock = lock_shared_rec();
 		return m_position + getEyeOffset();
 	}
 
 	virtual void setPosition(const v3f &position)
 	{
-		auto lock = lock_unique();
+		auto lock = lock_unique_rec();
 		m_position = position;
 	}
 
 	void setPitch(f32 pitch)
 	{
-		auto lock = lock_unique();
+		auto lock = lock_unique_rec();
 		m_pitch = pitch;
 	}
 
 	virtual void setYaw(f32 yaw)
 	{
-		auto lock = lock_unique();
+		auto lock = lock_unique_rec();
 		m_yaw = yaw;
 	}
 
 	f32 getPitch()
 	{
-		auto lock = lock_shared();
+		auto lock = lock_shared_rec();
 		return m_pitch;
 	}
 
 	f32 getYaw()
 	{
-		auto lock = lock_shared();
+		auto lock = lock_shared_rec();
 		return m_yaw;
 	}
 
 	u16 getBreath()
 	{
-		auto lock = lock_shared();
+		auto lock = lock_shared_rec();
 		return m_breath;
 	}
 
 	virtual void setBreath(u16 breath)
 	{
-		auto lock = lock_unique();
+		auto lock = lock_unique_rec();
 		m_breath = breath;
 	}
 
@@ -219,7 +218,7 @@ public:
 		return m_name;
 	}
 
-	core::aabbox3d<f32> getCollisionbox()
+	aabb3f getCollisionbox()
 	{
 		return m_collisionbox;
 	}
@@ -245,21 +244,21 @@ public:
 
 	void setHotbarImage(const std::string &name)
 	{
-		hud_hotbar_image = name;
+		hotbar_image = name;
 	}
 
 	std::string getHotbarImage()
 	{
-		return hud_hotbar_image;
+		return hotbar_image;
 	}
 
 	void setHotbarSelectedImage(const std::string &name)
 	{
-		hud_hotbar_selected_image = name;
+		hotbar_selected_image = name;
 	}
 
 	std::string getHotbarSelectedImage() {
-		return hud_hotbar_selected_image;
+		return hotbar_selected_image;
 	}
 
 	void setSky(const video::SColor &bgcolor, const std::string &type,
@@ -316,7 +315,9 @@ public:
 
 	virtual void setPlayerSAO(PlayerSAO *sao)
 	{
+		/*
 		FATAL_ERROR("FIXME");
+		*/
 	}
 
 	/*
@@ -332,6 +333,7 @@ public:
 	// Use a function, if isDead can be defined by other conditions
 	bool isDead() { return hp == 0; }
 
+	bool got_teleported;
 	bool touching_ground;
 	// This oscillates so that the player jumps a bit above the surface
 	bool in_liquid;
@@ -359,6 +361,7 @@ public:
 	f32 movement_liquid_fluidity_smooth;
 	f32 movement_liquid_sink;
 	f32 movement_gravity;
+	f32 movement_fall_aerodynamics;
 
 	float physics_override_speed;
 	float physics_override_jump;
@@ -384,10 +387,10 @@ public:
 	std::string inventory_formspec;
 
 	PlayerControl control;
-	std::mutex control_mutex;
+	Mutex control_mutex;
 	PlayerControl getPlayerControl()
 	{
-		std::lock_guard<std::mutex> lock(control_mutex);
+		std::lock_guard<Mutex> lock(control_mutex);
 		return control;
 	}
 
@@ -404,8 +407,9 @@ public:
 
 	u32 hud_flags;
 	s32 hud_hotbar_itemcount;
-	std::string hud_hotbar_image;
-	std::string hud_hotbar_selected_image;
+	std::string hotbar_image;
+	int hotbar_image_items;
+	std::string hotbar_selected_image;
 protected:
 	IGameDef *m_gamedef;
 
@@ -416,7 +420,7 @@ public:
 	f32 m_yaw;
 	v3f m_speed;
 	v3f m_position;
-	core::aabbox3d<f32> m_collisionbox;
+	aabb3f m_collisionbox;
 
 	std::vector<HudElement *> hud;
 
@@ -430,7 +434,7 @@ private:
 	// Protect some critical areas
 	// hud for example can be modified by EmergeThread
 	// and ServerThread
-	JMutex m_mutex;
+	Mutex m_mutex;
 };
 
 
@@ -440,10 +444,7 @@ private:
 class RemotePlayer : public Player
 {
 public:
-	RemotePlayer(IGameDef *gamedef, const std::string & name):
-		Player(gamedef, name),
-		m_sao(NULL)
-	{}
+	RemotePlayer(IGameDef *gamedef, const std::string & name);
 	virtual ~RemotePlayer() {}
 
 	PlayerSAO *getPlayerSAO()

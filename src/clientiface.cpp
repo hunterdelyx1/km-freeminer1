@@ -89,10 +89,12 @@ const char *ClientInterface::statenames[] = {
 	"Disconnecting",
 	"Denied",
 	"Created",
-	"InitSent",
+	"AwaitingInit2",
+	"HelloSent",
 	"InitDone",
 	"DefinitionsSent",
-	"Active"
+	"Active",
+	"SudoMode",
 };
 
 
@@ -115,7 +117,7 @@ int RemoteClient::GetNextBlocks (
 		double m_uptime,
 		std::vector<PrioritySortedBlockTransfer> &dest)
 {
-	DSTACK(__FUNCTION_NAME);
+	DSTACK(FUNCTION_NAME);
 
 	auto lock = lock_unique_rec();
 	if (!lock->owns_lock())
@@ -130,7 +132,6 @@ int RemoteClient::GetNextBlocks (
 		m_nearest_unsent_reset = 0;
 		m_nearest_unsent_reset_timer = 999;
 		m_nothing_to_send_pause_timer = 0;
-		m_time_from_building = 999;
 	}
 
 	if(m_nothing_to_send_pause_timer >= 0)
@@ -195,17 +196,17 @@ int RemoteClient::GetNextBlocks (
 
 	//infostream<<"d_start="<<d_start<<std::endl;
 
-	u16 max_simul_sends_setting = g_settings->getU16
+	static const u16 max_simul_sends_setting = g_settings->getU16
 			("max_simultaneous_block_sends_per_client");
-	u16 max_simul_sends_usually = max_simul_sends_setting;
+	static const u16 max_simul_sends_usually = max_simul_sends_setting;
 
 	/*
 		Check the time from last addNode/removeNode.
 
 		Decrease send rate if player is building stuff.
 	*/
-	if(m_time_from_building < g_settings->getFloat(
-				"full_block_send_enable_min_time_from_building"))
+	static const auto full_block_send_enable_min_time_from_building = g_settings->getFloat("full_block_send_enable_min_time_from_building");
+	if(m_time_from_building < full_block_send_enable_min_time_from_building)
 	{
 		/*
 		max_simul_sends_usually
@@ -213,6 +214,9 @@ int RemoteClient::GetNextBlocks (
 		*/
 		if(d_start<=1)
 			d_start=2;
+		++m_nearest_unsent_reset_want;
+	} else if (m_nearest_unsent_reset_want) {
+		m_nearest_unsent_reset_want = 0;
 		m_nearest_unsent_reset_timer = 999; //magical number more than ^ other number 120 - need to reset d on next iteration
 	}
 
@@ -231,7 +235,8 @@ int RemoteClient::GetNextBlocks (
 	*/
 	s32 new_nearest_unsent_d = -1;
 
-	s16 full_d_max = g_settings->getS16("max_block_send_distance");
+	static const auto max_block_send_distance = g_settings->getS16("max_block_send_distance");
+	s16 full_d_max = max_block_send_distance;
 	if (wanted_range) {
 		s16 wanted_blocks = wanted_range / MAP_BLOCKSIZE + 1;
 		if (wanted_blocks < full_d_max)
@@ -239,7 +244,7 @@ int RemoteClient::GetNextBlocks (
 	}
 
 	s16 d_max = full_d_max;
-	s16 d_max_gen = g_settings->getS16("max_block_generate_distance");
+	static const s16 d_max_gen = g_settings->getS16("max_block_generate_distance");
 
 	// Don't loop very much at a time
 	s16 max_d_increment_at_time = 10;
@@ -257,9 +262,11 @@ int RemoteClient::GetNextBlocks (
 
 	f32 speed_in_blocks = (playerspeed/(MAP_BLOCKSIZE*BS)).getLength();
 
-
+	int num_blocks_air = 0;
 	int blocks_occlusion_culled = 0;
-	bool occlusion_culling_enabled = true;
+	static const bool server_occlusion = g_settings->getBool("server_occlusion");
+	bool occlusion_culling_enabled = server_occlusion;
+
 	auto cam_pos_nodes = floatToInt(playerpos, BS);
 
 	auto nodemgr = env->getGameDef()->getNodeDefManager();
@@ -276,7 +283,6 @@ int RemoteClient::GetNextBlocks (
 
 	unordered_map_v3POS<bool> occlude_cache;
 
-
 	s16 d;
 	for(d = d_start; d <= d_max; d++) {
 		/*errorstream<<"checking d="<<d<<" for "
@@ -284,7 +290,7 @@ int RemoteClient::GetNextBlocks (
 		//infostream<<"RemoteClient::SendBlocks(): d="<<d<<" d_start="<<d_start<<" d_max="<<d_max<<" d_max_gen="<<d_max_gen<<std::endl;
 
 		std::vector<v3POS> list;
-		if (d > 2 && d == d_start && m_nearest_unsent_reset_timer != 999) { // oops, again magic number from up ^
+		if (d > 2 && d == d_start && !m_nearest_unsent_reset_want && m_nearest_unsent_reset_timer != 999) { // oops, again magic number from up ^
 			list.push_back(v3POS(0,0,0));
 		}
 
@@ -387,6 +393,7 @@ int RemoteClient::GetNextBlocks (
 				auto lock = m_blocks_sent.lock_shared_rec();
 				block_sent = m_blocks_sent.find(p) != m_blocks_sent.end() ? m_blocks_sent.get(p) : 0;
 			}
+
 			if(block_sent > 0 && (/* (block_overflow && d>1) || */ block_sent + (d <= 2 ? 1 : d*d*d) > m_uptime)) {
 				continue;
 			}
@@ -404,20 +411,21 @@ int RemoteClient::GetNextBlocks (
 			block = env->getMap().getBlockNoCreateNoEx(p);
 			}
 
-			bool surely_not_found_on_disk = false;
+			//bool surely_not_found_on_disk = false;
 			bool block_is_invalid = false;
 			if(block != NULL)
 			{
 
-				if (d > 3 && block->content_only == CONTENT_AIR) {
+				/*if (d > 3 && block->content_only == CONTENT_AIR) {
 					continue;
-				}
+				}*/
 
 				if (block_sent > 0 && block_sent >= block->m_changed_timestamp) {
 					continue;
 				}
 
-		{
+		if (occlusion_culling_enabled) {
+			ScopeProfiler sp(g_profiler, "SMap: Occusion calls");
 			//Occlusion culling
 			auto cpn = p*MAP_BLOCKSIZE;
 
@@ -436,7 +444,7 @@ int RemoteClient::GetNextBlocks (
 			auto lock = env->getServerMap().m_nothread_locker.lock_shared_rec();
 #endif
 			//VERY BAD COPYPASTE FROM clientmap.cpp!
-			if( d >= 1 &&
+			if( can_skip &&
 				occlusion_culling_enabled &&
 				isOccluded(&env->getMap(), spn, cpn + v3POS(0,0,0),
 					step, stepfac, startoff, endoff, needed_count, nodemgr, occlude_cache) &&
@@ -459,6 +467,7 @@ int RemoteClient::GetNextBlocks (
 			)
 			{
 				//infostream<<" occlusion player="<<cam_pos_nodes<<" d="<<d<<" block="<<cpn<<" total="<<blocks_occlusion_culled<<"/"<<num_blocks_selected<<std::endl;
+				g_profiler->add("SMap: Occlusion skip", 1);
 				blocks_occlusion_culled++;
 				continue;
 			}
@@ -468,10 +477,13 @@ int RemoteClient::GetNextBlocks (
 				block->resetUsageTimer();
 
 				if (block->getLightingExpired()) {
-					env->getServerMap().lighting_modified_blocks.set(p, nullptr);
+					//env->getServerMap().lighting_modified_blocks.set(p, nullptr);
+					env->getServerMap().lighting_modified_add(p, d);
+					if (block_sent && can_skip)
+						continue;
 				}
 
-				if (block->lighting_broken && block_sent)
+				if (block->lighting_broken > 0 && (block_sent || can_skip))
 					continue;
 
 				// Block is valid if lighting is up-to-date and data exists
@@ -505,18 +517,21 @@ int RemoteClient::GetNextBlocks (
 				If block has been marked to not exist on disk (dummy)
 				and generating new ones is not wanted, skip block.
 			*/
+			/*
 			if(generate == false && surely_not_found_on_disk == true)
 			{
 				// get next one.
 				continue;
 			}
+			*/
 
 			/*
 				Add inexistent block to emerge queue.
 			*/
-			if(block == NULL || surely_not_found_on_disk || block_is_invalid)
+			if(!block || /*surely_not_found_on_disk ||*/ block_is_invalid)
 			{
 				//infostream<<"start gen d="<<d<<" p="<<p<<" notfound="<<surely_not_found_on_disk<<" invalid="<< block_is_invalid<<" block="<<block<<" generate="<<generate<<std::endl;
+				if (generate || !env->getServerMap().m_db_miss.count(p)) {
 
 				if (emerge->enqueueBlockEmerge(peer_id, p, generate)) {
 					if (nearest_emerged_d == -1)
@@ -525,6 +540,9 @@ int RemoteClient::GetNextBlocks (
 					if (nearest_emergefull_d == -1)
 						nearest_emergefull_d = d;
 					goto queue_full_break;
+				}
+				} else {
+					//infostream << "skip tryload " << p << "\n";
 				}
 
 				// get next one.
@@ -542,14 +560,17 @@ int RemoteClient::GetNextBlocks (
 
 			dest.push_back(q);
 
+			if (block->content_only == CONTENT_AIR)
+				++num_blocks_air;
+			else
 			num_blocks_selected += 1;
 		}
 	}
 queue_full_break:
 
-	//infostream<<"Stopped at "<<d<<" d_start="<<d_start<< " d_max="<<d_max<<" nearest_emerged_d="<<nearest_emerged_d<<" nearest_emergefull_d="<<nearest_emergefull_d<< " new_nearest_unsent_d="<<new_nearest_unsent_d<< " sel="<<num_blocks_selected<< "+"<<num_blocks_sending << " culled=" << blocks_occlusion_culled <<" cEN="<<occlusion_culling_enabled<<std::endl;
+	//infostream<<"Stopped at "<<d<<" d_start="<<d_start<< " d_max="<<d_max<<" nearest_emerged_d="<<nearest_emerged_d<<" nearest_emergefull_d="<<nearest_emergefull_d<< " new_nearest_unsent_d="<<new_nearest_unsent_d<< " sel="<<num_blocks_selected<< "+"<<num_blocks_sending << " air="<<num_blocks_air<< " culled=" << blocks_occlusion_culled <<" cEN="<<occlusion_culling_enabled<<std::endl;
 	num_blocks_selected += num_blocks_sending;
-	if(!num_blocks_selected && d_start <= d) {
+	if(!num_blocks_selected && !num_blocks_air && d_start <= d) {
 		//new_nearest_unsent_d = 0;
 		m_nothing_to_send_pause_timer = 1.0;
 	}
@@ -557,14 +578,14 @@ queue_full_break:
 
 	// If nothing was found for sending and nothing was queued for
 	// emerging, continue next time browsing from here
-	if(nearest_emerged_d != -1){
+	if(nearest_emerged_d != -1 && nearest_emerged_d > nearest_emergefull_d){
 		new_nearest_unsent_d = nearest_emerged_d;
 	} else if(nearest_emergefull_d != -1){
 		new_nearest_unsent_d = nearest_emergefull_d;
 	} else {
 		if(d > full_d_max){
 			new_nearest_unsent_d = 0;
-			m_nothing_to_send_pause_timer = 1.0;
+			m_nothing_to_send_pause_timer = 10.0;
 		} else {
 			if(nearest_sent_d != -1)
 				new_nearest_unsent_d = nearest_sent_d;
@@ -573,17 +594,62 @@ queue_full_break:
 		}
 	}
 
-	if(new_nearest_unsent_d != -1)
+	if(new_nearest_unsent_d != -1) {
 		m_nearest_unsent_d = new_nearest_unsent_d;
+	}
+
 	return num_blocks_selected - num_blocks_sending;
 }
+
+/*
+void RemoteClient::GotBlock(v3s16 p)
+{
+	if (m_blocks_modified.find(p) == m_blocks_modified.end()) {
+		if (m_blocks_sending.find(p) != m_blocks_sending.end())
+			m_blocks_sending.erase(p);
+		else
+			m_excess_gotblocks++;
+
+		m_blocks_sent.insert(p);
+	}
+}
+*/
 
 void RemoteClient::SentBlock(v3s16 p, double time)
 {
 	m_blocks_sent.set(p, time);
 }
 
+/*
+void RemoteClient::SentBlock(v3s16 p)
+{
+	if (m_blocks_modified.find(p) != m_blocks_modified.end())
+		m_blocks_modified.erase(p);
+
+	if(m_blocks_sending.find(p) == m_blocks_sending.end())
+		m_blocks_sending[p] = 0.0;
+	else
+		infostream<<"RemoteClient::SentBlock(): Sent block"
+				" already in m_blocks_sending"<<std::endl;
+}
+*/
+
 void RemoteClient::SetBlockNotSent(v3s16 p)
+{
+	++m_nearest_unsent_reset;
+/*
+	m_nearest_unsent_d = 0;
+	m_nothing_to_send_pause_timer = 0;
+
+	if(m_blocks_sending.find(p) != m_blocks_sending.end())
+		m_blocks_sending.erase(p);
+	if(m_blocks_sent.find(p) != m_blocks_sent.end())
+		m_blocks_sent.erase(p);
+	m_blocks_modified.insert(p);
+*/
+}
+
+void RemoteClient::SetBlocksNotSent()
 {
 	++m_nearest_unsent_reset;
 }
@@ -591,11 +657,15 @@ void RemoteClient::SetBlockNotSent(v3s16 p)
 void RemoteClient::SetBlocksNotSent(std::map<v3s16, MapBlock*> &blocks)
 {
 	++m_nearest_unsent_reset;
-}
-
-void RemoteClient::SetBlocksNotSent()
-{
-	++m_nearest_unsent_reset;
+/*
+	for(std::map<v3s16, MapBlock*>::iterator
+			i = blocks.begin();
+			i != blocks.end(); ++i)
+	{
+		v3s16 p = i->first;
+		m_blocks_modified.insert(p);
+	}
+*/
 }
 
 void RemoteClient::SetBlockDeleted(v3s16 p) {
@@ -783,7 +853,7 @@ ClientInterface::~ClientInterface()
 std::vector<u16> ClientInterface::getClientIDs(ClientState min_state)
 {
 	std::vector<u16> reply;
-	auto lock = m_clients.lock_shared_rec();
+	auto clientslock = m_clients.lock_shared_rec();
 
 	for(auto
 		i = m_clients.begin();
@@ -820,8 +890,13 @@ void ClientInterface::UpdatePlayerList()
 		std::vector<u16> clients = getClientIDs();
 		m_clients_names.clear();
 
+		auto now = porting::getTimeMs();
+		static auto last_print = now;
+		bool print = now >= last_print;
+		if (print)
+			last_print = now + 5000;
 
-		if(!clients.empty())
+		if (print && !clients.empty())
 			infostream<<"Players ["<<clients.size()<<"]:"<<std::endl;
 
 		for(auto
@@ -832,14 +907,16 @@ void ClientInterface::UpdatePlayerList()
 			if (player == NULL)
 				continue;
 
+		  if (print) {
 			infostream << "* " << player->getName() << "\t";
 
 			{
-				//JMutexAutoLock clientslock(m_clients_mutex);
+				//MutexAutoLock clientslock(m_clients_mutex);
 				RemoteClient* client = lockedGetClientNoEx(*i);
 				if(client != NULL)
 					client->PrintInfo(infostream);
 			}
+		  }
 
 			m_clients_names.push_back(player->getName());
 		}
@@ -873,7 +950,7 @@ void ClientInterface::send(u16 peer_id, u8 channelnum,
 void ClientInterface::sendToAll(u16 channelnum,
 		NetworkPacket* pkt, bool reliable)
 {
-	auto lock = m_clients.lock_shared_rec();
+	auto clientslock = m_clients.lock_shared_rec();
 	for(auto
 		i = m_clients.begin();
 		i != m_clients.end(); ++i)
@@ -921,7 +998,7 @@ RemoteClient* ClientInterface::getClientNoEx(u16 peer_id, ClientState state_min)
 }
 
 std::shared_ptr<RemoteClient> ClientInterface::getClient(u16 peer_id, ClientState state_min) {
-	auto lock = m_clients.lock_shared_rec();
+	auto clientslock = m_clients.lock_shared_rec();
 	auto n = m_clients.find(peer_id);
 	// The client may not exist; clients are immediately removed if their
 	// access is denied, and this event occurs later then.
@@ -941,7 +1018,7 @@ RemoteClient* ClientInterface::lockedGetClientNoEx(u16 peer_id, ClientState stat
 
 ClientState ClientInterface::getClientState(u16 peer_id)
 {
-	auto lock = m_clients.lock_shared_rec();
+	auto clientslock = m_clients.lock_shared_rec();
 	auto n = m_clients.find(peer_id);
 	// The client may not exist; clients are immediately removed if their
 	// access is denied, and this event occurs later then.
@@ -979,7 +1056,7 @@ void ClientInterface::DeleteClient(u16 peer_id)
 	{
 		// Get object
 		u16 id = i->first;
-		ServerActiveObject* obj = m_env->getActiveObject(id);
+		ServerActiveObject* obj = m_env->getActiveObject(id, true);
 
 		if(obj && obj->m_known_by_count > 0)
 			obj->m_known_by_count--;

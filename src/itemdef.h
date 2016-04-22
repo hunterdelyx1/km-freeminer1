@@ -30,7 +30,16 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include <set>
 #include "itemgroup.h"
 #include "sound.h"
+
+//#include "util/container.h"
+//#include "util/thread.h"
+
+#ifndef SERVER
+//#include "client/tile.h"
+#endif
+
 #include "msgpack_fix.h"
+
 class IGameDef;
 struct ToolCapabilities;
 
@@ -90,6 +99,7 @@ struct ItemDefinition
 	ToolCapabilities *tool_capabilities;
 	ItemGroupList groups;
 	SimpleSoundSpec sound_place;
+	SimpleSoundSpec sound_place_failed;
 	f32 range;
 
 	// Client shall immediately place this node when player places the item.

@@ -20,8 +20,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "settings.h"
 #include "irrlichttypes_bloated.h"
 #include "exceptions.h"
-#include "jthread/jmutexautolock.h"
-#include "strfnd.h"
+#include "threading/mutex_auto_lock.h"
+#include "util/strfnd.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -36,6 +36,10 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 static Settings main_settings;
 Settings *g_settings = &main_settings;
 std::string g_settings_path;
+
+Json::Reader json_reader;
+Json::StyledWriter json_writer;
+
 
 Settings::~Settings()
 {
@@ -56,8 +60,8 @@ Settings & Settings::operator = (const Settings &other)
 	if (&other == this)
 		return *this;
 
-	JMutexAutoLock lock(m_mutex);
-	JMutexAutoLock lock2(other.m_mutex);
+	MutexAutoLock lock(m_mutex);
+	MutexAutoLock lock2(other.m_mutex);
 
 	clearNoLock();
 	updateNoLock(other);
@@ -155,7 +159,7 @@ bool Settings::readConfigFile(const std::string &filename)
 
 bool Settings::parseConfigLines(std::istream &is, const std::string &end)
 {
-	JMutexAutoLock lock(m_mutex);
+	MutexAutoLock lock(m_mutex);
 
 	std::string line, name, value;
 
@@ -194,7 +198,7 @@ bool Settings::parseConfigLines(std::istream &is, const std::string &end)
 
 void Settings::writeLines(std::ostream &os, u32 tab_depth) const
 {
-	JMutexAutoLock lock(m_mutex);
+	MutexAutoLock lock(m_mutex);
 
 	for (std::map<std::string, SettingsEntry>::const_iterator
 			it = m_settings.begin();
@@ -303,7 +307,7 @@ bool Settings::updateConfigFile(const std::string &filename)
 		return true;
 	}
 
-	JMutexAutoLock lock(m_mutex);
+	MutexAutoLock lock(m_mutex);
 
 	std::ifstream is(filename);
 	std::ostringstream os(std::ios_base::binary);
@@ -387,7 +391,7 @@ bool Settings::parseCommandLine(int argc, char *argv[],
 
 const SettingsEntry &Settings::getEntry(const std::string &name) const
 {
-	JMutexAutoLock lock(m_mutex);
+	MutexAutoLock lock(m_mutex);
 
 	std::map<std::string, SettingsEntry>::const_iterator n;
 	if ((n = m_settings.find(name)) == m_settings.end()) {
@@ -509,7 +513,7 @@ bool Settings::getStruct(const std::string &name, const std::string &format,
 }
 
 
-bool Settings::getNoiseParams(const std::string &name, NoiseParams &np) const
+bool Settings::getNoiseParams(const std::string &name, NoiseParams &np)
 {
 	return getNoiseParamsFromGroup(name, np) || getNoiseParamsFromValue(name, np);
 }
@@ -540,17 +544,31 @@ bool Settings::getNoiseParamsFromValue(const std::string &name,
 	if (optional_params != "")
 		np.lacunarity = stof(optional_params);
 
+	warningstream << " Noise params from string [" << name << "] deprecated. far* values ignored." << std::endl;
+
 	return true;
 }
 
 
 bool Settings::getNoiseParamsFromGroup(const std::string &name,
-	NoiseParams &np) const
+	NoiseParams &np)
 {
 	Settings *group = NULL;
+	bool created = false;
 
 	if (!getGroupNoEx(name, group))
-		return false;
+	{
+		try {
+			group = new Settings;
+			created = true;
+			group->fromJson(getJson(name));
+		} catch (std::exception e) {
+			//errorstream<<"fail " << e.what() << std::endl;
+			if (created)
+				delete group;
+			return false;
+		}
+	}
 
 	group->getFloatNoEx("offset",      np.offset);
 	group->getFloatNoEx("scale",       np.scale);
@@ -564,17 +582,20 @@ bool Settings::getNoiseParamsFromGroup(const std::string &name,
 	if (!group->getFlagStrNoEx("flags", np.flags, flagdesc_noiseparams))
 		np.flags = NOISE_FLAG_DEFAULTS;
 
-	group->getFloatNoEx("farscale",    np.farscale);
-	group->getFloatNoEx("farspread",   np.farspread);
-	group->getFloatNoEx("farpersist",  np.farpersist);
+	group->getFloatNoEx("farscale",      np.far_scale);
+	group->getFloatNoEx("farspread",     np.far_spread);
+	group->getFloatNoEx("farpersist",    np.far_persist);
+	group->getFloatNoEx("farlacunarity", np.far_lacunarity);
 
+	if (created)
+		delete group;
 	return true;
 }
 
 
 bool Settings::exists(const std::string &name) const
 {
-	JMutexAutoLock lock(m_mutex);
+	MutexAutoLock lock(m_mutex);
 
 	return (m_settings.find(name) != m_settings.end() ||
 		m_defaults.find(name) != m_defaults.end());
@@ -754,7 +775,7 @@ bool Settings::setEntry(const std::string &name, const void *data,
 		return false;
 
 	{
-		JMutexAutoLock lock(m_mutex);
+		MutexAutoLock lock(m_mutex);
 
 		SettingsEntry &entry = set_default ? m_defaults[name] : m_settings[name];
 		old_group = entry.group;
@@ -884,9 +905,10 @@ bool Settings::setNoiseParams(const std::string &name,
 	group->setFloat("lacunarity",  np.lacunarity);
 	group->setFlagStr("flags",     np.flags, flagdesc_noiseparams, np.flags);
 
-	group->setFloat("farscale",    np.farscale);
-	group->setFloat("farspread",   np.farspread);
-	group->setFloat("farpersist",  np.farpersist);
+	group->setFloat("farscale",    np.far_scale);
+	group->setFloat("farspread",   np.far_spread);
+	group->setFloat("farpersist",  np.far_persist);
+	group->setFloat("farlacunarity",  np.far_lacunarity);
 
 	return setEntry(name, &group, true, set_default);
 }
@@ -894,23 +916,29 @@ bool Settings::setNoiseParams(const std::string &name,
 
 bool Settings::remove(const std::string &name)
 {
-	JMutexAutoLock lock(m_mutex);
+	MutexAutoLock lock(m_mutex);
 
-	delete m_settings[name].group;
 	m_json.removeMember(name);
-	return m_settings.erase(name);
+	std::map<std::string, SettingsEntry>::iterator it = m_settings.find(name);
+	if (it != m_settings.end()) {
+		delete it->second.group;
+		m_settings.erase(it);
+		return true;
+	} else {
+		return false;
+	}
 }
 
 
 void Settings::clear()
 {
-	JMutexAutoLock lock(m_mutex);
+	MutexAutoLock lock(m_mutex);
 	clearNoLock();
 }
 
 void Settings::clearDefaults()
 {
-	JMutexAutoLock lock(m_mutex);
+	MutexAutoLock lock(m_mutex);
 	clearDefaultsNoLock();
 }
 
@@ -919,7 +947,7 @@ void Settings::updateValue(const Settings &other, const std::string &name)
 	if (&other == this)
 		return;
 
-	JMutexAutoLock lock(m_mutex);
+	MutexAutoLock lock(m_mutex);
 
 	try {
 		std::string val = other.get(name);
@@ -935,8 +963,8 @@ void Settings::update(const Settings &other)
 	if (&other == this)
 		return;
 
-	JMutexAutoLock lock(m_mutex);
-	JMutexAutoLock lock2(other.m_mutex);
+	MutexAutoLock lock(m_mutex);
+	MutexAutoLock lock2(other.m_mutex);
 
 	updateNoLock(other);
 }
@@ -984,6 +1012,9 @@ void Settings::clearNoLock()
 		delete it->second.group;
 	m_settings.clear();
 
+	if (m_json.isObject() || m_json.isArray())
+		m_json.clear();
+
 	clearDefaultsNoLock();
 }
 
@@ -993,20 +1024,19 @@ void Settings::clearDefaultsNoLock()
 	for (it = m_defaults.begin(); it != m_defaults.end(); ++it)
 		delete it->second.group;
 	m_defaults.clear();
-	m_json.clear();
 }
 
 
 void Settings::registerChangedCallback(std::string name,
 	setting_changed_callback cbf, void *userdata)
 {
-	JMutexAutoLock lock(m_callbackMutex);
+	MutexAutoLock lock(m_callbackMutex);
 	m_callbacks[name].push_back(std::make_pair(cbf, userdata));
 }
 
 void Settings::deregisterChangedCallback(std::string name, setting_changed_callback cbf, void *userdata)
 {
-	JMutexAutoLock lock(m_callbackMutex);
+	MutexAutoLock lock(m_callbackMutex);
 	std::map<std::string, std::vector<std::pair<setting_changed_callback, void*> > >::iterator iterToVector = m_callbacks.find(name);
 	if (iterToVector != m_callbacks.end())
 	{
@@ -1022,12 +1052,12 @@ void Settings::deregisterChangedCallback(std::string name, setting_changed_callb
 
 void Settings::doCallbacks(const std::string name)
 {
-	JMutexAutoLock lock(m_callbackMutex);
+	MutexAutoLock lock(m_callbackMutex);
 	std::map<std::string, std::vector<std::pair<setting_changed_callback, void*> > >::iterator iterToVector = m_callbacks.find(name);
 	if (iterToVector != m_callbacks.end())
 	{
 		std::vector<std::pair<setting_changed_callback, void*> >::iterator iter;
-		for (iter = iterToVector->second.begin(); iter != iterToVector->second.end(); iter++)
+		for (iter = iterToVector->second.begin(); iter != iterToVector->second.end(); ++iter)
 		{
 			(iter->first)(name, iter->second);
 		}
@@ -1037,21 +1067,19 @@ void Settings::doCallbacks(const std::string name)
 
 Json::Value Settings::getJson(const std::string & name, const Json::Value & def) {
 	{
-		std::lock_guard<std::mutex> lock(m_mutex);
-		if (!m_json[name].empty())
+		MutexAutoLock lock(m_mutex);
+		if (!m_json[name].empty() || m_json[name].isObject() || m_json[name].isArray())
 			return m_json.get(name, def);
 	}
 
 	//todo: remove later:
 
 	Json::Value root;
-	Settings * group = new Settings;
+	Settings * group = nullptr;
 	if (getGroupNoEx(name, group)) {
 		group->toJson(root);
-		delete group;
 		return root;
 	}
-	delete group;
 
 	std::string value;
 	getNoEx(name, value);
@@ -1067,12 +1095,12 @@ void Settings::setJson(const std::string & name, const Json::Value & value) {
 	if (!value.empty())
 		set(name, json_writer.write( value )); //todo: remove later
 
-	std::lock_guard<std::mutex> lock(m_mutex);
+	MutexAutoLock lock(m_mutex);
 	m_json[name] = value;
 }
 
 bool Settings::toJson(Json::Value &json) const {
-	std::lock_guard<std::mutex> lock(m_mutex);
+	MutexAutoLock lock(m_mutex);
 
 	json = m_json;
 
@@ -1109,7 +1137,7 @@ bool Settings::fromJson(const Json::Value &json) {
 			//setJson(key, json[key]);
 		} else {
 			set(key, json[key].asString());
-			m_json.removeMember(key); // todo: remove
+			m_json.removeMember(key); // todo: remove. json comments drops here
 		}
 	}
 	return true;
@@ -1134,12 +1162,16 @@ bool Settings::readJsonFile(const std::string &filename) {
 	if (!is.good())
 		return false;
 	Json::Value json;
-	is >> json;
+	try {
+		is >> json;
+	} catch (std::exception &e) {
+		errorstream << "Error reading json file: \"" << filename << "\" : " << e.what() << std::endl;
+		return false;
+	}
 	return fromJson(json);
 }
 
-void Settings::msgpack_pack(msgpack::packer<msgpack::sbuffer> &pk) const
-{
+void Settings::msgpack_pack(msgpack::packer<msgpack::sbuffer> &pk) const {
 	Json::Value json;
 	toJson(json);
 	std::ostringstream os(std::ios_base::binary);
@@ -1147,10 +1179,9 @@ void Settings::msgpack_pack(msgpack::packer<msgpack::sbuffer> &pk) const
 	pk.pack(os.str());
 }
 
-void Settings::msgpack_unpack(msgpack::object o)
-{
+void Settings::msgpack_unpack(msgpack::object o) {
 	std::string data;
-	o.convert(&data);
+	o.convert(data);
 	std::istringstream os(data, std::ios_base::binary);
 	os >> m_json;
 	fromJson(m_json);

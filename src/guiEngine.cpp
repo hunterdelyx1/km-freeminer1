@@ -47,6 +47,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include <GLES/gl.h>
 #endif
 
+#include <thread>
 
 /******************************************************************************/
 /** TextDestGuiEngine                                                         */
@@ -97,6 +98,7 @@ video::ITexture* MenuTextureSource::getTexture(const std::string &name, u32 *id)
 	m_to_delete.insert(name);
 
 #ifdef __ANDROID__
+	porting::irr_device_wait_egl();
 	video::IImage *image = m_driver->createImageFromFile(name.c_str());
 	if (image) {
 		image = Align2Npot2(image, m_driver);
@@ -242,13 +244,13 @@ bool GUIEngine::loadMainMenuScript()
 	}
 
 	std::string script = porting::path_share + DIR_DELIM "builtin" + DIR_DELIM "init.lua";
-	if (m_script->loadScript(script)) {
+	try {
+		m_script->loadScript(script);
 		// Menu script loaded
 		return true;
-	} else {
-		infostream
-			<< "GUIEngine: execution of menu script in: \""
-			<< m_scriptdir << "\" failed!" << std::endl;
+	} catch (const ModError &e) {
+		errorstream << "GUIEngine: execution of menu script failed: "
+			<< e.what() << std::endl;
 	}
 
 	return false;
@@ -315,6 +317,7 @@ GUIEngine::~GUIEngine()
 	}
 
 	infostream<<"GUIEngine: Deinitializing scripting"<<std::endl;
+
 	delete m_script;
 
 	m_irr_toplefttext->setText(L"");
@@ -329,6 +332,7 @@ GUIEngine::~GUIEngine()
 
 	if (m_cloud.clouds)
 		m_cloud.clouds->drop();
+
 }
 
 /******************************************************************************/
@@ -365,7 +369,7 @@ void GUIEngine::cloudPreProcess()
 /******************************************************************************/
 void GUIEngine::cloudPostProcess()
 {
-	float fps_max = g_settings->getFloat("fps_max");
+	static const float fps_max = g_settings->getFloat("fps_max");
 	// Time of frame without fps limit
 	u32 busytime_u32;
 

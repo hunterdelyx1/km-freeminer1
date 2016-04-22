@@ -23,7 +23,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "player.h"
 
 #include <fstream>
-#include "jthread/jmutexautolock.h"
+#include "threading/mutex_auto_lock.h"
 #include "util/numeric.h"
 #include "hud.h"
 #include "constants.h"
@@ -31,12 +31,13 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "settings.h"
 #include "content_sao.h"
 #include "filesys.h"
-#include "log.h"
+#include "log_types.h"
 #include "porting.h"  // strlcpy
 
 
 Player::Player(IGameDef *gamedef, const std::string & name):
 	refs(0),
+	got_teleported(false),
 	touching_ground(false),
 	in_liquid(false),
 	in_liquid_stable(false),
@@ -68,6 +69,7 @@ Player::Player(IGameDef *gamedef, const std::string & name):
 
 	peer_id = PEER_ID_INEXISTENT;
 	m_name = name;
+	hotbar_image_items = 0;
 
 	inventory.clear();
 	inventory.addList("main", PLAYER_INVENTORY_SIZE);
@@ -99,6 +101,7 @@ Player::Player(IGameDef *gamedef, const std::string & name):
 	movement_liquid_fluidity_smooth = 0.5  * BS;
 	movement_liquid_sink            = 10   * BS;
 	movement_gravity                = 9.81 * BS;
+	movement_fall_aerodynamics      = 110;
 	local_animation_speed           = 0.0;
 
 	// Movement overrides are multipliers and must be 1 by default
@@ -119,7 +122,6 @@ Player::Player(IGameDef *gamedef, const std::string & name):
 Player::~Player()
 {
 	clearHud();
-}
 
 //==================================================================================    
 bool Player::isChatOpened()
@@ -132,47 +134,6 @@ void Player::setChatOpened(bool chatOpened)
     m_chatOpened = chatOpened;
 }
 //==================================================================================    
-
-// Horizontal acceleration (X and Z), Y direction is ignored
-void Player::accelerateHorizontal(v3f target_speed, f32 max_increase, float slippery)
-{
-	if(max_increase == 0)
-		return;
-	
-	v3f d_wanted = target_speed - m_speed;
-	if (slippery)
-	{
-		if (target_speed == v3f(0))
-			d_wanted = -m_speed*(1-slippery/100)/2;
-		else
-			d_wanted = target_speed*(1-slippery/100) - m_speed*(1-slippery/100);
-	}
-	d_wanted.Y = 0;
-	f32 dl = d_wanted.getLength();
-	if(dl > max_increase)
-		dl = max_increase;
-
-	v3f d = d_wanted.normalize() * dl;
-
-	m_speed.X += d.X;
-	m_speed.Z += d.Z;
-
-}
-
-// Vertical acceleration (Y), X and Z directions are ignored
-void Player::accelerateVertical(v3f target_speed, f32 max_increase)
-{
-	if(max_increase == 0)
-		return;
-
-	f32 d_wanted = target_speed.Y - m_speed.Y;
-	if(d_wanted > max_increase)
-		d_wanted = max_increase;
-	else if(d_wanted < -max_increase)
-		d_wanted = -max_increase;
-
-	m_speed.Y += d_wanted;
-
 }
 
 v3s16 Player::getLightPosition() const
@@ -245,7 +206,7 @@ void Player::deSerialize(std::istream &is, std::string playername)
 
 u32 Player::addHud(HudElement *toadd)
 {
-	JMutexAutoLock lock(m_mutex);
+	MutexAutoLock lock(m_mutex);
 
 	u32 id = getFreeHudID();
 
@@ -259,7 +220,7 @@ u32 Player::addHud(HudElement *toadd)
 
 HudElement* Player::getHud(u32 id)
 {
-	JMutexAutoLock lock(m_mutex);
+	MutexAutoLock lock(m_mutex);
 
 	if (id < hud.size())
 		return hud[id];
@@ -269,7 +230,7 @@ HudElement* Player::getHud(u32 id)
 
 HudElement* Player::removeHud(u32 id)
 {
-	JMutexAutoLock lock(m_mutex);
+	MutexAutoLock lock(m_mutex);
 
 	HudElement* retval = NULL;
 	if (id < hud.size()) {
@@ -281,13 +242,82 @@ HudElement* Player::removeHud(u32 id)
 
 void Player::clearHud()
 {
-	JMutexAutoLock lock(m_mutex);
+	MutexAutoLock lock(m_mutex);
 
 	while(!hud.empty()) {
 		delete hud.back();
 		hud.pop_back();
 	}
 }
+
+RemotePlayer::RemotePlayer(IGameDef *gamedef, const std::string & name):
+	Player(gamedef, name),
+	m_sao(NULL)
+{
+	movement_acceleration_default   = g_settings->getFloat("movement_acceleration_default")   * BS;
+	movement_acceleration_air       = g_settings->getFloat("movement_acceleration_air")       * BS;
+	movement_acceleration_fast      = g_settings->getFloat("movement_acceleration_fast")      * BS;
+	movement_speed_walk             = g_settings->getFloat("movement_speed_walk")             * BS;
+	movement_speed_crouch           = g_settings->getFloat("movement_speed_crouch")           * BS;
+	movement_speed_fast             = g_settings->getFloat("movement_speed_fast")             * BS;
+	movement_speed_climb            = g_settings->getFloat("movement_speed_climb")            * BS;
+	movement_speed_jump             = g_settings->getFloat("movement_speed_jump")             * BS;
+	movement_liquid_fluidity        = g_settings->getFloat("movement_liquid_fluidity")        * BS;
+	movement_liquid_fluidity_smooth = g_settings->getFloat("movement_liquid_fluidity_smooth") * BS;
+	movement_liquid_sink            = g_settings->getFloat("movement_liquid_sink")            * BS;
+	movement_gravity                = g_settings->getFloat("movement_gravity")                * BS;
+}
+
+#if WTF
+void RemotePlayer::save(std::string savedir)
+{
+	/*
+	 * We have to open all possible player files in the players directory
+	 * and check their player names because some file systems are not
+	 * case-sensitive and player names are case-sensitive.
+	 */
+
+	// A player to deserialize files into to check their names
+	RemotePlayer testplayer(m_gamedef, "");
+
+	savedir += DIR_DELIM;
+	std::string path = savedir + m_name;
+	for (u32 i = 0; i < PLAYER_FILE_ALTERNATE_TRIES; i++) {
+		if (!fs::PathExists(path)) {
+			// Open file and serialize
+			std::ostringstream ss(std::ios_base::binary);
+			serialize(ss);
+			if (!fs::safeWriteToFile(path, ss.str())) {
+				infostream << "Failed to write " << path << std::endl;
+			}
+			setModified(false);
+			return;
+		}
+		// Open file and deserialize
+		std::ifstream is(path.c_str(), std::ios_base::binary);
+		if (!is.good()) {
+			infostream << "Failed to open " << path << std::endl;
+			return;
+		}
+		testplayer.deSerialize(is, path);
+		is.close();
+		if (strcmp(testplayer.getName(), m_name) == 0) {
+			// Open file and serialize
+			std::ostringstream ss(std::ios_base::binary);
+			serialize(ss);
+			if (!fs::safeWriteToFile(path, ss.str())) {
+				infostream << "Failed to write " << path << std::endl;
+			}
+			setModified(false);
+			return;
+		}
+		path = savedir + m_name + itos(i);
+	}
+
+	infostream << "Didn't find free file for player " << m_name << std::endl;
+	return;
+}
+#endif
 
 /*
 	RemotePlayer
@@ -297,6 +327,13 @@ void RemotePlayer::setPosition(const v3f &position)
 	Player::setPosition(position);
 	if(m_sao)
 		m_sao->setBasePosition(position);
+}
+
+
+
+void Player::addSpeed(v3f speed) {
+		auto lock = lock_unique_rec();
+		m_speed += speed;
 }
 
 Json::Value operator<<(Json::Value &json, v3f &v) {
@@ -320,11 +357,12 @@ Json::Value operator<<(Json::Value &json, Player &player) {
 	json["inventory_old"] = ss.str();
 
 	json["name"] = player.m_name;
-	json["pitch"] = player.m_pitch;
-	json["yaw"] = player.m_yaw;
-	json["position"] << player.m_position;
+	json["pitch"] = player.getPitch();
+	json["yaw"] = player.getYaw();
+	auto pos = player.getPosition();
+	json["position"] << pos;
 	json["hp"] = player.hp.load();
-	json["breath"] = player.m_breath;
+	json["breath"] = player.getBreath();
 	return json;
 }
 

@@ -38,7 +38,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "itemgroup.h"
 #include "sound.h" // SimpleSoundSpec
 #include "constants.h" // BS
-#include "fmbitset.h"
+#include "fm_bitset.h"
 #include <unordered_set>
 
 
@@ -82,7 +82,10 @@ enum {
 	CONTENTFEATURES_LEVELED,
 	CONTENTFEATURES_WAVING,
 	CONTENTFEATURES_MESH,
-	CONTENTFEATURES_COLLISION_BOX
+	CONTENTFEATURES_COLLISION_BOX,
+	CONTENTFEATURES_CONNECT_TO_IDS,
+	CONTENTFEATURES_CONNECT_SIDES,
+
 };
 
 class INodeDefManager;
@@ -113,6 +116,8 @@ enum ContentParamType2
 	CPT2_WALLMOUNTED,
 	// Block level like FLOWINGLIQUID (also for snow)
 	CPT2_LEVELED,
+	// 2D rotation for things like plants
+	CPT2_DEGROTATE,
 };
 
 enum LiquidType
@@ -128,6 +133,7 @@ enum NodeBoxType
 	NODEBOX_FIXED, // Static separately defined box(es)
 	NODEBOX_WALLMOUNTED, // Box for wall mounted nodes; (top, bottom, side)
 	NODEBOX_LEVELED, // Same as fixed, but with dynamic height from param2. for snow, ...
+	NODEBOX_CONNECTED, // optionally draws nodeboxes if a neighbor node attaches
 };
 
 // _S_ is serialized, added to make sure collisions with NodeBoxType never happen
@@ -136,7 +142,14 @@ enum {
 	NODEBOX_S_FIXED,
 	NODEBOX_S_WALL_TOP,
 	NODEBOX_S_WALL_BOTTOM,
-	NODEBOX_S_WALL_SIDE
+	NODEBOX_S_WALL_SIDE,
+
+	NODEBOX_S_CONNECTED_TOP,
+	NODEBOX_S_CONNECTED_BOTTOM,
+	NODEBOX_S_CONNECTED_FRONT,
+	NODEBOX_S_CONNECTED_LEFT,
+	NODEBOX_S_CONNECTED_BACK,
+	NODEBOX_S_CONNECTED_RIGHT,
 };
 
 struct NodeBox
@@ -149,6 +162,13 @@ struct NodeBox
 	aabb3f wall_top;
 	aabb3f wall_bottom;
 	aabb3f wall_side; // being at the -X side
+	// NODEBOX_CONNECTED
+	std::vector<aabb3f> connect_top;
+	std::vector<aabb3f> connect_bottom;
+	std::vector<aabb3f> connect_front;
+	std::vector<aabb3f> connect_left;
+	std::vector<aabb3f> connect_back;
+	std::vector<aabb3f> connect_right;
 
 	NodeBox()
 	{ reset(); }
@@ -163,6 +183,30 @@ struct NodeBox
 
 struct MapNode;
 class NodeMetadata;
+
+enum NodeDrawType
+{
+	NDT_NORMAL, // A basic solid block
+	NDT_AIRLIKE, // Nothing is drawn
+	NDT_LIQUID, // Do not draw face towards same kind of flowing/source liquid
+	NDT_FLOWINGLIQUID, // A very special kind of thing
+	NDT_GLASSLIKE, // Glass-like, don't draw faces towards other glass
+	NDT_ALLFACES, // Leaves-like, draw all faces no matter what
+	NDT_ALLFACES_OPTIONAL, // Fancy -> allfaces, fast -> normal
+	NDT_TORCHLIKE,
+	NDT_SIGNLIKE,
+	NDT_PLANTLIKE,
+	NDT_FENCELIKE,
+	NDT_RAILLIKE,
+	NDT_NODEBOX,
+	NDT_GLASSLIKE_FRAMED, // Glass-like, draw connected frames and all all
+	                      // visible faces
+						  // uses 2 textures, one for frames, second for faces
+	NDT_FIRELIKE, // Draw faces slightly rotated and only on connecting nodes,
+	NDT_GLASSLIKE_FRAMED_OPTIONAL,	// enabled -> connected, disabled -> Glass-like
+									// uses 2 textures, one for frames, second for faces
+	NDT_MESH, // Uses static meshes
+};
 
 /*
 	Stand-alone definition of a TileSpec (basically a server-side TileSpec)
@@ -206,35 +250,25 @@ struct TileDef
 		animation.length = 1.0;
 	}
 
-	void serialize(std::ostream &os, u16 protocol_version) const;
-	void deSerialize(std::istream &is);
-
 	void msgpack_pack(msgpack::packer<msgpack::sbuffer> &pk) const;
 	void msgpack_unpack(msgpack::object o);
+
+	void serialize(std::ostream &os, u16 protocol_version) const;
+	void deSerialize(std::istream &is, const u8 contentfeatures_version, const NodeDrawType drawtype);
 };
 
-enum NodeDrawType
+struct ContentFeatureSingleDrop
 {
-	NDT_NORMAL, // A basic solid block
-	NDT_AIRLIKE, // Nothing is drawn
-	NDT_LIQUID, // Do not draw face towards same kind of flowing/source liquid
-	NDT_FLOWINGLIQUID, // A very special kind of thing
-	NDT_GLASSLIKE, // Glass-like, don't draw faces towards other glass
-	NDT_ALLFACES, // Leaves-like, draw all faces no matter what
-	NDT_ALLFACES_OPTIONAL, // Fancy -> allfaces, fast -> normal
-	NDT_TORCHLIKE,
-	NDT_SIGNLIKE,
-	NDT_PLANTLIKE,
-	NDT_FENCELIKE,
-	NDT_RAILLIKE,
-	NDT_NODEBOX,
-	NDT_GLASSLIKE_FRAMED, // Glass-like, draw connected frames and all all
-	                      // visible faces
-						  // uses 2 textures, one for frames, second for faces
-	NDT_FIRELIKE, // Draw faces slightly rotated and only on connecting nodes,
-	NDT_GLASSLIKE_FRAMED_OPTIONAL,	// enabled -> connected, disabled -> Glass-like
-									// uses 2 textures, one for frames, second for faces
-	NDT_MESH, // Uses static meshes
+	std::string item;
+	u16 rarity;
+	u16 min_items;
+	u16 max_items;
+};
+
+struct ContentFeatureDrops
+{
+	u8 max_items;
+	std::vector<ContentFeatureSingleDrop> items;
 };
 
 #define CF_SPECIAL_COUNT 6
@@ -306,6 +340,8 @@ struct ContentFeatures
 	bool climbable;
 	// Player can build on these
 	bool buildable_to;
+	// Liquids flow into and replace node
+	bool floodable;
 	// Player cannot build to these (placement prediction disabled)
 	bool rightclickable;
 	// Flowing liquid or snow, value = default level
@@ -341,7 +377,9 @@ struct ContentFeatures
 	bool legacy_facedir_simple;
 	// Set to true if wall_mounted used to be set to true
 	bool legacy_wallmounted;
-	
+
+//freeminer:
+	u8 solidness_far = 0;
 	bool is_wire;
 	bool is_wire_connector;
 	bool is_circuit_element;
@@ -349,10 +387,17 @@ struct ContentFeatures
 	u8 circuit_element_func[64];
 	u8 circuit_element_delay;
 
+
+	// for NDT_CONNECTED pairing
+	u8 connect_sides;
+
 	// Sound properties
 	SimpleSoundSpec sound_footstep;
 	SimpleSoundSpec sound_dig;
 	SimpleSoundSpec sound_dug;
+
+	std::vector<std::string> connects_to;
+	std::unordered_set<content_t> connects_to_ids;
 
 	/*
 		Methods
@@ -400,8 +445,10 @@ public:
 	virtual bool getId(const std::string &name, content_t &result) const=0;
 	virtual content_t getId(const std::string &name) const=0;
 	// Allows "group:name" in addition to regular node names
-	virtual void getIds(const std::string &name, std::unordered_set<content_t> &result) const=0;
-	virtual void getIds(const std::string &name, FMBitset &result) const=0;
+	virtual bool getIds(const std::string &name, FMBitset &result) const=0;
+	// returns false if node name not found, true otherwise
+	virtual bool getIds(const std::string &name, std::unordered_set<content_t> &result)
+			const=0;
 	virtual const ContentFeatures &get(const std::string &name) const=0;
 
 	virtual void serialize(std::ostream &os, u16 protocol_version) const=0;
@@ -413,6 +460,7 @@ public:
 
 	virtual void pendNodeResolve(NodeResolver *nr)=0;
 	virtual bool cancelNodeResolveCallback(NodeResolver *nr)=0;
+	virtual bool nodeboxConnects(const MapNode from, const MapNode to, u8 connect_face)=0;
 };
 
 class IWritableNodeDefManager : public INodeDefManager {
@@ -427,7 +475,7 @@ public:
 	// If not found, returns CONTENT_IGNORE
 	virtual content_t getId(const std::string &name) const=0;
 	// Allows "group:name" in addition to regular node names
-	virtual void getIds(const std::string &name, std::unordered_set<content_t> &result)
+	virtual bool getIds(const std::string &name, std::unordered_set<content_t> &result)
 		const=0;
 	// If not found, returns the features of CONTENT_UNKNOWN
 	virtual const ContentFeatures &get(const std::string &name) const=0;
@@ -470,6 +518,7 @@ public:
 	virtual bool cancelNodeResolveCallback(NodeResolver *nr)=0;
 	virtual void runNodeResolveCallbacks()=0;
 	virtual void resetNodeResolveState()=0;
+	virtual void mapNodeboxConnections()=0;
 };
 
 IWritableNodeDefManager *createNodeDefManager();

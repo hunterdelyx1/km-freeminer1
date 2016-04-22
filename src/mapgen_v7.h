@@ -1,6 +1,7 @@
 /*
 mapgen_v7.h
-Copyright (C) 2010-2013 kwolekr, Ryan Kwolek <kwolekr@minetest.net>
+Copyright (C) 2010-2015 kwolekr, Ryan Kwolek <kwolekr@minetest.net>
+Copyright (C) 2010-2015 paramat, Matt Gregory
 */
 
 /*
@@ -54,6 +55,7 @@ struct MapgenV7Params : public MapgenSpecificParams {
 	NoiseParams np_float_islands2;
 	NoiseParams np_float_islands3;
 	NoiseParams np_layers;
+	//NoiseParams np_cave_indev;
 	Json::Value paramsj;
 
 	MapgenV7Params();
@@ -69,7 +71,8 @@ public:
 	BiomeManager *bmgr;
 
 	int ystride;
-	int zstride;
+	int zstride_1u1d;
+	int zstride_1d;
 	u32 spflags;
 
 	v3s16 node_min;
@@ -116,7 +119,7 @@ public:
 	~MapgenV7();
 
 	virtual void makeChunk(BlockMakeData *data);
-	int getGroundLevelAtPoint(v2s16 p);
+	int getSpawnLevelAtPoint(v2s16 p);
 	Biome *getBiomeAtPoint(v3s16 p);
 
 	float baseTerrainLevelAtPoint(s16 x, s16 z);
@@ -126,15 +129,11 @@ public:
 
 	virtual void calculateNoise();
 
-	virtual int generateTerrain();
-	void generateBaseTerrain(s16 *stone_surface_min_y, s16 *stone_surface_max_y);
-	int generateMountainTerrain(s16 ymax);
+	int generateTerrain();
 	void generateRidgeTerrain();
 
 	MgStoneType generateBiomes(float *heat_map, float *humidity_map);
 	void dustTopNodes();
-
-	//void addTopNodes();
 
 	virtual void generateExperimental();
 

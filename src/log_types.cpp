@@ -17,7 +17,22 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "log_types.h"
 
-std::ostream & operator<<(std::ostream & s, v3s16 p) {
+std::ostream & operator<<(std::ostream & s, v2POS p) {
+	s << "(" << p.X << "," << p.Y << ")";
+	return s;
+}
+
+std::ostream & operator<<(std::ostream & s, v2s32 p) {
+	s << "(" << p.X << "," << p.Y << ")";
+	return s;
+}
+
+std::ostream & operator<<(std::ostream & s, v2f p) {
+	s << "(" << p.X << "," << p.Y << ")";
+	return s;
+}
+
+std::ostream & operator<<(std::ostream & s, v3POS p) {
 	s << "(" << p.X << "," << p.Y << "," << p.Z << ")";
 	return s;
 }
@@ -27,7 +42,7 @@ std::ostream & operator<<(std::ostream & s, v3f p) {
 	return s;
 }
 
-std::ostream & operator<<(std::ostream & s, std::map<v3s16, unsigned int> & p) {
+std::ostream & operator<<(std::ostream & s, std::map<v3POS, unsigned int> & p) {
 	for (auto & i: p)
 		s << i.first << "=" << i.second<<" ";
 	return s;
@@ -49,34 +64,9 @@ std::ostream & operator<<(std::ostream & s, const std::wstring & w) {
 	return s;
 }
 
-
-
-#include "mapnode.h"
-std::ostream & operator<<(std::ostream & s, MapNode n) {
-	s << "node["<<(int)n.param0<<","<<(int)n.param1<<","<<(int)n.param2<<"]";
-	return s;
-}
-
-#include "noise.h"
-struct NoiseParams;
-std::ostream & operator<<(std::ostream & s, NoiseParams np) {
-	s << "noiseprms[offset="<<np.offset<<",scale="<<np.scale<<",spread="<<np.spread<<",seed="<<np.seed<<",octaves="<<np.octaves<<",persist="<<np.persist<<",lacunarity="<<np.lacunarity<<",flags="<<np.flags
-	<<",farscale"<<np.farscale<<",farspread"<<np.farspread<<",farpersist"<<np.farpersist
-	<<"]";
-	return s;
-}
-
 #include "json/json.h"
 Json::StyledWriter writer;
 std::ostream & operator<<(std::ostream & s, Json::Value & json) {
 	s << writer.write(json);
-	return s;
-}
-
-#include "settings.h"
-std::ostream & operator<<(std::ostream & s, Settings & settings) {
-	Json::Value json;
-	settings.toJson(json);
-	s << json;
 	return s;
 }

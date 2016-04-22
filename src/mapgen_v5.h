@@ -1,6 +1,7 @@
 /*
 Minetest
-Copyright (C) 2010-2013 kwolekr, Ryan Kwolek <kwolekr@minetest.net>
+Copyright (C) 2010-2015 kwolekr, Ryan Kwolek <kwolekr@minetest.net>
+Copyright (C) 2010-2015 paramat, Matt Gregory
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -23,7 +24,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "mapgen.h"
 #include "mapgen_indev.h"
 
-#define LARGE_CAVE_DEPTH -256
+#define MGV5_LARGE_CAVE_DEPTH -256
 
 class BiomeManager;
 
@@ -44,6 +45,7 @@ struct MapgenV5Params : public MapgenSpecificParams {
 	NoiseParams np_float_islands2;
 	NoiseParams np_float_islands3;
 	NoiseParams np_layers;
+	//NoiseParams np_cave_indev;
 	Json::Value paramsj;
 
 	MapgenV5Params();
@@ -60,7 +62,7 @@ public:
 	BiomeManager *bmgr;
 
 	int ystride;
-	int zstride;
+	int zstride_1d;
 	u32 spflags;
 
 	v3s16 node_min;
@@ -101,7 +103,7 @@ public:
 	~MapgenV5();
 
 	virtual void makeChunk(BlockMakeData *data);
-	int getGroundLevelAtPoint(v2s16 p);
+	int getSpawnLevelAtPoint(v2s16 p);
 	void calculateNoise();
 	int generateBaseTerrain();
 	MgStoneType generateBiomes(float *heat_map, float *humidity_map);

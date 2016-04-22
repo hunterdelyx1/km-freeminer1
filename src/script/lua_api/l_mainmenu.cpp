@@ -455,6 +455,8 @@ int ModApiMainMenu::l_get_modstore_list(lua_State *L)
 	return 1;
 }
 
+	std::vector<ServerListSpec> servers_cache;
+
 /******************************************************************************/
 int ModApiMainMenu::l_get_favorites(lua_State *L)
 {
@@ -467,7 +469,16 @@ int ModApiMainMenu::l_get_favorites(lua_State *L)
 	std::vector<ServerListSpec> servers;
 
 	if(listtype == "online") {
+		ServerList::lan_get();
+		servers_cache =
 		servers = ServerList::getOnline();
+		ServerList::lan_apply(servers);
+	} else if (listtype == "sleep_cache") {
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		if (ServerList::lan_fresh()) {
+			servers = servers_cache;
+			ServerList::lan_apply(servers);
+		}
 	} else {
 		servers = ServerList::getLocal();
 	}
@@ -484,6 +495,16 @@ int ModApiMainMenu::l_get_favorites(lua_State *L)
 
 	return 1;
 }
+
+/*
+int ModApiMainMenu::l_favorites_refresh(lua_State *L)
+{
+	ServerList::getLocal();
+	lua_pushboolean(L, ServerList::want_reftesh());
+
+	return 1;
+}
+*/
 
 /******************************************************************************/
 int ModApiMainMenu::l_delete_favorite(lua_State *L)
@@ -608,16 +629,13 @@ int ModApiMainMenu::l_set_topleft_text(lua_State *L)
 /******************************************************************************/
 int ModApiMainMenu::l_get_mapgen_names(lua_State *L)
 {
+	std::vector<const char *> names;
+	EmergeManager::getMapgenNames(&names, lua_toboolean(L, 1));
+
 	lua_newtable(L);
-
-	std::list<const char *> names;
-	EmergeManager::getMapgenNames(names);
-
-	int i = 1;
-	for (std::list<const char *>::const_iterator
-			it = names.begin(); it != names.end(); ++it) {
-		lua_pushstring(L, *it);
-		lua_rawseti(L, -2, i++);
+	for (size_t i = 0; i != names.size(); i++) {
+		lua_pushstring(L, names[i]);
+		lua_rawseti(L, -2, i + 1);
 	}
 
 	return 1;
@@ -627,8 +645,8 @@ int ModApiMainMenu::l_get_mapgen_names(lua_State *L)
 /******************************************************************************/
 int ModApiMainMenu::l_get_modpath(lua_State *L)
 {
-	std::string modpath
-			= fs::RemoveRelativePathComponents(porting::path_user + DIR_DELIM + "mods" + DIR_DELIM);
+	std::string modpath = fs::RemoveRelativePathComponents(
+		porting::path_user + DIR_DELIM + "mods" + DIR_DELIM);
 	lua_pushstring(L, modpath.c_str());
 	return 1;
 }
@@ -636,8 +654,8 @@ int ModApiMainMenu::l_get_modpath(lua_State *L)
 /******************************************************************************/
 int ModApiMainMenu::l_get_gamepath(lua_State *L)
 {
-	std::string gamepath
-			= fs::RemoveRelativePathComponents(porting::path_user + DIR_DELIM + "games" + DIR_DELIM);
+	std::string gamepath = fs::RemoveRelativePathComponents(
+		porting::path_user + DIR_DELIM + "games" + GAMES_VERSION + DIR_DELIM);
 	lua_pushstring(L, gamepath.c_str());
 	return 1;
 }
@@ -645,44 +663,46 @@ int ModApiMainMenu::l_get_gamepath(lua_State *L)
 /******************************************************************************/
 int ModApiMainMenu::l_get_texturepath(lua_State *L)
 {
-	std::string gamepath
-			= fs::RemoveRelativePathComponents(porting::path_user + DIR_DELIM + "textures");
+	std::string gamepath = fs::RemoveRelativePathComponents(
+		porting::path_user + DIR_DELIM + "textures");
 	lua_pushstring(L, gamepath.c_str());
 	return 1;
 }
 
 int ModApiMainMenu::l_get_texturepath_share(lua_State *L)
 {
-	std::string gamepath
-			= fs::RemoveRelativePathComponents(porting::path_share + DIR_DELIM + "textures");
+	std::string gamepath = fs::RemoveRelativePathComponents(
+		porting::path_share + DIR_DELIM + "textures");
 	lua_pushstring(L, gamepath.c_str());
 	return 1;
 }
 
 /******************************************************************************/
 int ModApiMainMenu::l_create_dir(lua_State *L) {
-	const char *path	= luaL_checkstring(L, 1);
+	const char *path = luaL_checkstring(L, 1);
 
 	if (ModApiMainMenu::isMinetestPath(path)) {
-		lua_pushboolean(L,fs::CreateAllDirs(path));
+		lua_pushboolean(L, fs::CreateAllDirs(path));
 		return 1;
 	}
-	lua_pushboolean(L,false);
+
+	lua_pushboolean(L, false);
 	return 1;
 }
 
 /******************************************************************************/
 int ModApiMainMenu::l_delete_dir(lua_State *L)
 {
-	const char *path	= luaL_checkstring(L, 1);
+	const char *path = luaL_checkstring(L, 1);
 
 	std::string absolute_path = fs::RemoveRelativePathComponents(path);
 
 	if (ModApiMainMenu::isMinetestPath(absolute_path)) {
-		lua_pushboolean(L,fs::RecursiveDelete(absolute_path));
+		lua_pushboolean(L, fs::RecursiveDelete(absolute_path));
 		return 1;
 	}
-	lua_pushboolean(L,false);
+
+	lua_pushboolean(L, false);
 	return 1;
 }
 
@@ -822,7 +842,7 @@ bool ModApiMainMenu::isMinetestPath(std::string path)
 		return true;
 
 	/* games */
-	if (fs::PathStartsWith(path,fs::RemoveRelativePathComponents(porting::path_share + DIR_DELIM + "games")))
+	if (fs::PathStartsWith(path,fs::RemoveRelativePathComponents(porting::path_share + DIR_DELIM + "games" + GAMES_VERSION)))
 		return true;
 
 	/* mods */
@@ -962,8 +982,8 @@ int ModApiMainMenu::l_get_video_modes(lua_State *L)
 /******************************************************************************/
 int ModApiMainMenu::l_gettext(lua_State *L)
 {
-	std::wstring wtext = wstrgettext((std::string) luaL_checkstring(L, 1));
-	lua_pushstring(L, wide_to_utf8(wtext).c_str());
+	std::string text = strgettext(std::string(luaL_checkstring(L, 1)));
+	lua_pushstring(L, text.c_str());
 
 	return 1;
 }
@@ -998,7 +1018,9 @@ int ModApiMainMenu::l_get_screen_info(lua_State *L)
 /******************************************************************************/
 int ModApiMainMenu::l_get_min_supp_proto(lua_State *L)
 {
-	lua_pushinteger(L, CLIENT_PROTOCOL_VERSION_MIN);
+	u16 proto_version_min = g_settings->getFlag("send_pre_v25_init") ?
+		CLIENT_PROTOCOL_VERSION_MIN_LEGACY : CLIENT_PROTOCOL_VERSION_MIN;
+	lua_pushinteger(L, proto_version_min);
 	return 1;
 }
 

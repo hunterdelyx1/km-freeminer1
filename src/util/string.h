@@ -36,8 +36,26 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
+// Checks whether a value is an ASCII printable character
+#define IS_ASCII_PRINTABLE_CHAR(x)   \
+	(((unsigned int)(x) >= 0x20) &&  \
+	( (unsigned int)(x) <= 0x7e))
+
 // Checks whether a byte is an inner byte for an utf-8 multibyte sequence
-#define IS_UTF8_MULTB_INNER(x) (((unsigned char)x >= 0x80) && ((unsigned char)x < 0xc0))
+#define IS_UTF8_MULTB_INNER(x)       \
+	(((unsigned char)(x) >= 0x80) && \
+	( (unsigned char)(x) <= 0xbf))
+
+// Checks whether a byte is a start byte for an utf-8 multibyte sequence
+#define IS_UTF8_MULTB_START(x)       \
+	(((unsigned char)(x) >= 0xc2) && \
+	( (unsigned char)(x) <= 0xf4))
+
+// Given a start byte x for an utf-8 multibyte sequence
+// it gives the length of the whole sequence in bytes.
+#define UTF8_MULTB_START_LEN(x)            \
+	(((unsigned char)(x) < 0xe0) ? 2 :     \
+	(((unsigned char)(x) < 0xf0) ? 3 : 4))
 
 typedef std::map<std::string, std::string> StringMap;
 
@@ -295,15 +313,6 @@ inline s32 mystoi(const std::string &str, s32 min, s32 max)
 }
 
 
-/// Returns a 64-bit value represented by the string \p str (decimal).
-inline s64 stoi64(const std::string &str)
-{
-	std::stringstream tmp(str);
-	s64 t;
-	tmp >> t;
-	return t;
-}
-
 // MSVC2010 includes it's own versions of these
 //#if !defined(_MSC_VER) || _MSC_VER < 1600
 
@@ -342,9 +351,22 @@ inline float mystof(const std::string &str)
 #define stoi mystoi
 #define stof mystof
 
+/// Returns a value represented by the string \p val.
+template <typename T>
+inline T from_string(const std::string &str)
+{
+	std::stringstream tmp(str);
+	T t;
+	tmp >> t;
+	return t;
+}
+
+/// Returns a 64-bit signed value represented by the string \p str (decimal).
+inline s64 stoi64(const std::string &str) { return from_string<s64>(str); }
+
 // TODO: Replace with C++11 std::to_string.
 
-/// Returns A string representing the value \p val.
+/// Returns a string representing the value \p val.
 template <typename T>
 inline std::string to_string(T val)
 {
@@ -378,6 +400,13 @@ inline void str_replace(std::string &str, const std::string &pattern,
 	}
 }
 
+/**
+ * Remove all chat escape sequences in \p s.
+ *
+ * @param s The string in which to remove escape sequences.
+ * @return \p s, with escape sequences removed.
+ */
+std::wstring removeChatEscapes(const std::wstring &s);
 
 /**
  * Replace all occurrences of the character \p from in \p str with \p to.

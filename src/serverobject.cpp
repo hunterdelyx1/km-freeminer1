@@ -26,10 +26,12 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "constants.h" // BS
 #include "environment.h"
 
+Queue<ActiveObjectMessage> dummy_queue;
+
 ServerActiveObject::ServerActiveObject(ServerEnvironment *env, v3f pos):
 	ActiveObject(0),
 	m_static_block(1337,1337,1337),
-	m_messages_out(env->m_active_object_messages),
+	m_messages_out(env ? env->m_active_object_messages : dummy_queue),
 	m_uptime_last(0),
 	m_env(env),
 	m_base_position(pos)
@@ -58,7 +60,7 @@ ServerActiveObject* ServerActiveObject::create(ActiveObjectType type,
 		}
 
 		// If factory is not found, just return.
-		dstream<<"WARNING: ServerActiveObject: No factory for type="
+		warningstream<<"ServerActiveObject: No factory for type="
 				<<type<<std::endl;
 		return NULL;
 	}
@@ -82,8 +84,9 @@ float ServerActiveObject::getMinimumSavedMovement()
 	return 2.0*BS;
 }
 
-ItemStack ServerActiveObject::getWieldedItem() const
+ItemStack ServerActiveObject::getWieldedItem()
 {
+	auto lock = lock_shared_rec();
 	const Inventory *inv = getInventory();
 	if(inv)
 	{
@@ -96,6 +99,7 @@ ItemStack ServerActiveObject::getWieldedItem() const
 
 bool ServerActiveObject::setWieldedItem(const ItemStack &item)
 {
+	auto lock = lock_unique_rec();
 	if(Inventory *inv = getInventory()) {
 		if (InventoryList *list = inv->getList(getWieldList())) {
 			list->changeItem(getWieldIndex(), item);

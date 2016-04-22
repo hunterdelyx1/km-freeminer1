@@ -22,7 +22,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "chat.h"
 #include "debug.h"
-#include "strfnd.h"
+#include "util/strfnd.h"
 #include "gettext.h"
 #include <cctype>
 #include <sstream>
@@ -398,6 +398,7 @@ ChatPrompt::ChatPrompt(std::wstring prompt, u32 history_limit):
 	m_cols(0),
 	m_view(0),
 	m_cursor(0),
+	m_cursor_len(0),
 	m_nick_completion_start(0),
 	m_nick_completion_end(0)
 {
@@ -425,20 +426,13 @@ void ChatPrompt::input(const std::wstring &str)
 	m_nick_completion_end = 0;
 }
 
-std::wstring ChatPrompt::submit()
+void ChatPrompt::addToHistory(std::wstring line)
 {
-	std::wstring line = m_line;
-	m_line.clear();
 	if (!line.empty())
 		m_history.push_back(line);
 	if (m_history.size() > m_history_limit)
 		m_history.erase(m_history.begin());
 	m_history_index = m_history.size();
-	m_view = 0;
-	m_cursor = 0;
-	m_nick_completion_start = 0;
-	m_nick_completion_end = 0;
-	return line;
 }
 
 void ChatPrompt::clear()
@@ -450,13 +444,22 @@ void ChatPrompt::clear()
 	m_nick_completion_end = 0;
 }
 
-void ChatPrompt::replace(std::wstring line)
+std::wstring ChatPrompt::replace(std::wstring line)
 {
+	std::wstring old_line = m_line;
 	m_line =  line;
 	m_view = m_cursor = line.size();
 	clampView();
 	m_nick_completion_start = 0;
 	m_nick_completion_end = 0;
+	return old_line;
+}
+
+void ChatPrompt::historyPush(std::wstring line) {
+	m_history.push_back(line);
+	if (m_history.size() > m_history_limit)
+		m_history.erase(m_history.begin());
+	m_history_index = m_history.size();
 }
 
 void ChatPrompt::historyPrev()
@@ -598,14 +601,12 @@ void ChatPrompt::cursorOperation(CursorOp op, CursorOpDir dir, CursorOpScope sco
 	s32 length = m_line.size();
 	s32 increment = (dir == CURSOROP_DIR_RIGHT) ? 1 : -1;
 
-	if (scope == CURSOROP_SCOPE_CHARACTER)
-	{
+	switch (scope) {
+	case CURSOROP_SCOPE_CHARACTER:
 		new_cursor += increment;
-	}
-	else if (scope == CURSOROP_SCOPE_WORD)
-	{
-		if (increment > 0)
-		{
+		break;
+	case CURSOROP_SCOPE_WORD:
+		if (dir == CURSOROP_DIR_RIGHT) {
 			// skip one word to the right
 			while (new_cursor < length && std::isspace(m_line[new_cursor]))
 				new_cursor++;
@@ -613,39 +614,47 @@ void ChatPrompt::cursorOperation(CursorOp op, CursorOpDir dir, CursorOpScope sco
 				new_cursor++;
 			while (new_cursor < length && std::isspace(m_line[new_cursor]))
 				new_cursor++;
-		}
-		else
-		{
+		} else {
 			// skip one word to the left
 			while (new_cursor >= 1 && std::isspace(m_line[new_cursor - 1]))
 				new_cursor--;
 			while (new_cursor >= 1 && !std::isspace(m_line[new_cursor - 1]))
 				new_cursor--;
 		}
-	}
-	else if (scope == CURSOROP_SCOPE_LINE)
-	{
+		break;
+	case CURSOROP_SCOPE_LINE:
 		new_cursor += increment * length;
+		break;
+	case CURSOROP_SCOPE_SELECTION:
+		break;
 	}
 
 	new_cursor = MYMAX(MYMIN(new_cursor, length), 0);
 
-	if (op == CURSOROP_MOVE)
-	{
+	switch (op) {
+	case CURSOROP_MOVE:
 		m_cursor = new_cursor;
-	}
-	else if (op == CURSOROP_DELETE)
-	{
-		if (new_cursor < old_cursor)
-		{
-			m_line.erase(new_cursor, old_cursor - new_cursor);
-			m_cursor = new_cursor;
+		m_cursor_len = 0;
+		break;
+	case CURSOROP_DELETE:
+		if (m_cursor_len > 0) { // Delete selected text first
+			m_line.erase(m_cursor, m_cursor_len);
+		} else {
+			m_cursor = MYMIN(new_cursor, old_cursor);
+			m_line.erase(m_cursor, abs(new_cursor - old_cursor));
 		}
-		else if (new_cursor > old_cursor)
-		{
-			m_line.erase(old_cursor, new_cursor - old_cursor);
-			m_cursor = old_cursor;
+		m_cursor_len = 0;
+		break;
+	case CURSOROP_SELECT:
+		if (scope == CURSOROP_SCOPE_LINE) {
+			m_cursor = 0;
+			m_cursor_len = length;
+		} else {
+			m_cursor = MYMIN(new_cursor, old_cursor);
+			m_cursor_len += abs(new_cursor - old_cursor);
+			m_cursor_len = MYMIN(m_cursor_len, length - m_cursor);
 		}
+		break;
 	}
 
 	clampView();
@@ -681,15 +690,20 @@ ChatBackend::ChatBackend():
     m_nmsg_time = g_settings->getFloat("km_chat_nmsg_time");
 }
 
-ChatBackend::~ChatBackend(){
-
+ChatBackend::~ChatBackend()
+{
 }
 
 void ChatBackend::addMessage(std::wstring name, std::wstring text)
 {
+/*
+	name = removeChatEscapes(name);
+	text = removeChatEscapes(text);
+*/
+
 	// Note: A message may consist of multiple lines, for example the MOTD.
 	WStrfnd fnd(text);
-	while (!fnd.atend())
+	while (!fnd.at_end())
 	{
 		std::wstring line = fnd.next(L"\n");
 		m_console_buffer.addLine(name, line);

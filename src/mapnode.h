@@ -261,17 +261,17 @@ struct MapNode
 	/*
 		Gets list of node boxes (used for rendering (NDT_NODEBOX))
 	*/
-	std::vector<aabb3f> getNodeBoxes(INodeDefManager *nodemgr) const;
+	void getNodeBoxes(INodeDefManager *nodemgr, std::vector<aabb3f> *boxes, u8 neighbors = 0) const;
 
 	/*
 		Gets list of selection boxes
 	*/
-	std::vector<aabb3f> getSelectionBoxes(INodeDefManager *nodemgr) const;
+	void getSelectionBoxes(INodeDefManager *nodemg, std::vector<aabb3f> *boxes, u8 neighbors = 0);
 
 	/*
 		Gets list of collision boxes
 	*/
-	std::vector<aabb3f> getCollisionBoxes(INodeDefManager *nodemgr) const;
+	void getCollisionBoxes(INodeDefManager *nodemgr, std::vector<aabb3f> *boxes, u8 neighbors = 0);
 
 	/*
 		Liquid helpers
@@ -308,6 +308,12 @@ struct MapNode
 
 	void msgpack_pack(msgpack::packer<msgpack::sbuffer> &pk) const;
 	void msgpack_unpack(msgpack::object o);
+
+	friend std::ostream & operator<<(std::ostream &os, const MapNode n) {
+		os << "node["<<(int)n.param0<<","<<(int)n.param1<<","<<(int)n.param2<<"]";
+		return os;
+	}
+
 
 private:
 	// Deprecated serialization methods

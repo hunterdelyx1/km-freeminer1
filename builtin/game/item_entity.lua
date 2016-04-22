@@ -4,16 +4,20 @@ function core.spawn_item(pos, item)
 	-- Take item in any format
 	local stack = ItemStack(item)
 	local obj = core.add_entity(pos, "__builtin:item")
-	obj:get_luaentity():set_item(stack:to_string())
+	-- Don't use obj if it couldn't be added to the map.
+	if obj then
+		obj:get_luaentity():set_item(stack:to_string())
+	end
 	return obj
 end
 
--- If item_entity_ttl is not set, enity will have default life time 
+-- If item_entity_ttl is not set, enity will have default life time
 -- Setting it to -1 disables the feature
 
 local time_to_live = tonumber(core.setting_get("item_entity_ttl"))
 if not time_to_live then
-	time_to_live = -1
+	--time_to_live = -1
+	time_to_live = 86400
 end
 
 core.register_entity(":__builtin:item", {
@@ -28,6 +32,7 @@ core.register_entity(":__builtin:item", {
 		spritediv = {x = 1, y = 1},
 		initial_sprite_basepos = {x = 0, y = 0},
 		is_visible = false,
+		infotext = "",
 	},
 
 	itemstring = '',
@@ -47,6 +52,7 @@ core.register_entity(":__builtin:item", {
 		local c = s
 		local itemtable = stack:to_table()
 		local itemname = nil
+		local description = ""
 		if itemtable then
 			itemname = stack:to_table().name
 		end
@@ -55,6 +61,7 @@ core.register_entity(":__builtin:item", {
 		if core.registered_items[itemname] then
 			item_texture = core.registered_items[itemname].inventory_image
 			item_type = core.registered_items[itemname].type
+			description = core.registered_items[itemname].description
 		end
 		local prop = {
 			is_visible = true,
@@ -63,6 +70,7 @@ core.register_entity(":__builtin:item", {
 			visual_size = {x = s, y = s},
 			collisionbox = {-c, -c, -c, c, c, c},
 			automatic_rotate = math.pi * 0.5,
+			infotext = description,
 		}
 		self.object:set_properties(prop)
 	end,
@@ -71,7 +79,9 @@ core.register_entity(":__builtin:item", {
 		return core.serialize({
 			itemstring = self.itemstring,
 			always_collect = self.always_collect,
-			age = self.age
+			age = self.age,
+			ttl = self.ttl,
+			dropped_by = self.dropped_by
 		})
 	end,
 
@@ -81,11 +91,13 @@ core.register_entity(":__builtin:item", {
 			if data and type(data) == "table" then
 				self.itemstring = data.itemstring
 				self.always_collect = data.always_collect
-				if data.age then 
+				if data.age then
 					self.age = data.age + dtime_s
 				else
 					self.age = dtime_s
 				end
+				self.dropped_by = data.dropped_by
+				self.ttl = data.ttl
 			end
 		else
 			self.itemstring = staticdata
@@ -148,12 +160,15 @@ core.register_entity(":__builtin:item", {
 
 	on_step = function(self, dtime)
 		self.age = self.age + dtime
-		if time_to_live > 0 and self.age > time_to_live then
+		local ttl = self.object:get_luaentity().ttl
+		if not ttl then ttl = time_to_live end
+		if ttl > 0 and self.age > ttl then
 			self.itemstring = ''
 			self.object:remove()
 			return
 		end
 		local p = self.object:getpos()
+		local node_in = core.get_node_or_nil(p)
 		p.y = p.y - 0.5
 		local node = core.get_node_or_nil(p)
 		local in_unloaded = (node == nil)
@@ -205,12 +220,19 @@ core.register_entity(":__builtin:item", {
 				end
 			end
 		end
+
+		-- push item up from ground
+		if node_in and ( not core.registered_nodes[node_in.name] or (not core.registered_nodes[node_in.name].buildable_to and not core.registered_nodes[node_in.name].sunlight_propagates ) ) then
+			self.object:setvelocity({x=0,y=2,z=0})
+		end
+
 	end,
 
 	on_punch = function(self, hitter)
-		if self.itemstring ~= '' then
-			local left = hitter:get_inventory():add_item("main", self.itemstring)
-			if not left:is_empty() then
+		local inv = hitter:get_inventory()
+		if inv and self.itemstring ~= '' then
+			local left = inv:add_item("main", self.itemstring)
+			if left and not left:is_empty() then
 				self.itemstring = left:to_string()
 				return
 			end

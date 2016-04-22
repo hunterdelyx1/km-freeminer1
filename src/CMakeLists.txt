@@ -77,7 +77,7 @@ endif()
 set(CMAKE_REQUIRED_FLAGS "")
 
 if(MSVC)
-	option(ENABLE_THREADS "Use more threads (might be slower on 1-2 core machines)" 0)
+	option(ENABLE_THREADS "Use more threads (might be slower on 1-2 core machines)" 1)
 else()
 	option(ENABLE_THREADS "Use more threads (might be slower on 1-2 core machines)" 1)
 endif()
@@ -133,7 +133,6 @@ if(MSVC)
 	# Flags for C files (sqlite)
 	# /MT = Link statically with standard library stuff
 	set(CMAKE_C_FLAGS_RELEASE "/O2 /Ob2 /MT")
-
 else()
 	# Probably GCC
 	if(APPLE)
@@ -162,13 +161,21 @@ else()
 		set(OTHER_FLAGS "${OTHER_FLAGS} -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls")
 	endif()
 	if(SANITIZE_THREAD)
-		set(OTHER_FLAGS "${OTHER_FLAGS} -fsanitize=thread -fPIE")
+		set(OTHER_FLAGS "${OTHER_FLAGS} -fsanitize=thread -fPIE -fno-omit-frame-pointer -fno-optimize-sibling-calls")
 		if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 			set(OTHER_FLAGS "${OTHER_FLAGS} -pie")
 		endif()
 	endif()
 	if(SANITIZE_MEMORY)
-		set(OTHER_FLAGS "${OTHER_FLAGS} -fsanitize=memory -fno-omit-frame-pointer -fno-optimize-sibling-calls")
+		set(OTHER_FLAGS "${OTHER_FLAGS} -fsanitize=memory -fPIE -fno-omit-frame-pointer -fno-optimize-sibling-calls")
+		SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pie")
+	endif()
+	if(SANITIZE_UNDEFINED)
+		set(OTHER_FLAGS "${OTHER_FLAGS} -fsanitize=undefined -fno-omit-frame-pointer -fno-optimize-sibling-calls")
+	endif()
+	if(USE_GPERF)
+		SET(PLATFORM_LIBS "-ltcmalloc -lprofiler")
+		SET(OTHER_FLAGS "${OTHER_FLAGS} -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free")
 	endif()
 
 
@@ -221,6 +228,12 @@ mark_as_advanced(EXECUTABLE_OUTPUT_PATH LIBRARY_OUTPUT_PATH)
 
 find_package(MsgPack REQUIRED)
 
+if(NOT (BUILD_CLIENT OR BUILD_SERVER OR NO_BUILD))
+	message(WARNING "Neither BUILD_CLIENT nor BUILD_SERVER is set! Setting BUILD_SERVER=true")
+	set(BUILD_SERVER TRUE)
+endif()
+
+
 option(ENABLE_CURL "Enable cURL support for fetching media" TRUE)
 set(USE_CURL FALSE)
 
@@ -234,14 +247,31 @@ else()
 	mark_as_advanced(CLEAR CURL_LIBRARY CURL_INCLUDE_DIR)
 endif()
 
-find_package(Iconv)
-if(ICONV_INCLUDE_DIR)
-set(USE_ICONV 1)
-message(STATUS "iconv.h found: ${ICONV_INCLUDE_DIR}")
-else()
-set(USE_ICONV 0)
-message(STATUS "iconv.h NOT found")
+option(ENABLE_ICONV "Enable utf8 convert via iconv " FALSE)
+
+if(ENABLE_ICONV)
+	find_package(Iconv)
+	if(ICONV_INCLUDE_DIR)
+		set(USE_ICONV 1)
+		message(STATUS "iconv.h found: ${ICONV_INCLUDE_DIR}")
+	else()
+		message(STATUS "iconv.h NOT found")
+	endif()
 endif()
+
+if(NOT USE_ICONV)
+	set(USE_ICONV 0)
+endif()
+
+if(NOT USE_CURL)
+	if(BUILD_CLIENT)
+		message(WARNING "cURL is required to load the server list")
+	endif()
+	if(BUILD_SERVER)
+		message(WARNING "cURL is required to announce to the server list")
+	endif()
+endif()
+
 
 if(BUILD_CLIENT)
 OPTION(ENABLE_GETTEXT "Use GetText for internationalization" TRUE)
@@ -355,13 +385,43 @@ set(USE_FREETYPE FALSE)
 		set(CGUITTFONT_LIBRARY cguittfont)
 	endif()
 
-if(NOT FREETYPE_FOUND)
+if(NOT FREETYPE_FOUND AND NOT NO_BUILD)
 	message(FATAL_ERROR "FreeType was not found.")
 endif()
 
-find_package(Lua REQUIRED)
+# LuaJIT
+option(ENABLE_LUAJIT "Enable LuaJIT support" TRUE)
+set(USE_LUAJIT FALSE)
+if(ENABLE_LUAJIT)
+	find_package(LuaJIT)
+	if(LUAJIT_FOUND)
+		set(USE_LUAJIT TRUE)
+	endif(LUAJIT_FOUND)
+else()
+	message (STATUS "LuaJIT detection disabled! (ENABLE_LUAJIT=0)")
+endif()
+if(NOT USE_LUAJIT)
+	message(STATUS "LuaJIT not found, using bundled Lua.")
+	set(LUA_LIBRARY "lua")
+	set(LUA_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/lua/src")
+	add_subdirectory(lua)
+endif()
 
 find_package(GMP REQUIRED)
+
+option(ENABLE_CURSES "Enable ncurses console" TRUE)
+set(USE_CURSES FALSE)
+
+if(ENABLE_CURSES)
+	find_package(Ncursesw)
+	if(CURSES_FOUND)
+		set(USE_CURSES TRUE)
+		message(STATUS "ncurses console enabled.")
+		include_directories(${CURSES_INCLUDE_DIRS})
+	else()
+		message(STATUS "ncurses not found!")
+	endif()
+endif(ENABLE_CURSES)
 
 option(ENABLE_LEVELDB "Enable LevelDB backend" TRUE)
 set(USE_LEVELDB FALSE)
@@ -375,7 +435,7 @@ if(ENABLE_LEVELDB)
 	message (STATUS "Snappy headers: ${SNAPPY_INCLUDE_DIR}")   
 	if(LEVELDB_LIBRARY AND LEVELDB_INCLUDE_DIR AND SNAPPY_LIBRARY AND SNAPPY_INCLUDE_DIR)
 		set(USE_LEVELDB TRUE)
-		message(STATUS "LevelDB backend enabled.")
+		message(STATUS "LevelDB backend enabled. ${LEVELDB_INCLUDE_DIR}")
 		include_directories(${LEVELDB_INCLUDE_DIR} ${SNAPPY_INCLUDE_DIR})
 	elseif (NOT FORCE_LEVELDB)
 		message(WARNING "LevelDB not found! Player data cannot be saved in singleplayer or server")
@@ -473,6 +533,10 @@ if(WIN32)
 	endif()
 	set(PLATFORM_LIBS ws2_32.lib shlwapi.lib ${PLATFORM_LIBS})
 
+	if(MSVC) # vs2015
+		set(PLATFORM_LIBS winmm.lib ${PLATFORM_LIBS})
+	endif()
+
 	# Zlib stuff
 	set(ZLIB_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/../../zlib/zlib-1.2.5"
 			CACHE PATH "Zlib include directory")
@@ -519,7 +583,7 @@ else()
 		endif(APPLE)
 	endif(BUILD_CLIENT)
 	find_package(ZLIB REQUIRED)
-	set(PLATFORM_LIBS -lpthread ${CMAKE_DL_LIBS})
+	set(PLATFORM_LIBS ${PLATFORM_LIBS} -lpthread ${CMAKE_DL_LIBS})
 	if(APPLE)
 		set(PLATFORM_LIBS "-framework CoreFoundation" ${PLATFORM_LIBS})
 	else()
@@ -560,8 +624,9 @@ add_custom_target(GenerateVersion
 	-P "${CMAKE_SOURCE_DIR}/cmake/Modules/GenerateVersion.cmake"
 	WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 
+add_subdirectory(contrib)
 
-add_subdirectory(jthread)
+add_subdirectory(threading)
 add_subdirectory(network)
 add_subdirectory(script)
 add_subdirectory(unittest)
@@ -579,7 +644,8 @@ set(FMcommon_SRCS
 	circuit_element.cpp
 	circuit_element_virtual.cpp
 	key_value_storage.cpp
-	fmbitset.cpp
+	fm_bitset.cpp
+	FMColoredString.cpp
 	mapgen_v5.cpp
 	mapgen_indev.cpp
 	mapgen_math.cpp
@@ -591,9 +657,9 @@ set(FMcommon_SRCS
 )
 
 set(common_SRCS
-	areastore.cpp
 	ban.cpp
 	cavegen.cpp
+	chat.cpp
 	clientiface.cpp
 	collision.cpp
 	content_abm.cpp
@@ -624,10 +690,13 @@ set(common_SRCS
 	map.cpp
 	mapblock.cpp
 	mapgen.cpp
+	mapgen_flat.cpp
+	mapgen_fractal.cpp
 	mapgen_singlenode.cpp
 	mapgen_v5.cpp
 	mapgen_v6.cpp
 	mapgen_v7.cpp
+	mapgen_valleys.cpp
 	mapnode.cpp
 	mapsector.cpp
 	mg_biome.cpp
@@ -658,11 +727,13 @@ set(common_SRCS
 	sound.cpp
 	staticobject.cpp
 	subgame.cpp
+	terminal_chat_console.cpp
 	tool.cpp
 	treegen.cpp
 	version.cpp
 	voxel.cpp
 	voxelalgorithms.cpp
+	${contrib_SRCS}
 	${common_network_SRCS}
 	${JTHREAD_SRCS}
 	${common_SCRIPT_SRCS}
@@ -692,11 +763,15 @@ if(WIN32)
 endif()
 
 set(FMclient_SRCS
-	FMColoredString.cpp
 	guiTextInputMenu.cpp
 	intlGUIEditBox.cpp
 	FMStaticText.cpp
 )
+
+if (USE_TOUCHSCREENGUI)
+	add_definitions(-DHAVE_TOUCHSCREENGUI)
+	set(FMclient_SRCS ${FMclient_SRCS} touchscreengui.cpp)
+endif()
 
 # Client sources
 if (BUILD_CLIENT)
@@ -709,7 +784,6 @@ set(client_SRCS
 	${sound_SRCS}
 	${client_network_SRCS}
 	camera.cpp
-	chat.cpp
 	client.cpp
 	clientmap.cpp
 	clientmedia.cpp
@@ -845,6 +919,9 @@ if(BUILD_CLIENT)
 			${CGUITTFONT_LIBRARY}
 		)
 	endif()
+	if (USE_CURSES)
+		target_link_libraries(${PROJECT_NAME} ${CURSES_LIBRARIES})
+	endif()
 	if (USE_LEVELDB AND NOT FORCE_LEVELDB)
 		target_link_libraries(${PROJECT_NAME} ${LEVELDB_LIBRARY} ${SNAPPY_LIBRARY})
 	endif()
@@ -880,6 +957,9 @@ if(BUILD_SERVER)
 	)
 	set_target_properties(${PROJECT_NAME}server PROPERTIES
 			COMPILE_DEFINITIONS "SERVER")
+	if (USE_CURSES)
+		target_link_libraries(${PROJECT_NAME}server ${CURSES_LIBRARIES})
+	endif()
 	if (USE_LEVELDB)
 		target_link_libraries(${PROJECT_NAME}server ${LEVELDB_LIBRARY} ${SNAPPY_LIBRARY})
 	endif()

@@ -33,7 +33,6 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "content_sao.h"
 #include "nodedef.h"
 #include "emerge.h"
-#include "content_mapnode.h" // For content_mapnode_get_new_name
 #include "voxelalgorithms.h"
 #include "porting.h"
 #include "profiler.h"
@@ -46,11 +45,12 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "log_types.h"
 
 FlagDesc flagdesc_mapgen[] = {
-	{"trees",    MG_TREES},
-	{"caves",    MG_CAVES},
-	{"dungeons", MG_DUNGEONS},
-	{"flat",     MG_FLAT},
-	{"light",    MG_LIGHT},
+	{"trees",       MG_TREES},
+	{"caves",       MG_CAVES},
+	{"dungeons",    MG_DUNGEONS},
+	{"flat",        MG_FLAT},
+	{"light",       MG_LIGHT},
+	{"decorations", MG_DECORATIONS},
 	{NULL,       0}
 };
 
@@ -66,8 +66,9 @@ FlagDesc flagdesc_gennotify[] = {
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-
+////
+//// Mapgen
+////
 
 Mapgen::Mapgen()
 {
@@ -91,6 +92,7 @@ Mapgen::Mapgen()
 Mapgen::Mapgen(int mapgenid, MapgenParams *params, EmergeManager *emerge) :
 	gennotify(emerge->gen_notify_on, &emerge->gen_notify_on_deco_ids)
 {
+	this->m_emerge = emerge;
 	generating  = false;
 	id          = mapgenid;
 	seed        = (int)params->seed;
@@ -169,6 +171,26 @@ s16 Mapgen::findGroundLevel(v2s16 p2d, s16 ymin, s16 ymax)
 }
 
 
+// Returns -MAX_MAP_GENERATION_LIMIT if not found or if ground is found first
+s16 Mapgen::findLiquidSurface(v2s16 p2d, s16 ymin, s16 ymax)
+{
+	v3s16 em = vm->m_area.getExtent();
+	u32 i = vm->m_area.index(p2d.X, ymax, p2d.Y);
+	s16 y;
+
+	for (y = ymax; y >= ymin; y--) {
+		MapNode &n = vm->m_data[i];
+		if (ndef->get(n).walkable)
+			return -MAX_MAP_GENERATION_LIMIT;
+		else if (ndef->get(n).isLiquid())
+			break;
+
+		vm->m_area.add_y(em, i, -1);
+	}
+	return (y >= ymin) ? y : -MAX_MAP_GENERATION_LIMIT;
+}
+
+
 void Mapgen::updateHeightmap(v3s16 nmin, v3s16 nmax)
 {
 	if (!heightmap)
@@ -205,7 +227,7 @@ void Mapgen::updateLiquid(v3POS nmin, v3POS nmax)
 				// there was a change between liquid and nonliquid, add to queue. no need to add every with liquid_real
 				if (isliquid != wasliquid && (!rare || !(rarecnt++ % 36))) {
 						auto p = v3s16(x, y, z);
-						vm->m_map->transforming_liquid_push_back(p);
+						vm->m_map->transforming_liquid_add(p);
 					}
 
 				wasliquid = isliquid;
@@ -230,67 +252,78 @@ void Mapgen::setLighting(u8 light, v3s16 nmin, v3s16 nmax)
 	}
 }
 
-
-void Mapgen::lightSpread(VoxelArea &a, v3s16 p, u8 light)
+void Mapgen::lightSpread(VoxelArea &a, v3s16 p, u8 light,
+		unordered_map_v3POS<u8> & skip, int r)
 {
 	if (light <= 1 || !a.contains(p))
 		return;
 
 	u32 vi = vm->m_area.index(p);
-	MapNode &nn = vm->m_data[vi];
+	MapNode &n = vm->m_data[vi];
 
-	light--;
-	// should probably compare masked, but doesn't seem to make a difference
-	if (light <= nn.param1 || !ndef->get(nn).light_propagates)
+	// Decay light in each of the banks separately
+	u8 light_day = light & 0x0F;
+	if (light_day > 0)
+		light_day -= 0x01;
+
+	u8 light_night = light & 0xF0;
+	if (light_night > 0x10)
+		light_night -= 0x10;
+
+	// Bail out only if we have no more light from either bank to propogate, or
+	// we hit a solid block that light cannot pass through.
+	if ((light_day  <= (n.param1 & 0x0F) &&
+		light_night <= (n.param1 & 0xF0)) ||
+		!ndef->get(n).light_propagates)
 		return;
 
-	nn.param1 = light;
+	// Since this recursive function only terminates when there is no light from
+	// either bank left, we need to take the max of both banks into account for
+	// the case where spreading has stopped for one light bank but not the other.
+	light = MYMAX(light_day, n.param1 & 0x0F) |
+			MYMAX(light_night, n.param1 & 0xF0);
 
-	lightSpread(a, p + v3s16(0, 0, 1), light);
-	lightSpread(a, p + v3s16(0, 1, 0), light);
-	lightSpread(a, p + v3s16(1, 0, 0), light);
-	lightSpread(a, p - v3s16(0, 0, 1), light);
-	lightSpread(a, p - v3s16(0, 1, 0), light);
-	lightSpread(a, p - v3s16(1, 0, 0), light);
+	n.param1 = light;
+
+	if (++r > 100) {
+		//errorstream<<"mapgen light recursion stop r="<<r << " p=" << p << " lwas=" << (int)n.param1 << " lnow="<< (int )light << " day="<<(int)light_day << " ni="<<(int)light_night<<" skip="<<skip.size() << "\n";
+		return;
+	}
+
+	if (skip.count(p))
+		return;
+	skip.emplace(p, 1);
+
+	lightSpread(a, p + v3s16(0, 0, 1), light, skip, r);
+	lightSpread(a, p + v3s16(0, 1, 0), light, skip, r);
+	lightSpread(a, p + v3s16(1, 0, 0), light, skip, r);
+	lightSpread(a, p - v3s16(0, 0, 1), light, skip, r);
+	lightSpread(a, p - v3s16(0, 1, 0), light, skip, r);
+	lightSpread(a, p - v3s16(1, 0, 0), light, skip, r);
 }
 
-
-void Mapgen::calcLighting(v3s16 nmin, v3s16 nmax, v3s16 full_nmin, v3s16 full_nmax)
+void Mapgen::calcLighting(v3s16 nmin, v3s16 nmax, v3s16 full_nmin, v3s16 full_nmax,
+	bool propagate_shadow)
 {
 	ScopeProfiler sp(g_profiler, "EmergeThread: mapgen lighting update", SPT_AVG);
 	//TimeTaker t("updateLighting");
 
-	propagateSunlight(nmin, nmax);
+	propagateSunlight(nmin, nmax, propagate_shadow);
 	spreadLight(full_nmin, full_nmax);
 
 	//printf("updateLighting: %dms\n", t.stop());
 }
 
 
-
-void Mapgen::calcLighting(v3s16 nmin, v3s16 nmax)
-{
-	ScopeProfiler sp(g_profiler, "EmergeThread: mapgen lighting update", SPT_AVG);
-	//TimeTaker t("updateLighting");
-
-	propagateSunlight(
-		nmin - v3s16(1, 1, 1) * MAP_BLOCKSIZE,
-		nmax + v3s16(1, 0, 1) * MAP_BLOCKSIZE);
-
-	spreadLight(
-		nmin - v3s16(1, 1, 1) * MAP_BLOCKSIZE,
-		nmax + v3s16(1, 1, 1) * MAP_BLOCKSIZE);
-
-	//printf("updateLighting: %dms\n", t.stop());
-}
-
-
-void Mapgen::propagateSunlight(v3s16 nmin, v3s16 nmax)
+void Mapgen::propagateSunlight(v3s16 nmin, v3s16 nmax, bool propagate_shadow)
 {
 	//TimeTaker t("propagateSunlight");
 	VoxelArea a(nmin, nmax);
 	bool block_is_underground = (water_level >= nmax.Y);
 	v3s16 em = vm->m_area.getExtent();
+
+	// NOTE: Direct access to the low 4 bits of param1 is okay here because,
+	// by definition, sunlight will never be in the night lightbank.
 
 	for (int z = a.MinEdge.Z; z <= a.MaxEdge.Z; z++) {
 		for (int x = a.MinEdge.X; x <= a.MaxEdge.X; x++) {
@@ -299,7 +332,8 @@ void Mapgen::propagateSunlight(v3s16 nmin, v3s16 nmax)
 			if (vm->m_data[i].getContent() == CONTENT_IGNORE) {
 				if (block_is_underground)
 					continue;
-			} else if ((vm->m_data[i].param1 & 0x0F) != LIGHT_SUN) {
+			} else if ((vm->m_data[i].param1 & 0x0F) != LIGHT_SUN &&
+					propagate_shadow) {
 				u32 ii = 0;
 				if (
 				(x < a.MaxEdge.X && (ii = vm->m_area.index(x + 1, a.MaxEdge.Y + 1, z    )) &&
@@ -333,7 +367,6 @@ void Mapgen::propagateSunlight(v3s16 nmin, v3s16 nmax)
 }
 
 
-
 void Mapgen::spreadLight(v3s16 nmin, v3s16 nmax)
 {
 	//TimeTaker t("spreadLight");
@@ -344,22 +377,29 @@ void Mapgen::spreadLight(v3s16 nmin, v3s16 nmax)
 			u32 i = vm->m_area.index(a.MinEdge.X, y, z);
 			for (int x = a.MinEdge.X; x <= a.MaxEdge.X; x++, i++) {
 				MapNode &n = vm->m_data[i];
-				if (n.getContent() == CONTENT_IGNORE ||
-					!ndef->get(n).light_propagates)
+				if (n.getContent() == CONTENT_IGNORE)
 					continue;
 
-				u8 light_produced = ndef->get(n).light_source & 0x0F;
-				if (light_produced)
-					n.param1 = light_produced;
+				const ContentFeatures &cf = ndef->get(n);
+				if (!cf.light_propagates)
+					continue;
 
-				u8 light = n.param1 & 0x0F;
+				// TODO(hmmmmm): Abstract away direct param1 accesses with a
+				// wrapper, but something lighter than MapNode::get/setLight
+
+				u8 light_produced = cf.light_source;
+				if (light_produced)
+					n.param1 = light_produced | (light_produced << 4);
+
+				u8 light = n.param1;
 				if (light) {
-					lightSpread(a, v3s16(x,     y,     z + 1), light);
-					lightSpread(a, v3s16(x,     y + 1, z    ), light);
-					lightSpread(a, v3s16(x + 1, y,     z    ), light);
-					lightSpread(a, v3s16(x,     y,     z - 1), light);
-					lightSpread(a, v3s16(x,     y - 1, z    ), light);
-					lightSpread(a, v3s16(x - 1, y,     z    ), light);
+					unordered_map_v3POS<u8> skip;
+					lightSpread(a, v3s16(x,     y,     z + 1), light, skip);
+					lightSpread(a, v3s16(x,     y + 1, z    ), light, skip);
+					lightSpread(a, v3s16(x + 1, y,     z    ), light, skip);
+					lightSpread(a, v3s16(x,     y,     z - 1), light, skip);
+					lightSpread(a, v3s16(x,     y - 1, z    ), light, skip);
+					lightSpread(a, v3s16(x - 1, y,     z    ), light, skip);
 				}
 			}
 		}
@@ -369,8 +409,9 @@ void Mapgen::spreadLight(v3s16 nmin, v3s16 nmax)
 }
 
 
-
-///////////////////////////////////////////////////////////////////////////////
+////
+//// GenerateNotifier
+////
 
 GenerateNotifier::GenerateNotifier()
 {
@@ -436,7 +477,10 @@ void GenerateNotifier::getEvents(
 		m_notify_events.clear();
 }
 
-///////////////////////////////////////////////////////////////////////////////
+
+////
+//// MapgenParams
+////
 
 void MapgenParams::load(Settings &settings)
 {
@@ -459,9 +503,11 @@ void MapgenParams::load(Settings &settings)
 	settings.getNoiseParams("mg_biome_np_humidity_blend", np_biome_humidity_blend);
 
 	delete sparams;
-	sparams = EmergeManager::createMapgenParams(mg_name);
-	if (sparams)
+	MapgenFactory *mgfactory = EmergeManager::getMapgenFactory(mg_name);
+	if (mgfactory) {
+		sparams = mgfactory->createMapgenParams();
 		sparams->readParams(&settings);
+	}
 }
 
 
@@ -472,7 +518,7 @@ void MapgenParams::save(Settings &settings) const
 	settings.setS16("water_level", water_level);
 	settings.setS16("liquid_pressure", liquid_pressure);
 	settings.setS16("chunksize", chunksize);
-	settings.setFlagStr("mg_flags", flags, flagdesc_mapgen, (u32)-1);
+	settings.setFlagStr("mg_flags", flags, flagdesc_mapgen, U32_MAX);
 	settings.setNoiseParams("mg_biome_np_heat", np_biome_heat);
 	settings.setNoiseParams("mg_biome_np_heat_blend", np_biome_heat_blend);
 	settings.setNoiseParams("mg_biome_np_humidity", np_biome_humidity);

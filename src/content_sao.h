@@ -86,21 +86,24 @@ public:
 	std::string getName();
 	bool getCollisionBox(aabb3f *toset);
 	bool collideWithObjects();
-private:
+protected:
 	std::string getPropertyPacket();
 	void sendPosition(bool do_interpolate, bool is_movement_end);
 
 	std::string m_init_name;
 	std::string m_init_state;
 	bool m_registered;
+
+public:
 	struct ObjectProperties m_prop;
-	
+
 	std::atomic_ushort m_hp;
 	v3f m_velocity;
 	v3f m_acceleration;
 	float m_yaw;
+private:
 	ItemGroupList m_armor_groups;
-	
+
 	std::atomic_bool m_properties_sent;
 	float m_last_sent_yaw;
 	v3f m_last_sent_position;
@@ -188,7 +191,7 @@ public:
 	void moveTo(v3f pos, bool continuous);
 	void setYaw(float);
 	void setPitch(float);
-
+	void addSpeed(v3f);
 	/*
 		Interaction interface
 	*/
@@ -216,8 +219,6 @@ public:
 	std::set<int> getAttachmentChildIds();
 	ObjectProperties* accessObjectProperties();
 	void notifyObjectPropertiesModified();
-	void setNametagColor(video::SColor color);
-	video::SColor getNametagColor();
 
 	/*
 		Inventory interface
@@ -253,14 +254,14 @@ public:
 	}
 	float resetTimeFromLastPunch()
 	{
-		auto lock = lock_unique();
+		auto lock = lock_unique_rec();
 		float r = m_time_from_last_punch;
 		m_time_from_last_punch = 0.0;
 		return r;
 	}
 	void noCheatDigStart(v3s16 p)
 	{
-		auto lock = lock_unique();
+		auto lock = lock_unique_rec();
 		m_nocheat_dig_pos = p;
 		m_nocheat_dig_time = 0;
 	}
@@ -297,7 +298,7 @@ public:
 
 private:
 	std::string getPropertyPacket();
-	
+
 	Player *m_player;
 	u16 m_peer_id;
 	Inventory *m_inventory;
@@ -317,7 +318,7 @@ private:
 	int m_wield_index;
 	std::atomic_bool m_position_not_sent;
 	ItemGroupList m_armor_groups;
-	bool m_armor_groups_sent;
+	std::atomic_bool m_armor_groups_sent;
 
 	std::atomic_bool m_properties_sent;
 	struct ObjectProperties m_prop;
@@ -329,7 +330,7 @@ private:
 	float m_animation_speed;
 	float m_animation_blend;
 	bool m_animation_loop;
-	bool m_animation_sent;
+	std::atomic_bool m_animation_sent;
 
 	std::map<std::string, core::vector2d<v3f> > m_bone_position; // Stores position and rotation for each bone name
 	bool m_bone_position_sent;
@@ -341,8 +342,6 @@ private:
 	v3f m_attachment_rotation;
 	bool m_attachment_sent;
 
-	video::SColor m_nametag_color;
-	bool m_nametag_sent;
 
 public:
 	float m_physics_override_speed;
@@ -354,4 +353,3 @@ public:
 };
 
 #endif
-

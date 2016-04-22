@@ -30,6 +30,7 @@ FlagDesc flagdesc_deco[] = {
 	{"place_center_y", DECO_PLACE_CENTER_Y},
 	{"place_center_z", DECO_PLACE_CENTER_Z},
 	{"force_placement", DECO_FORCE_PLACEMENT},
+	{"liquid_surface", DECO_LIQUID_SURFACE},
 	{NULL,             0}
 };
 
@@ -86,15 +87,13 @@ void Decoration::resolveNodeNames()
 
 size_t Decoration::placeDeco(Mapgen *mg, u32 blockseed, v3s16 nmin, v3s16 nmax)
 {
-	PseudoRandom ps(blockseed + 53);
+	PcgRandom ps(blockseed + 53);
 	int carea_size = nmax.X - nmin.X + 1;
 
 	// Divide area into parts
-	if (carea_size % sidelen) {
-		infostream << "Decoration::placeDeco: chunk size is not divisible by "
-			"sidelen; setting sidelen to " << carea_size << std::endl;
+	// If chunksize is changed it may no longer be divisable by sidelen
+	if (carea_size % sidelen)
 		sidelen = carea_size;
-	}
 
 	s16 divlen = carea_size / sidelen;
 	int area = sidelen * sidelen;
@@ -118,7 +117,15 @@ size_t Decoration::placeDeco(Mapgen *mg, u32 blockseed, v3s16 nmin, v3s16 nmax)
 		float nval = (flags & DECO_USE_NOISE) ?
 			NoisePerlin2D(&np, p2d_center.X, p2d_center.Y, mapseed) :
 			fill_ratio;
-		u32 deco_count = area * MYMAX(nval, 0.f);
+		u32 deco_count = 0;
+		float deco_count_f = (float)area * nval;
+		if (deco_count_f >= 1.f) {
+			deco_count = deco_count_f;
+		} else if (deco_count_f > 0.f) {
+			// For low density decorations calculate a chance for 1 decoration
+			if (ps.range(1000) <= deco_count_f * 1000.f)
+				deco_count = 1;
+		}
 
 		for (u32 i = 0; i < deco_count; i++) {
 			s16 x = ps.range(p2d_min.X, p2d_max.X);
@@ -126,9 +133,13 @@ size_t Decoration::placeDeco(Mapgen *mg, u32 blockseed, v3s16 nmin, v3s16 nmax)
 
 			int mapindex = carea_size * (z - nmin.Z) + (x - nmin.X);
 
-			s16 y = mg->heightmap ?
-					mg->heightmap[mapindex] :
-					mg->findGroundLevel(v2s16(x, z), nmin.Y, nmax.Y);
+			s16 y = -MAX_MAP_GENERATION_LIMIT;
+			if (flags & DECO_LIQUID_SURFACE)
+				y = mg->findLiquidSurface(v2s16(x, z), nmin.Y, nmax.Y);
+			else if (mg->heightmap)
+				y = mg->heightmap[mapindex];
+			else
+				y = mg->findGroundLevel(v2s16(x, z), nmin.Y, nmax.Y);
 
 			if (y < nmin.Y || y > nmax.Y ||
 				y < y_min  || y > y_max)
@@ -139,7 +150,7 @@ size_t Decoration::placeDeco(Mapgen *mg, u32 blockseed, v3s16 nmin, v3s16 nmax)
 #if 0
 				printf("Decoration at (%d %d %d) cut off\n", x, y, z);
 				//add to queue
-				JMutexAutoLock cutofflock(cutoff_mutex);
+				MutexAutoLock cutofflock(cutoff_mutex);
 				cutoffs.push_back(CutoffData(x, y, z, height));
 #endif
 			}
@@ -167,12 +178,12 @@ size_t Decoration::placeDeco(Mapgen *mg, u32 blockseed, v3s16 nmin, v3s16 nmax)
 #if 0
 void Decoration::placeCutoffs(Mapgen *mg, u32 blockseed, v3s16 nmin, v3s16 nmax)
 {
-	PseudoRandom pr(blockseed + 53);
+	PcgRandom pr(blockseed + 53);
 	std::vector<CutoffData> handled_cutoffs;
 
 	// Copy over the cutoffs we're interested in so we don't needlessly hold a lock
 	{
-		JMutexAutoLock cutofflock(cutoff_mutex);
+		MutexAutoLock cutofflock(cutoff_mutex);
 		for (std::list<CutoffData>::iterator i = cutoffs.begin();
 			i != cutoffs.end(); ++i) {
 			CutoffData cutoff = *i;
@@ -203,7 +214,7 @@ void Decoration::placeCutoffs(Mapgen *mg, u32 blockseed, v3s16 nmin, v3s16 nmax)
 
 	// Remove cutoffs that were handled from the cutoff list
 	{
-		JMutexAutoLock cutofflock(cutoff_mutex);
+		MutexAutoLock cutofflock(cutoff_mutex);
 		for (std::list<CutoffData>::iterator i = cutoffs.begin();
 			i != cutoffs.end(); ++i) {
 
@@ -283,7 +294,7 @@ bool DecoSimple::canPlaceDecoration(MMVManip *vm, v3s16 p)
 }
 
 
-size_t DecoSimple::generate(MMVManip *vm, PseudoRandom *pr, v3s16 p)
+size_t DecoSimple::generate(MMVManip *vm, PcgRandom *pr, v3s16 p)
 {
 	if (!canPlaceDecoration(vm, p))
 		return 0;
@@ -293,13 +304,16 @@ size_t DecoSimple::generate(MMVManip *vm, PseudoRandom *pr, v3s16 p)
 	s16 height = (deco_height_max > 0) ?
 		pr->range(deco_height, deco_height_max) : deco_height;
 
+	bool force_placement = (flags & DECO_FORCE_PLACEMENT);
+
 	v3s16 em = vm->m_area.getExtent();
 	u32 vi = vm->m_area.index(p);
 	for (int i = 0; i < height; i++) {
 		vm->m_area.add_y(em, vi, 1);
 
 		content_t c = vm->m_data[vi].getContent();
-		if (c != CONTENT_AIR && c != CONTENT_IGNORE)
+		if (c != CONTENT_AIR && c != CONTENT_IGNORE &&
+				!force_placement)
 			break;
 
 		vm->m_data[vi] = MapNode(c_place);
@@ -323,7 +337,7 @@ DecoSchematic::DecoSchematic()
 }
 
 
-size_t DecoSchematic::generate(MMVManip *vm, PseudoRandom *pr, v3s16 p)
+size_t DecoSchematic::generate(MMVManip *vm, PcgRandom *pr, v3s16 p)
 {
 	// Schematic could have been unloaded but not the decoration
 	// In this case generate() does nothing (but doesn't *fail*)
@@ -347,7 +361,7 @@ size_t DecoSchematic::generate(MMVManip *vm, PseudoRandom *pr, v3s16 p)
 
 	bool force_placement = (flags & DECO_FORCE_PLACEMENT);
 
-	schematic->blitToVManip(p, vm, rot, force_placement);
+	schematic->blitToVManip(vm, p, rot, force_placement);
 
 	return 1;
 }

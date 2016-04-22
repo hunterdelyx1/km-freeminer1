@@ -26,9 +26,9 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "constants.h"
 #include "serialization.h"             // for SER_FMT_VER_INVALID
-#include "jthread/jmutex.h"
-#include "util/concurrent_map.h"
-#include "util/concurrent_unordered_map.h"
+#include "threading/mutex.h"
+#include "threading/concurrent_map.h"
+#include "threading/concurrent_unordered_map.h"
 #include "util/unordered_map_hash.h"
 #include "network/networkpacket.h"
 
@@ -174,6 +174,9 @@ namespace con {
 }
 
 #define CI_ARRAYSIZE(a) (sizeof(a) / sizeof((a)[0]))
+
+// Also make sure to update the ClientInterface::statenames
+// array when modifying these enums
 
 enum ClientState
 {
@@ -344,7 +347,6 @@ public:
 
 	/*
 		List of active objects that the client knows of.
-		Value is dummy.
 	*/
 	maybe_concurrent_unordered_map<u16, bool> m_known_objects;
 
@@ -399,10 +401,11 @@ private:
 		- A block is cleared from here when client says it has
 		  deleted it from it's memory
 
-		Key is position, value is dummy.
+		List of block positions.
 		No MapBlock* is stored here because the blocks can get deleted.
 	*/
 	concurrent_unordered_map<v3POS, unsigned int, v3POSHash, v3POSEqual> m_blocks_sent;
+	unsigned int m_nearest_unsent_reset_want = 0;
 
 public:
 	std::atomic_int m_nearest_unsent_d;
@@ -411,6 +414,25 @@ private:
 	v3s16 m_last_center;
 	v3f   m_last_direction;
 	float m_nearest_unsent_reset_timer;
+
+	/*
+		Blocks that have been modified since last sending them.
+		These blocks will not be marked as sent, even if the
+		client reports it has received them to account for blocks
+		that are being modified while on the line.
+
+		List of block positions.
+	*/
+	//std::set<v3s16> m_blocks_modified;
+
+	/*
+		Count of excess GotBlocks().
+		There is an excess amount because the client sometimes
+		gets a block so late that the server sends it again,
+		and the client then sends two GOTBLOCKs.
+		This is resetted by PrintInfo()
+	*/
+	//u32 m_excess_gotblocks;
 
 	// CPU usage optimization
 	float m_nothing_to_send_pause_timer;
@@ -506,11 +528,9 @@ public:
 	static std::string state2Name(ClientState state);
 
 protected:
-	//mt compat
-	void Lock()
-		{  }
-	void Unlock()
-		{  }
+	//TODO find way to avoid this functions
+	void lock() { /*m_clients_mutex.lock();*/ }
+	void unlock() { /*m_clients_mutex.unlock();*/ }
 
 
 public:
@@ -531,13 +551,14 @@ private:
 
 	// Connection
 	con::Connection* m_con;
+	//Mutex m_clients_mutex;
 	// Connected clients (behind the con mutex)
 	concurrent_map<u16, std::shared_ptr<RemoteClient>> m_clients;
 	std::vector<std::string> m_clients_names; //for announcing masterserver
 
 	// Environment
 	ServerEnvironment *m_env;
-	//JMutex m_env_mutex;
+	//Mutex m_env_mutex;
 
 	float m_print_info_timer;
 

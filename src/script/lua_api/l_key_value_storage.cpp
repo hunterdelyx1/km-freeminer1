@@ -20,10 +20,6 @@
 #include "environment.h"
 #include "key_value_storage.h"
 
-#define GET_ENV_PTR ServerEnvironment* env =                                   \
-				dynamic_cast<ServerEnvironment*>(getEnv(L));                   \
-				if( env == NULL) return 0
-
 void ModApiKeyValueStorage::Initialize(lua_State *L, int top)
 {
 	API_FCT(kv_put_string);
@@ -35,22 +31,29 @@ void ModApiKeyValueStorage::Initialize(lua_State *L, int top)
 
 int ModApiKeyValueStorage::l_kv_put_string(lua_State *L)
 {
-	GET_ENV_PTR;
-	
-	const char *key = luaL_checkstring(L, 1);
-	const char *data = luaL_checkstring(L, 2);
-	env->getKeyValueStorage()->put(key, data);
+	GET_ENV_PTR_NO_MAP_LOCK;
+
+	std::string key = luaL_checkstring(L, 1);
+	std::string data = luaL_checkstring(L, 2);
+
+	std::string db;
+	if (lua_isstring(L, 3))
+		db = luaL_checkstring(L, 3);
+	env->getKeyValueStorage(db).put(key, data);
 
 	return 0;
 }
 
 int ModApiKeyValueStorage::l_kv_get_string(lua_State *L)
 {
-	GET_ENV_PTR;
+	GET_ENV_PTR_NO_MAP_LOCK;
 
-	const char *key = luaL_checkstring(L, 1);
+	std::string key = luaL_checkstring(L, 1);
+	std::string db;
+	if (lua_isstring(L, 2))
+		db = luaL_checkstring(L, 2);
 	std::string data;
-	if(env->getKeyValueStorage()->get(key, data)) {
+	if(env->getKeyValueStorage(db).get(key, data)) {
 		lua_pushstring(L, data.c_str());
 		return 1;
 	} else {
@@ -60,10 +63,13 @@ int ModApiKeyValueStorage::l_kv_get_string(lua_State *L)
 
 int ModApiKeyValueStorage::l_kv_delete(lua_State *L)
 {
-	GET_ENV_PTR;
+	GET_ENV_PTR_NO_MAP_LOCK;
 
-	const char *key = luaL_checkstring(L, 1);
-	env->getKeyValueStorage()->del(key);
+	std::string key = luaL_checkstring(L, 1);
+	std::string db;
+	if (lua_isstring(L, 2))
+		db = luaL_checkstring(L, 2);
+	env->getKeyValueStorage(db).del(key);
 
 	return 0;
 }
@@ -75,18 +81,20 @@ int ModApiKeyValueStorage::l_kv_delete(lua_State *L)
 
 int ModApiKeyValueStorage::l_stat_get(lua_State *L)
 {
-	GET_ENV_PTR;
-	const char *key = luaL_checkstring(L, 1);
+	GET_ENV_PTR_NO_MAP_LOCK;
+
+	std::string key = luaL_checkstring(L, 1);
 	lua_pushnumber(L, getServer(L)->stat.get(key));
 	return 1;
 }
 
 int ModApiKeyValueStorage::l_stat_add(lua_State *L)
 {
-	GET_ENV_PTR;
-	const char *key = luaL_checkstring(L, 1);
+	GET_ENV_PTR_NO_MAP_LOCK;
 
-	const char *name = "";
+	std::string key = luaL_checkstring(L, 1);
+
+	std::string name;
 	if(lua_isstring(L, 2))
 		name = lua_tostring(L, 1);
 

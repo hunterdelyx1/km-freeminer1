@@ -20,16 +20,355 @@ You should have received a copy of the GNU General Public License
 along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "fm_defaultsettings.cpp"
-//reduce merge conflicts
-#if 0
-
 #include "settings.h"
 #include "porting.h"
 #include "filesys.h"
 #include "config.h"
 #include "constants.h"
 #include "porting.h"
+
+
+// freeminer part:
+#include "network/connection.h" // ENET_IPV6
+#ifndef SERVER // Only on client
+#include "minimap.h"
+#endif
+
+
+const bool debug =
+#ifdef NDEBUG
+    false
+#else
+    true
+#endif
+    ;
+
+const bool win32 =
+#if defined(_WIN32) && !defined(_WIN64)
+    true
+#else
+    false
+#endif
+    ;
+
+const bool win64 =
+#if defined(_WIN64)
+    true
+#else
+    false
+#endif
+    ;
+
+const bool win = win32 || win64;
+
+
+const bool android =
+#if defined(__ANDROID__)
+    true
+#else
+    false
+#endif
+    ;
+
+const bool arm =
+#if defined(__arm__)
+    true
+#else
+    false
+#endif
+    ;
+
+const bool threads =
+#if ENABLE_THREADS
+    true
+#else
+    false
+#endif
+    ;
+
+
+void fm_set_default_settings(Settings *settings) {
+
+	// Screen
+#if __ANDROID__ || __arm__
+	settings->setDefault("enable_shaders", "0");
+#if defined(_IRR_COMPILE_WITH_OGLES1_)
+	settings->setDefault("video_driver", "ogles1");
+#elif defined(_IRR_COMPILE_WITH_OGLES2_)
+	settings->setDefault("video_driver", "ogles2");
+#else
+	settings->setDefault("video_driver", "opengl");
+#endif
+#else
+	settings->setDefault("video_driver", "opengl");
+	settings->setDefault("enable_shaders", "1");
+#endif
+//	settings->setDefault("chat_buffer_size", "6"); // todo re-enable
+	settings->setDefault("timelapse", "0");
+
+	// Paths
+	settings->setDefault("screenshot_path", "screenshots"); // "."
+	settings->setDefault("serverlist_file", "favoriteservers.json"); // "favoriteservers.txt"
+	settings->setDefault("serverlist_cache", porting::path_user + DIR_DELIM + "client" + DIR_DELIM + "servers_public.json");
+	settings->setDefault("serverlist_lan", "1");
+
+	// Main menu
+	settings->setDefault("main_menu_tab", "multiplayer");
+	settings->setDefault("public_serverlist", "1");
+	settings->setDefault("password_save", "1");
+
+	// Game Speed
+	settings->setDefault("pause_fps_max", "5"); // "20"
+
+	// Debugging stuff
+	settings->setDefault("show_debug", debug ? "true" : "false"); // "true"
+	settings->setDefault("deprecated_lua_api_handling", debug ? "log" : "legacy"); // "log"
+	settings->setDefault("profiler_print_interval", debug ? "10" : "0"); // "0"
+	settings->setDefault("time_taker_enabled", debug ? "5" : "0");
+
+	// Keymaps
+	settings->setDefault("keymap_zoom", "KEY_KEY_Z");
+	settings->setDefault("keymap_msg", "@");
+	settings->setDefault("keymap_toggle_update_camera", debug ? "KEY_F4" : "");
+	settings->setDefault("keymap_toggle_block_boundaries", "KEY_F4");
+	settings->setDefault("keymap_playerlist", "KEY_TAB");
+#if IRRLICHT_VERSION_10000  >= 10703
+	settings->setDefault("keymap_console", "KEY_OEM_3");
+#else
+	settings->setDefault("keymap_console", "KEY_F10");
+#endif
+
+
+	// Fonts
+	settings->setDefault("freetype", "true"); // "false"
+	settings->setDefault("font_path", porting::getDataPath("fonts" DIR_DELIM "liberationsans.ttf")); // porting::getDataPath("fonts" DIR_DELIM "lucida_sans")
+	settings->setDefault("mono_font_path", porting::getDataPath("fonts" DIR_DELIM "liberationmono.ttf")); // porting::getDataPath("fonts" DIR_DELIM "mono_dejavu_sans")
+
+	settings->setDefault("reconnects", win ? "1" : "10"); // TODO: wix windows
+
+	// Map generation
+	settings->setDefault("mg_name", "indev"); // "v6"
+	settings->setDefault("mg_flags", "trees, caves, dungeons"); // "dungeons"
+	settings->setDefault("mgv6_spflags", "jungles, biome_blend, snowbiomes"); // "jungles, snowbiomes"
+	settings->setDefault("mg_math", ""); // configuration in json struct
+	settings->setDefault("mg_params", ""); // configuration in json struct
+
+	// Filters
+	settings->setDefault("anisotropic_filter", "true"); // "false"
+
+	// Waving
+	settings->setDefault("enable_waving_leaves", "true"); // "false"
+	settings->setDefault("enable_waving_plants", "true"); // "false"
+	settings->setDefault("enable_waving_water", "true"); // "false"
+
+	// Shaders
+	//settings->setDefault("enable_bumpmapping", "true"); // "false"
+	settings->setDefault("enable_parallax_occlusion", "true"); // "false"
+	settings->setDefault("disable_wieldlight", "false");
+	settings->setDefault("mip_map", "true"); // "false"
+	// Clouds, water, glass, leaves, fog
+	settings->setDefault("cloud_height", "300"); // "120"
+	settings->setDefault("enable_zoom_cinematic", "true");
+	settings->setDefault("wanted_fps", android ? "25" : "30");
+	settings->setDefault("viewing_range_max", (win32 || android) ? "300" : "10000" /*itos(MAX_MAP_GENERATION_LIMIT)*/); // "240"
+	settings->setDefault("shadows", "0");
+	settings->setDefault("zoom_fov", "15");
+	settings->setDefault("farmesh", android ? "2" : "0");
+	settings->setDefault("farmesh_step", android ? "2" : "3");
+	settings->setDefault("farmesh_wanted", android ? "100" :"500");
+	settings->setDefault("headless_optimize", "false");
+	//settings->setDefault("node_highlighting", "halo");
+	//settings->setDefault("enable_vbo", win ? "false" : "true");
+
+	// Liquid
+	settings->setDefault("liquid_real", "true");
+	settings->setDefault("liquid_send", android ? "3.0" : "1.0");
+	settings->setDefault("liquid_relax", android ? "1" : "2");
+	settings->setDefault("liquid_fast_flood", "-200");
+
+	// Weather
+	settings->setDefault("weather", threads ? "true" : "false");
+	settings->setDefault("weather_biome", "false");
+	settings->setDefault("weather_heat_season", "30");
+	settings->setDefault("weather_heat_daily", "8");
+	settings->setDefault("weather_heat_width", "3000");
+	settings->setDefault("weather_hot_core", "1000");
+	settings->setDefault("weather_heat_height", "-333");
+	settings->setDefault("year_days", "30");
+	settings->setDefault("weather_humidity_season", "30");
+	settings->setDefault("weather_humidity_daily", "-12");
+	settings->setDefault("weather_humidity_width", "300");
+	settings->setDefault("weather_humidity_days", "2");
+
+	settings->setDefault("respawn_auto", "false");
+	settings->setDefault("autojump", android ? "1" : "0");
+	settings->setDefault("hotbar_cycling", "false");
+
+// TODO: refactor and resolve client/server dependencies
+#ifndef SERVER // Only on client
+	settings->setDefault("minimap_default_mode", itos(MINIMAP_MODE_SURFACEx1));
+#endif
+
+#if !MINETEST_PROTO
+	settings->setDefault("serverlist_url", "servers.freeminer.org");
+	settings->setDefault("server_proto", "fm_enet");
+#else
+	settings->setDefault("server_proto", "mt");
+#endif
+	settings->setDefault("timeout_mul", android ? "5" : "1");
+	settings->setDefault("default_game", "default"); // "minetest"
+	settings->setDefault("max_users", "100"); // "15"
+	settings->setDefault("enable_any_name", "0"); // WARNING! SETTING TO "1" COULD CAUSE SECURITY RISKS WITH MODULES WITH PLAYER DATA IN FILES CONTAINS PLAYER NAME IN FILENAME
+	settings->setDefault("default_privs_creative", "interact, shout, fly, fast");
+	settings->setDefault("vertical_spawn_range", "50"); // "16"
+	settings->setDefault("cache_block_before_spawn", "true");
+	settings->setDefault("abm_random", android ? "false" : "true");
+	settings->setDefault("active_block_range", android ? "1" : threads ? "4" : "2");
+	settings->setDefault("abm_neighbors_range_max", (threads && !win32 && !android) ? "16" : "1");
+	settings->setDefault("enable_force_load", "true");
+	settings->setDefault("max_simultaneous_block_sends_per_client", "50"); // "10"
+	settings->setDefault("max_block_send_distance", "30"); // "9"
+	settings->setDefault("server_unload_unused_data_timeout", "65"); // "29"
+	settings->setDefault("max_objects_per_block", "100"); // "49"
+	settings->setDefault("server_occlusion", "true");
+	settings->setDefault("ignore_world_load_errors", "true"); // "false"
+	settings->setDefault("emergequeue_limit_diskonly", ""); // autodetect from number of cpus
+	settings->setDefault("emergequeue_limit_generate", ""); // autodetect from number of cpus
+	settings->setDefault("emergequeue_limit_total", ""); // autodetect from number of cpus
+	settings->setDefault("num_emerge_threads", ""); // "1"
+	settings->setDefault("server_map_save_interval", "300"); // "5.3"
+	settings->setDefault("sqlite_synchronous", "1"); // "2"
+	settings->setDefault("save_generated_block", "true");
+	settings->setDefault("block_delete_time", threads && arm ? "60" : threads ? "30" : "10");
+
+#if (ENET_IPV6 || MINETEST_PROTO)
+	//settings->setDefault("enable_ipv6", "true");
+#else
+	settings->setDefault("enable_ipv6", "false");
+#endif
+
+#if !USE_IPV4_DEFAULT && (ENET_IPV6 || MINETEST_PROTO)
+	settings->setDefault("ipv6_server", "true"); // problems on all windows versions (unable to play in local game)
+#else
+	//settings->setDefault("ipv6_server", "false");
+#endif
+	settings->setDefault("movement_fov", "true");
+	settings->setDefault("movement_acceleration_default", "4"); // "3"
+	settings->setDefault("movement_acceleration_air", "4"); // "2"
+	settings->setDefault("movement_speed_walk", "6"); // "4"
+	settings->setDefault("movement_speed_crouch", "2"); // "1.35"
+	settings->setDefault("movement_speed_fast", "20.5"); // "20"
+	settings->setDefault("movement_fall_aerodynamics", "110");
+
+/*
+	settings->setDefault("animation_default_start", "0");
+	settings->setDefault("animation_default_stop", "79");
+	settings->setDefault("animation_walk_start", "168");
+	settings->setDefault("animation_walk_stop", "187");
+	settings->setDefault("animation_dig_start", "189");
+	settings->setDefault("animation_dig_stop", "198");
+	settings->setDefault("animation_wd_start", "200");
+	settings->setDefault("animation_wd_stop", "219");
+*/
+	settings->setDefault("more_threads", "true");
+	settings->setDefault("console_enabled", debug ? "true" : "false");
+
+	if (win32) {
+		settings->setDefault("client_unload_unused_data_timeout", "30");
+		settings->setDefault("server_unload_unused_data_timeout", "45");
+	}
+
+	settings->setDefault("minimap_shape_round", "false");
+	settings->setDefault("mainmenu_last_selected_world", "1");
+
+
+#ifdef __ANDROID__
+	settings->setDefault("TMPFolder", porting::path_user + "/tmp/");
+
+	//check for device with small screen
+	float x_inches = porting::getDisplaySize().X / porting::get_dpi();
+
+	settings->setDefault("smooth_lighting", "false");
+	settings->setDefault("enable_3d_clouds", "false");
+
+	settings->setDefault("fps_max", "30");
+	settings->setDefault("mouse_sensitivity", "0.1");
+
+	settings->setDefault("sound_volume", "1");
+	settings->setDefault("doubletap_jump", "1");
+
+	/*
+	settings->setDefault("max_simultaneous_block_sends_per_client", "3");
+	settings->setDefault("emergequeue_limit_diskonly", "8");
+	settings->setDefault("emergequeue_limit_generate", "8");
+	*/
+	//settings->setDefault("viewing_range", "25");
+	settings->setDefault("num_emerge_threads", "1"); // too unstable when > 1
+	settings->setDefault("inventory_image_hack", "false");
+	if (x_inches  < 7) {
+		settings->setDefault("enable_minimap", "false");
+	}
+
+	if (x_inches  < 3.5) {
+		settings->setDefault("hud_scaling", "0.6");
+	} else if (x_inches < 4.5) {
+		settings->setDefault("hud_scaling", "0.7");
+	}
+
+	settings->setDefault("curl_verify_cert", "false");
+
+	settings->setDefault("chunksize", "3");
+	settings->setDefault("server_map_save_interval", "60");
+	settings->setDefault("server_unload_unused_data_timeout", "65");
+	settings->setDefault("client_unload_unused_data_timeout", "60");
+	settings->setDefault("max_objects_per_block", "20");
+
+	settings->setDefault("leaves_style", "opaque");
+	//settings->setDefault("mg_name", "v7");
+
+	char lang[3] = {};
+	AConfiguration_getLanguage(porting::app_global->config, lang);
+	settings->setDefault("language", lang);
+	settings->setDefault("android_keyboard", "0");
+	settings->setDefault("texture_min_size", "16");
+	settings->setDefault("cloud_radius", "6");
+
+
+	{
+	std::stringstream fontsize;
+	auto density = porting::getDisplayDensity();
+	if (density > 1.6 && porting::getDisplaySize().X > 1024)
+		density = 1.6;
+	float font_size = 10 * density;
+
+	fontsize << (int)font_size;
+
+	settings->setDefault("font_size", fontsize.str());
+	settings->setDefault("mono_font_size", fontsize.str());
+	settings->setDefault("fallback_font_size", fontsize.str());
+
+	actionstream << "Autoconfig: "" displayX=" << porting::getDisplaySize().X 
+		<< " density=" << porting::getDisplayDensity() 
+		<< " dpi=" << porting::get_dpi()
+		//<< " densityDpi=" << porting::get_densityDpi()
+		<< " x_inches=" << x_inches 
+		<< " font=" << font_size 
+		<< " lang=" << lang <<std::endl;
+	}
+
+#endif
+
+#ifdef HAVE_TOUCHSCREENGUI
+	settings->setDefault("touchscreen", android ? "true" : "false");
+	settings->setDefault("touchtarget", "true");
+	settings->setDefault("touchscreen_threshold","20");
+#endif
+
+}
+
+
+// End of freeminer ======
+
 
 void set_default_settings(Settings *settings)
 {
@@ -40,6 +379,7 @@ void set_default_settings(Settings *settings)
 	// Client stuff
 	settings->setDefault("remote_port", "30000");
 	settings->setDefault("keymap_forward", "KEY_KEY_W");
+	settings->setDefault("keymap_autorun", "");
 	settings->setDefault("keymap_backward", "KEY_KEY_S");
 	settings->setDefault("keymap_left", "KEY_KEY_A");
 	settings->setDefault("keymap_right", "KEY_KEY_D");
@@ -95,12 +435,9 @@ void set_default_settings(Settings *settings)
 	settings->setDefault("show_debug", "true");
 	#endif
 
-	settings->setDefault("wanted_fps", "30");
 	settings->setDefault("fps_max", "60");
 	settings->setDefault("pause_fps_max", "20");
-	// A bit more than the server will send around the player, to make fog blend well
-	settings->setDefault("viewing_range_nodes_max", "240");
-	settings->setDefault("viewing_range_nodes_min", "35");
+	settings->setDefault("viewing_range", "100");
 	settings->setDefault("map_generation_limit", "31000");
 	settings->setDefault("screenW", "800");
 	settings->setDefault("screenH", "600");
@@ -110,12 +447,11 @@ void set_default_settings(Settings *settings)
 	settings->setDefault("vsync", "false");
 	settings->setDefault("address", "");
 	settings->setDefault("random_input", "false");
-	settings->setDefault("client_unload_unused_data_timeout", "600");
+	settings->setDefault("client_unload_unused_data_timeout", "300");
 	settings->setDefault("client_mapblock_limit", "5000");
 	settings->setDefault("enable_fog", "true");
 	settings->setDefault("fov", "72");
 	settings->setDefault("view_bobbing", "true");
-	settings->setDefault("new_style_water", "false");
 	settings->setDefault("leaves_style", "fancy");
 	settings->setDefault("connected_glass", "false");
 	settings->setDefault("smooth_lighting", "true");
@@ -133,6 +469,8 @@ void set_default_settings(Settings *settings)
 	settings->setDefault("invert_mouse", "false");
 	settings->setDefault("enable_clouds", "true");
 	settings->setDefault("screenshot_path", ".");
+	settings->setDefault("screenshot_format", "png");
+	settings->setDefault("screenshot_quality", "0");
 	settings->setDefault("view_bobbing_amount", "1.0");
 	settings->setDefault("fall_bobbing_amount", "0.0");
 	settings->setDefault("enable_3d_clouds", "true");
@@ -143,7 +481,9 @@ void set_default_settings(Settings *settings)
 	settings->setDefault("console_color", "(0,0,0)");
 	settings->setDefault("console_alpha", "200");
 	settings->setDefault("selectionbox_color", "(0,0,0)");
-	settings->setDefault("enable_node_highlighting", "false");
+	settings->setDefault("selectionbox_width", "2");
+	settings->setDefault("inventory_items_animations", "false");
+	settings->setDefault("node_highlighting", "box");
 	settings->setDefault("crosshair_color", "(255,255,255)");
 	settings->setDefault("crosshair_alpha", "255");
 	settings->setDefault("hud_scaling", "1.0");
@@ -154,9 +494,9 @@ void set_default_settings(Settings *settings)
 	settings->setDefault("enable_sound", "true");
 	settings->setDefault("sound_volume", "0.8");
 	settings->setDefault("desynchronize_mapblock_texture_animation", "true");
-	settings->setDefault("selectionbox_width","2");
-	settings->setDefault("hud_hotbar_max_width","1.0");
+	settings->setDefault("hud_hotbar_max_width", "1.0");
 	settings->setDefault("enable_local_map_saving", "false");
+	settings->setDefault("show_entity_selectionbox", "true");
 
 	settings->setDefault("mip_map", "false");
 	settings->setDefault("anisotropic_filter", "false");
@@ -164,7 +504,7 @@ void set_default_settings(Settings *settings)
 	settings->setDefault("trilinear_filter", "false");
 	settings->setDefault("texture_clean_transparent", "false");
 	settings->setDefault("texture_min_size", "64");
-	settings->setDefault("preload_item_visuals", "false");
+	settings->setDefault("tone_mapping", "false");
 	settings->setDefault("enable_bumpmapping", "false");
 	settings->setDefault("enable_parallax_occlusion", "false");
 	settings->setDefault("generate_normalmaps", "false");
@@ -185,10 +525,13 @@ void set_default_settings(Settings *settings)
 	settings->setDefault("repeat_rightclick_time", "0.25");
 	settings->setDefault("enable_particles", "true");
 	settings->setDefault("enable_mesh_cache", "false");
-
+	settings->setDefault("enable_vbo", "true");
+	
 	settings->setDefault("enable_minimap", "true");
 	settings->setDefault("minimap_shape_round", "true");
 	settings->setDefault("minimap_double_scan_height", "true");
+
+	settings->setDefault("send_pre_v25_init", "true");
 
 	settings->setDefault("curl_timeout", "5000");
 	settings->setDefault("curl_parallel_limit", "8");
@@ -284,15 +627,19 @@ void set_default_settings(Settings *settings)
 	settings->setDefault("sqlite_synchronous", "2");
 	settings->setDefault("full_block_send_enable_min_time_from_building", "2.0");
 	settings->setDefault("dedicated_server_step", "0.1");
+	settings->setDefault("active_block_mgmt_interval", "2.0");
+	settings->setDefault("abm_interval", "1.0");
+	settings->setDefault("nodetimer_interval", "1.0");
 	settings->setDefault("ignore_world_load_errors", "false");
 	settings->setDefault("remote_media", "");
-	settings->setDefault("debug_log_level", "2");
+	settings->setDefault("debug_log_level", "action");
 	settings->setDefault("emergequeue_limit_total", "256");
 	settings->setDefault("emergequeue_limit_diskonly", "32");
 	settings->setDefault("emergequeue_limit_generate", "32");
 	settings->setDefault("num_emerge_threads", "1");
 	settings->setDefault("secure.enable_security", "false");
 	settings->setDefault("secure.trusted_mods", "");
+	settings->setDefault("secure.http_mods", "");
 
 	// physics stuff
 	settings->setDefault("movement_acceleration_default", "3");
@@ -318,8 +665,7 @@ void set_default_settings(Settings *settings)
 	settings->setDefault("water_level", "1");
 	settings->setDefault("chunksize", "5");
 	settings->setDefault("mg_flags", "dungeons");
-	settings->setDefault("mgv6_spflags", "jungles, snowbiomes");
-	settings->setDefault("enable_floating_dungeons", "true");
+	settings->setDefault("mgv6_spflags", "jungles, snowbiomes, trees");
 
 	// IPv6
 	settings->setDefault("enable_ipv6", "true");
@@ -352,10 +698,8 @@ void set_default_settings(Settings *settings)
 	settings->setDefault("max_simultaneous_block_sends_per_client", "3");
 	settings->setDefault("emergequeue_limit_diskonly", "8");
 	settings->setDefault("emergequeue_limit_generate", "8");
-	settings->setDefault("preload_item_visuals", "false");
 
-	settings->setDefault("viewing_range_nodes_max", "50");
-	settings->setDefault("viewing_range_nodes_min", "20");
+	settings->setDefault("viewing_range", "50");
 	settings->setDefault("inventory_image_hack", "false");
     
 	//check for device with small screen
@@ -371,7 +715,11 @@ void set_default_settings(Settings *settings)
 #else
 	settings->setDefault("screen_dpi", "72");
 #endif
+
+	fm_set_default_settings(settings);
 }
+
+
 
 void override_default_settings(Settings *settings, Settings *from)
 {
@@ -381,5 +729,3 @@ void override_default_settings(Settings *settings, Settings *from)
 		settings->setDefault(name, from->get(name));
 	}
 }
-
-#endif

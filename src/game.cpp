@@ -44,7 +44,6 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "guiPasswordChange.h"
 #include "guiVolumeChange.h"
 #include "hud.h"
-#include "logoutputbuffer.h"
 #include "mainmenumanager.h"
 #include "mapblock.h"
 #include "nodedef.h"         // Needed for determining pointing to nodes
@@ -62,6 +61,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "util/pointedthing.h"
 #include "version.h"
 #include "minimap.h"
+#include "mapblock_mesh.h"
 
 #include "sound.h"
 
@@ -186,19 +186,6 @@ struct LocalFormspecHandler : public TextDest {
 			}
 		}
 
-		if (m_formname == "MT_CHAT_MENU") {
-			assert(m_client != 0);
-
-			if ((fields.find("btn_send") != fields.end()) ||
-					(fields.find("quit") != fields.end())) {
-				StringMap::const_iterator it = fields.find("f_text");
-				if (it != fields.end())
-					m_client->typeChatMessage(it->second);
-
-				return;
-			}
-		}
-
 		if (m_formname == "MT_DEATH_SCREEN") {
 			assert(m_client != 0);
 
@@ -296,23 +283,70 @@ inline bool isPointableNode(const MapNode &n,
 	       (liquids_pointable && features.isLiquid());
 }
 
+static inline void getNeighborConnectingFace(v3s16 p, INodeDefManager *nodedef,
+		ClientMap *map, MapNode n, u8 bitmask, u8 *neighbors)
+{
+	MapNode n2 = map->getNodeNoEx(p);
+	if (nodedef->nodeboxConnects(n, n2, bitmask))
+		*neighbors |= bitmask;
+}
+
+static inline u8 getNeighbors(v3s16 p, INodeDefManager *nodedef, ClientMap *map, MapNode n)
+{
+	u8 neighbors = 0;
+	const ContentFeatures &f = nodedef->get(n);
+	// locate possible neighboring nodes to connect to
+	if (f.drawtype == NDT_NODEBOX && f.node_box.type == NODEBOX_CONNECTED) {
+		v3s16 p2 = p;
+
+		p2.Y++;
+		getNeighborConnectingFace(p2, nodedef, map, n, 1, &neighbors);
+
+		p2 = p;
+		p2.Y--;
+		getNeighborConnectingFace(p2, nodedef, map, n, 2, &neighbors);
+
+		p2 = p;
+		p2.Z--;
+		getNeighborConnectingFace(p2, nodedef, map, n, 4, &neighbors);
+
+		p2 = p;
+		p2.X--;
+		getNeighborConnectingFace(p2, nodedef, map, n, 8, &neighbors);
+
+		p2 = p;
+		p2.Z++;
+		getNeighborConnectingFace(p2, nodedef, map, n, 16, &neighbors);
+
+		p2 = p;
+		p2.X++;
+		getNeighborConnectingFace(p2, nodedef, map, n, 32, &neighbors);
+	}
+
+	return neighbors;
+}
+
 /*
 	Find what the player is pointing at
 */
-PointedThing getPointedThing(Client *client, v3f player_position,
-		v3f camera_direction, v3f camera_position, core::line3d<f32> shootline,
-		f32 d, bool liquids_pointable, bool look_for_object, v3s16 camera_offset,
-		std::vector<aabb3f> &hilightboxes, ClientActiveObject *&selected_object)
+PointedThing getPointedThing(Client *client, Hud *hud, const v3f &player_position,
+		const v3f &camera_direction, const v3f &camera_position,
+		core::line3d<f32> shootline, f32 d, bool liquids_pointable,
+		bool look_for_object, const v3s16 &camera_offset,
+		ClientActiveObject *&selected_object)
 {
 	PointedThing result;
 
-	hilightboxes.clear();
+	std::vector<aabb3f> *selectionboxes = hud->getSelectionBoxes();
+	selectionboxes->clear();
+	static const bool show_entity_selectionbox = g_settings->getBool("show_entity_selectionbox");
+
 	selected_object = NULL;
 
 	INodeDefManager *nodedef = client->getNodeDefManager();
 	ClientMap &map = client->getEnv().getClientMap();
 
-	f32 mindistance = BS * 1001;
+	f32 min_distance = BS * 1001;
 
 	// First try to find a pointed at active object
 	if (look_for_object) {
@@ -320,19 +354,20 @@ PointedThing getPointedThing(Client *client, v3f player_position,
 				  camera_position, shootline);
 
 		if (selected_object != NULL) {
-			if (selected_object->doShowSelectionBox()) {
+			if (show_entity_selectionbox &&
+					selected_object->doShowSelectionBox()) {
 				aabb3f *selection_box = selected_object->getSelectionBox();
 				// Box should exist because object was
 				// returned in the first place
 				assert(selection_box);
 
 				v3f pos = selected_object->getPosition();
-				hilightboxes.push_back(aabb3f(
-							       selection_box->MinEdge + pos - intToFloat(camera_offset, BS),
-							       selection_box->MaxEdge + pos - intToFloat(camera_offset, BS)));
+				selectionboxes->push_back(aabb3f(
+					selection_box->MinEdge, selection_box->MaxEdge));
+				hud->setSelectionPos(pos, camera_offset);
 			}
 
-			mindistance = (selected_object->getPosition() - camera_position).getLength();
+			min_distance = (selected_object->getPosition() - camera_position).getLength();
 
 			result.type = POINTEDTHING_OBJECT;
 			result.object_id = selected_object->getId();
@@ -341,14 +376,13 @@ PointedThing getPointedThing(Client *client, v3f player_position,
 
 	// That didn't work, try to find a pointed at node
 
-
 	v3s16 pos_i = floatToInt(player_position, BS);
 
 	/*infostream<<"pos_i=("<<pos_i.X<<","<<pos_i.Y<<","<<pos_i.Z<<")"
 			<<std::endl;*/
 
 	s16 a = d;
-	s16 ystart = pos_i.Y + 0 - (camera_direction.Y < 0 ? a : 1);
+	s16 ystart = pos_i.Y - (camera_direction.Y < 0 ? a : 1);
 	s16 zstart = pos_i.Z - (camera_direction.Z < 0 ? a : 1);
 	s16 xstart = pos_i.X - (camera_direction.X < 0 ? a : 1);
 	s16 yend = pos_i.Y + 1 + (camera_direction.Y > 0 ? a : 1);
@@ -365,82 +399,139 @@ PointedThing getPointedThing(Client *client, v3f player_position,
 	if (xend == 32767)
 		xend = 32766;
 
-	for (s16 y = ystart; y <= yend; y++)
-		for (s16 z = zstart; z <= zend; z++)
+	v3s16 pointed_pos(0, 0, 0);
+
+	for (s16 y = ystart; y <= yend; y++) {
+		for (s16 z = zstart; z <= zend; z++) {
 			for (s16 x = xstart; x <= xend; x++) {
 				MapNode n;
 				bool is_valid_position;
+				v3s16 p(x, y, z);
 
-				n = map.getNodeNoEx(v3s16(x, y, z), &is_valid_position);
-				if (!is_valid_position)
+				n = map.getNodeNoEx(p, &is_valid_position);
+				if (!is_valid_position) {
 					continue;
-
-				if (!isPointableNode(n, client, liquids_pointable))
+				}
+				if (!isPointableNode(n, client, liquids_pointable)) {
 					continue;
+				}
 
-				std::vector<aabb3f> boxes = n.getSelectionBoxes(nodedef);
+				std::vector<aabb3f> boxes;
+				n.getSelectionBoxes(nodedef, &boxes, getNeighbors(p, nodedef, &map, n));
 
 				v3s16 np(x, y, z);
 				v3f npf = intToFloat(np, BS);
-
 				for (std::vector<aabb3f>::const_iterator
 						i = boxes.begin();
-						i != boxes.end(); i++) {
+						i != boxes.end(); ++i) {
 					aabb3f box = *i;
 					box.MinEdge += npf;
 					box.MaxEdge += npf;
 
-					for (u16 j = 0; j < 6; j++) {
-						v3s16 facedir = g_6dirs[j];
-						aabb3f facebox = box;
-
-						f32 d = 0.001 * BS;
-
-						if (facedir.X > 0)
-							facebox.MinEdge.X = facebox.MaxEdge.X - d;
-						else if (facedir.X < 0)
-							facebox.MaxEdge.X = facebox.MinEdge.X + d;
-						else if (facedir.Y > 0)
-							facebox.MinEdge.Y = facebox.MaxEdge.Y - d;
-						else if (facedir.Y < 0)
-							facebox.MaxEdge.Y = facebox.MinEdge.Y + d;
-						else if (facedir.Z > 0)
-							facebox.MinEdge.Z = facebox.MaxEdge.Z - d;
-						else if (facedir.Z < 0)
-							facebox.MaxEdge.Z = facebox.MinEdge.Z + d;
-
-						v3f centerpoint = facebox.getCenter();
-						f32 distance = (centerpoint - camera_position).getLength();
-
-						if (distance >= mindistance)
-							continue;
-
-						if (!facebox.intersectsWithLine(shootline))
-							continue;
-
-						v3s16 np_above = np + facedir;
-
-						result.type = POINTEDTHING_NODE;
-						result.node_undersurface = np;
-						result.node_abovesurface = np_above;
-						mindistance = distance;
-
-						hilightboxes.clear();
-
-						if (!g_settings->getBool("enable_node_highlighting")) {
-							for (std::vector<aabb3f>::const_iterator
-									i2 = boxes.begin();
-									i2 != boxes.end(); i2++) {
-								aabb3f box = *i2;
-								box.MinEdge += npf + v3f(-d, -d, -d) - intToFloat(camera_offset, BS);
-								box.MaxEdge += npf + v3f(d, d, d) - intToFloat(camera_offset, BS);
-								hilightboxes.push_back(box);
-							}
-						}
+					v3f centerpoint = box.getCenter();
+					f32 distance = (centerpoint - camera_position).getLength();
+					if (distance >= min_distance) {
+						continue;
 					}
+					if (!box.intersectsWithLine(shootline)) {
+						continue;
+					}
+					result.type = POINTEDTHING_NODE;
+					min_distance = distance;
+					pointed_pos = np;
 				}
-			} // for coords
+			}
+		}
+	}
 
+	if (result.type == POINTEDTHING_NODE) {
+		f32 d = 0.001 * BS;
+		MapNode n = map.getNodeNoEx(pointed_pos);
+		v3f npf = intToFloat(pointed_pos, BS);
+		std::vector<aabb3f> boxes;
+		n.getSelectionBoxes(nodedef, &boxes, getNeighbors(pointed_pos, nodedef, &map, n));
+		f32 face_min_distance = 1000 * BS;
+		for (std::vector<aabb3f>::const_iterator
+				i = boxes.begin();
+				i != boxes.end(); ++i) {
+			aabb3f box = *i;
+			box.MinEdge += npf;
+			box.MaxEdge += npf;
+			for (u16 j = 0; j < 6; j++) {
+				v3s16 facedir = g_6dirs[j];
+				aabb3f facebox = box;
+				if (facedir.X > 0) {
+					facebox.MinEdge.X = facebox.MaxEdge.X - d;
+				} else if (facedir.X < 0) {
+					facebox.MaxEdge.X = facebox.MinEdge.X + d;
+				} else if (facedir.Y > 0) {
+					facebox.MinEdge.Y = facebox.MaxEdge.Y - d;
+				} else if (facedir.Y < 0) {
+					facebox.MaxEdge.Y = facebox.MinEdge.Y + d;
+				} else if (facedir.Z > 0) {
+					facebox.MinEdge.Z = facebox.MaxEdge.Z - d;
+				} else if (facedir.Z < 0) {
+					facebox.MaxEdge.Z = facebox.MinEdge.Z + d;
+				}
+				v3f centerpoint = facebox.getCenter();
+				f32 distance = (centerpoint - camera_position).getLength();
+				if (distance >= face_min_distance)
+					continue;
+				if (!facebox.intersectsWithLine(shootline))
+					continue;
+				result.node_abovesurface = pointed_pos + facedir;
+				face_min_distance = distance;
+			}
+		}
+		selectionboxes->clear();
+		for (std::vector<aabb3f>::const_iterator
+				i = boxes.begin();
+				i != boxes.end(); ++i) {
+			aabb3f box = *i;
+			box.MinEdge += v3f(-d, -d, -d);
+			box.MaxEdge += v3f(d, d, d);
+			selectionboxes->push_back(box);
+		}
+		hud->setSelectionPos(intToFloat(pointed_pos, BS), camera_offset);
+		result.node_undersurface = pointed_pos;
+	}
+
+	// Update selection mesh light level and vertex colors
+	if (selectionboxes->size() > 0) {
+		v3f pf = hud->getSelectionPos();
+		v3s16 p = floatToInt(pf, BS);
+
+		// Get selection mesh light level
+		MapNode n = map.getNodeNoEx(p);
+		u16 node_light = getInteriorLight(n, -1, nodedef);
+		u16 light_level = node_light;
+
+		for (u8 i = 0; i < 6; i++) {
+			n = map.getNodeNoEx(p + g_6dirs[i]);
+			node_light = getInteriorLight(n, -1, nodedef);
+			if (node_light > light_level)
+				light_level = node_light;
+		}
+
+		video::SColor c = MapBlock_LightColor(255, light_level, 0);
+		u8 day = c.getRed();
+		u8 night = c.getGreen();
+		u32 daynight_ratio = client->getEnv().getDayNightRatio();
+		finalColorBlend(c, day, night, daynight_ratio);
+
+		// Modify final color a bit with time
+		u32 timer = porting::getTimeMs() % 5000;
+		float timerf = (float)(irr::core::PI * ((timer / 2500.0) - 0.5));
+		float sin_r = 0.08 * sin(timerf);
+		float sin_g = 0.08 * sin(timerf + irr::core::PI * 0.5);
+		float sin_b = 0.08 * sin(timerf + irr::core::PI);
+		c.setRed(core::clamp(core::round32(c.getRed() * (0.8 + sin_r)), 0, 255));
+		c.setGreen(core::clamp(core::round32(c.getGreen() * (0.8 + sin_g)), 0, 255));
+		c.setBlue(core::clamp(core::round32(c.getBlue() * (0.8 + sin_b)), 0, 255));
+
+		// Set mesh final color
+		hud->setSelectionMeshColor(c);
+	}
 	return result;
 }
 
@@ -502,7 +593,7 @@ private:
 			color(color)
 		{}
 	};
-	std::vector<Piece> m_log;
+	std::deque<Piece> m_log;
 public:
 	u32 m_log_max_size;
 
@@ -525,12 +616,12 @@ public:
 	{
 		std::map<std::string, Meta> m_meta;
 
-		for (std::vector<Piece>::const_iterator k = m_log.begin();
-				k != m_log.end(); k++) {
+		for (std::deque<Piece>::const_iterator k = m_log.begin();
+				k != m_log.end(); ++k) {
 			const Piece &piece = *k;
 
 			for (Profiler::GraphValues::const_iterator i = piece.values.begin();
-					i != piece.values.end(); i++) {
+					i != piece.values.end(); ++i) {
 				const std::string &id = i->first;
 				const float &value = i->second;
 				std::map<std::string, Meta>::iterator j =
@@ -563,7 +654,7 @@ public:
 		u32 next_color_i = 0;
 
 		for (std::map<std::string, Meta>::iterator i = m_meta.begin();
-				i != m_meta.end(); i++) {
+				i != m_meta.end(); ++i) {
 			Meta &meta = i->second;
 			video::SColor color(255, 200, 200, 200);
 
@@ -579,7 +670,7 @@ public:
 		s32 meta_i = 0;
 
 		for (std::map<std::string, Meta>::const_iterator i = m_meta.begin();
-				i != m_meta.end(); i++) {
+				i != m_meta.end(); ++i) {
 			const std::string &id = i->first;
 			const Meta &meta = i->second;
 			s32 x = x_left;
@@ -614,8 +705,8 @@ public:
 			float lastscaledvalue = 0.0;
 			bool lastscaledvalue_exists = false;
 
-			for (std::vector<Piece>::const_iterator j = m_log.begin();
-					j != m_log.end(); j++) {
+			for (std::deque<Piece>::const_iterator j = m_log.begin();
+					j != m_log.end(); ++j) {
 				const Piece &piece = *j;
 				float value = 0;
 				bool value_exists = false;
@@ -895,15 +986,18 @@ public:
 		services->setPixelShaderConstant("yawVec", (irr::f32 *)&minimap_yaw_vec, 3);
 
 		// Uniform sampler layers
-		int layer0 = 0;
-		int layer1 = 1;
-		int layer2 = 2;
 		// before 1.8 there isn't a "integer interface", only float
 #if (IRRLICHT_VERSION_MAJOR == 1 && IRRLICHT_VERSION_MINOR < 8)
+		f32 layer0 = 0;
+		f32 layer1 = 1;
+		f32 layer2 = 2;
 		services->setPixelShaderConstant("baseTexture" , (irr::f32 *)&layer0, 1);
 		services->setPixelShaderConstant("normalTexture" , (irr::f32 *)&layer1, 1);
 		services->setPixelShaderConstant("textureFlags" , (irr::f32 *)&layer2, 1);
 #else
+		s32 layer0 = 0;
+		s32 layer1 = 1;
+		s32 layer2 = 2;
 		services->setPixelShaderConstant("baseTexture" , (irr::s32 *)&layer0, 1);
 		services->setPixelShaderConstant("normalTexture" , (irr::s32 *)&layer1, 1);
 		services->setPixelShaderConstant("textureFlags" , (irr::s32 *)&layer2, 1);
@@ -917,7 +1011,7 @@ public:
 			}
 		}
 		irr::f32 wieldLight = 0;
-		if (g_settings->getBool("disable_wieldlight") == false)
+		if (!g_settings->getBool("disable_wieldlight"))
 			wieldLight = (irr::f32)((ItemGroupList)m_client->idef()->get(playeritem.name).groups)["wield_light"];
 		services->setPixelShaderConstant("wieldLight", &wieldLight, 1);
 	}
@@ -1026,7 +1120,7 @@ bool nodePlacementPrediction(Client &client,
 
 			if(player->canPlaceNode(p, n)) {
 				// This triggers the required mesh update too
-				client.addNode(p, n, nodedef->get(id).light_source ? 3 : 1); // add without liquids
+				client.addNode(p, n, true, nodedef->get(id).light_source ? 3 : 2); // add without liquids
 				return true;
 			}
 		} catch (InvalidPositionException &e) {
@@ -1045,6 +1139,11 @@ static inline void create_formspec_menu(GUIFormSpecMenu **cur_formspec,
 		IWritableTextureSource *tsrc, IrrlichtDevice *device,
 		IFormSource *fs_src, TextDest *txt_dest, Client *client)
 {
+
+#ifdef HAVE_TOUCHSCREENGUI
+	if (g_touchscreengui)
+		g_touchscreengui->reset_pressed();
+#endif
 
 	if (*cur_formspec == 0) {
 		*cur_formspec = new GUIFormSpecMenu(device, guiroot, -1, &g_menumgr,
@@ -1069,29 +1168,6 @@ static inline void create_formspec_menu(GUIFormSpecMenu **cur_formspec,
 #define SIZE_TAG "size[11,5.5]"
 #else
 #define SIZE_TAG "size[11,5.5,true]" // Fixed size on desktop
-#endif
-
-#if 0
-static void show_chat_menu(GUIFormSpecMenu **cur_formspec,
-		InventoryManager *invmgr, IGameDef *gamedef,
-		IWritableTextureSource *tsrc, IrrlichtDevice *device,
-		Client *client, std::string text)
-{
-	std::string formspec =
-		FORMSPEC_VERSION_STRING
-		SIZE_TAG
-		"field[3,2.35;6,0.5;f_text;;" + text + "]"
-		"button_exit[4,3;3,0.5;btn_send;" + (_("Proceed")) + "]"
-		;
-
-	/* Create menu */
-	/* Note: FormspecFormSource and LocalFormspecHandler
-	 * are deleted by guiFormSpecMenu                     */
-	FormspecFormSource *fs_src = new FormspecFormSource(formspec);
-	LocalFormspecHandler *txt_dst = new LocalFormspecHandler("MT_CHAT_MENU", client);
-
-	create_formspec_menu(cur_formspec, invmgr, gamedef, tsrc, device, fs_src, txt_dst, NULL);
-}
 #endif
 
 static void show_deathscreen(GUIFormSpecMenu **cur_formspec,
@@ -1122,32 +1198,32 @@ static void show_pause_menu(GUIFormSpecMenu **cur_formspec,
 		bool singleplayermode)
 {
 #ifdef __ANDROID__
-	std::string control_text = (_("Default Controls:\n"
-				   "No menu visible:\n"
-				   "- single tap: button activate\n"
-				   "- double tap: place/use\n"
-				   "- slide finger: look around\n"
-				   "Menu/Inventory visible:\n"
-				   "- double tap (outside):\n"
-				   " -->close\n"
-				   "- touch stack, touch slot:\n"
-				   " --> move stack\n"
-				   "- touch&drag, tap 2nd finger\n"
-				   " --> place single item to slot\n"
-							     ));
+	std::string control_text = strgettext("Default Controls:\n"
+		"No menu visible:\n"
+		"- single tap: button activate\n"
+		"- double tap: place/use\n"
+		"- slide finger: look around\n"
+		"Menu/Inventory visible:\n"
+		"- double tap (outside):\n"
+		" -->close\n"
+		"- touch stack, touch slot:\n"
+		" --> move stack\n"
+		"- touch&drag, tap 2nd finger\n"
+		" --> place single item to slot\n"
+		);
 #else
-	std::string control_text = (_("Default Controls:\n"
-				   "- WASD: move\n"
-				   "- Space: jump/climb\n"
-				   "- Shift: sneak/go down\n"
-				   "- Q: drop item\n"
-				   "- I: inventory\n"
-				   "- Mouse: turn/look\n"
-				   "- Mouse left: dig/punch\n"
-				   "- Mouse right: place/use\n"
-				   "- Mouse wheel: select item\n"
-				   "- T: chat\n"
-							     ));
+	std::string control_text = strgettext("Default Controls:\n"
+		"- WASD: move\n"
+		"- Space: jump/climb\n"
+		"- Shift: sneak/go down\n"
+		"- Q: drop item\n"
+		"- I: inventory\n"
+		"- Mouse: turn/look\n"
+		"- Mouse left: dig/punch\n"
+		"- Mouse right: place/use\n"
+		"- Mouse wheel: select item\n"
+		"- T: chat\n"
+		);
 #endif
 
 	float ypos = singleplayermode ? 0.5 : 0.1;
@@ -1155,23 +1231,23 @@ static void show_pause_menu(GUIFormSpecMenu **cur_formspec,
 
 	os << FORMSPEC_VERSION_STRING  << SIZE_TAG
 	   << "button_exit[4," << (ypos++) << ";3,0.5;btn_continue;"
-	   << (_("Continue"))     << "]";
+	   << strgettext("Continue") << "]";
 
 	if (!singleplayermode) {
 		os << "button_exit[4," << (ypos++) << ";3,0.5;btn_change_password;"
-		   << (_("Change Password")) << "]";
+		   << strgettext("Change Password") << "]";
 	}
 
 #ifndef __ANDROID__
 	os		<< "button_exit[4," << (ypos++) << ";3,0.5;btn_sound;"
-			<< (_("Sound Volume")) << "]";
+			<< strgettext("Sound Volume") << "]";
 	os		<< "button_exit[4," << (ypos++) << ";3,0.5;btn_key_config;"
-			<< (_("Change Keys"))  << "]";
+			<< strgettext("Change Keys")  << "]";
 #endif
 	os		<< "button_exit[4," << (ypos++) << ";3,0.5;btn_exit_menu;"
-			<< (_("Exit to Menu")) << "]";
+			<< strgettext("Exit to Menu") << "]";
 	os		<< "button_exit[4," << (ypos++) << ";3,0.5;btn_exit_os;"
-			<< (_("Exit to OS"))   << "]"
+			<< strgettext("Exit to OS")   << "]"
 ;
 /*
 			<< "textarea[7.5,0.25;3.9,6.25;;" << control_text << ";]"
@@ -1199,7 +1275,7 @@ static void updateChat(Client &client, f32 dtime, bool show_debug,
 		ChatBackend &chat_backend, gui::IGUIStaticText *guitext_chat)
 {
 	// Add chat log output for errors to be shown in chat
-	static LogOutputBuffer chat_log_error_buf(LMT_ERROR);
+	static LogOutputBuffer chat_log_error_buf(g_logger, LL_ERROR);
 
 	// Get new messages from error log buffer
 	while (!chat_log_error_buf.empty()) {
@@ -1271,6 +1347,7 @@ struct KeyCache {
 		KEYMAP_ID_JUMP,
 		KEYMAP_ID_SPECIAL1,
 		KEYMAP_ID_SNEAK,
+		KEYMAP_ID_AUTORUN,
 
 		// Other
 		KEYMAP_ID_DROP,
@@ -1326,6 +1403,8 @@ void KeyCache::populate()
 	key[KEYMAP_ID_JUMP]         = getKeySetting("keymap_jump");
 	key[KEYMAP_ID_SPECIAL1]     = getKeySetting("keymap_special1");
 	key[KEYMAP_ID_SNEAK]        = getKeySetting("keymap_sneak");
+
+	key[KEYMAP_ID_AUTORUN]      = getKeySetting("keymap_autorun");
 
 	key[KEYMAP_ID_DROP]         = getKeySetting("keymap_drop");
 	key[KEYMAP_ID_INVENTORY]    = getKeySetting("keymap_inventory");
@@ -1462,7 +1541,6 @@ struct VolatileRunFlags {
 	//freeminer:
 	bool headless_optimize;
 	bool no_output;
-	bool use_weather;
 	float dedicated_server_step;
 	int errors;
 	bool show_block_boundaries;
@@ -1552,7 +1630,7 @@ protected:
 	void dropSelectedItem();
 	void dropSelectedStack();
 	void openInventory();
-	void openConsole(float height = CHAT_SIZE, bool close_on_return = false, const std::wstring& input = L"");
+	void openConsole(float height, const wchar_t *line=NULL);
     
     void openKmChat(const std::wstring& input = L"");
 
@@ -1561,6 +1639,9 @@ protected:
 	void toggleFast(float *statustext_time);
 	void toggleNoClip(float *statustext_time);
 	void toggleCinematic(float *statustext_time);
+	void enableCinematic();
+	void disableCinematic();
+	void toggleAutorun(float *statustext_time);
 
 	void toggleChat(float *statustext_time, bool *flag);
 	void toggleHud(float *statustext_time, bool *flag);
@@ -1587,9 +1668,9 @@ protected:
 	void updateCamera(VolatileRunFlags *flags, u32 busy_time, f32 dtime,
 			float time_from_last_punch);
 	void updateSound(f32 dtime);
-	void processPlayerInteraction(std::vector<aabb3f> &highlight_boxes,
-			GameRunData *runData, f32 dtime, bool show_hud,
+	void processPlayerInteraction(GameRunData *runData, f32 dtime, bool show_hud,
 			bool show_debug);
+	void handlePointingAtNothing(GameRunData *runData, const ItemStack &playerItem);
 	void handlePointingAtNode(GameRunData *runData,
 			const PointedThing &pointed, const ItemDefinition &playeritem_def,
 			const ToolCapabilities &playeritem_toolcap, f32 dtime);
@@ -1599,8 +1680,7 @@ protected:
 	void handleDigging(GameRunData *runData, const PointedThing &pointed,
 			const v3s16 &nodepos, const ToolCapabilities &playeritem_toolcap,
 			f32 dtime);
-	void updateFrame(std::vector<aabb3f> &highlight_boxes, ProfilerGraph *graph,
-			RunStats *stats, GameRunData *runData,
+	void updateFrame(ProfilerGraph *graph, RunStats *stats, GameRunData *runData,
 			f32 dtime, const VolatileRunFlags &flags, const CameraOrientation &cam);
 	void updateGui(float *statustext_time, const RunStats &stats,
 			const GameRunData& runData, f32 dtime, const VolatileRunFlags &flags,
@@ -1617,6 +1697,10 @@ protected:
 
 	static void settingChangedCallback(const std::string &setting_name, void *data);
 	void readSettings();
+
+#ifdef __ANDROID__
+	void handleAndroidChatInput();
+#endif
 
 private:
 	InputHandler *input;
@@ -1711,17 +1795,18 @@ private:
 	 *       a later release.
 	 */
 	bool m_cache_doubletap_jump;
-	bool m_cache_enable_node_highlighting;
 	bool m_cache_enable_clouds;
 	bool m_cache_enable_particles;
 	bool m_cache_enable_fog;
 	f32  m_cache_mouse_sensitivity;
 	f32  m_repeat_right_click_time;
 
+	bool m_cinematic;
+
 #ifdef __ANDROID__
 	bool m_cache_hold_aux1;
+	bool m_android_chat_open = false;
 #endif
-
 };
 
 Game::Game() :
@@ -1750,8 +1835,6 @@ Game::Game() :
 	playerlist(nullptr)
 {
 	g_settings->registerChangedCallback("doubletap_jump",
-		&settingChangedCallback, this);
-	g_settings->registerChangedCallback("enable_node_highlighting",
 		&settingChangedCallback, this);
 	g_settings->registerChangedCallback("enable_clouds",
 		&settingChangedCallback, this);
@@ -1801,8 +1884,6 @@ Game::~Game()
 	extendedResourceCleanup();
 
 	g_settings->deregisterChangedCallback("doubletap_jump",
-		&settingChangedCallback, this);
-	g_settings->deregisterChangedCallback("enable_node_highlighting",
 		&settingChangedCallback, this);
 	g_settings->deregisterChangedCallback("enable_clouds",
 		&settingChangedCallback, this);
@@ -1871,18 +1952,24 @@ void Game::run()
 	runData.profiler_max_page = 2;
 	runData.update_wielded_item_trigger = true;
 
-	flags.show_chat = false; // CHAT DISABLED BY DEFAULT
+	flags.show_chat = true;
 	flags.show_hud = true;
 	flags.show_minimap = g_settings->getBool("enable_minimap");
 	flags.show_debug = g_settings->getBool("show_debug");
 	flags.invert_mouse = g_settings->getBool("invert_mouse");
 	flags.first_loop_after_window_activation = true;
 
+	mapper->setMinimapMode(MINIMAP_MODE_OFF);
+	if(flags.show_minimap) {
+		u16 minimapMode = g_settings->getU16("minimap_default_mode");
+		if( minimapMode>0 && minimapMode<MINIMAP_MODE_COUNT ) {
+			mapper->setMinimapMode(MinimapMode(minimapMode));
+		}
+	}
 
 	// freeminer:
 	runData.update_draw_list_timer = 5;
 	flags.dedicated_server_step = g_settings->getFloat("dedicated_server_step");
-	flags.use_weather = g_settings->getBool("weather");
 	flags.headless_optimize = g_settings->getBool("headless_optimize");
 	flags.no_output = device->getVideoDriver()->getDriverType() == video::EDT_NULL;
 	flags.connected = false;
@@ -1903,9 +1990,8 @@ void Game::run()
 			local_inventory
 			));
 
-	std::vector<aabb3f> highlight_boxes;
-
 	double run_time = 0;
+
 	set_light_table(g_settings->getFloat("display_gamma"));
 
 #ifdef __ANDROID__
@@ -1913,10 +1999,9 @@ void Game::run()
 			&& client->checkPrivilege("fast");
 #endif
 
-	while (device->run() && !(*kill || g_gamecallback->shutdown_requested)) {
-#ifdef __ANDROID__
-		porting::handleAndroidActivityEvents();
-#endif
+	while (device->run()
+			&& !(*kill || g_gamecallback->shutdown_requested
+			|| (server && server->getShutdownRequested()))) {
 
 		try {
 
@@ -1946,7 +2031,7 @@ void Game::run()
 		// Update camera before player movement to avoid camera lag of one frame
 		updateCameraDirection(&cam_view_target, &flags);
 		float cam_smoothing = 0;
-		if (g_settings->getBool("cinematic"))
+		if (m_cinematic)
 			cam_smoothing = 1 - g_settings->getFloat("cinematic_camera_smoothing");
 		else
 			cam_smoothing = 1 - g_settings->getFloat("camera_smoothing");
@@ -1961,11 +2046,14 @@ void Game::run()
 		updateCamera(&flags, draw_times.busy_time, dtime,
 				runData.time_from_last_punch);
 		updateSound(dtime);
-		processPlayerInteraction(highlight_boxes, &runData, dtime,
-				flags.show_hud, flags.show_debug);
-		updateFrame(highlight_boxes, &graph, &stats, &runData, dtime,
-				flags, cam_view);
+		processPlayerInteraction(&runData, dtime, flags.show_hud,
+				flags.show_debug);
+		updateFrame(&graph, &stats, &runData, dtime, flags, cam_view);
 		updateProfilerGraphs(&graph);
+
+		// Update if minimap has been disabled by the server
+		flags.show_minimap &= !client->isMinimapDisabledByServer();
+
 		} catch(std::exception &e) {
 			if (!flags.errors++ || !(flags.errors % (int)(60/flags.dedicated_server_step)))
 				errorstream << "Fatal client error n=" << flags.errors << " : " << e.what() << std::endl;
@@ -1982,7 +2070,19 @@ void Game::shutdown()
 		g_profiler->print(actionstream);
 	}
 
+	if (g_settings->get("3d_mode") == "pageflip") {
+// fmTODO: fixme:
+#if IRRLICHT_VERSION_10000 < 10900
+		driver->setRenderTarget(irr::video::ERT_STEREO_BOTH_BUFFERS);
+#endif
+	}
+
 	showOverlayMessage(wstrgettext("Shutting down..."), 0, 0, false);
+
+#if ENABLE_THREADS && HAVE_FUTURE
+	if (updateDrawList_future.valid())
+		updateDrawList_future.wait_for(std::chrono::seconds(10));
+#endif
 
 	if (clouds)
 		clouds->drop();
@@ -2121,10 +2221,22 @@ bool Game::createSingleplayerServer(const std::string map_dir,
 		return false;
 	}
 
+	try {
+
 	server = new Server(map_dir, gamespec, simple_singleplayer_mode,
 			    bind_addr.isIPv6());
 
 	server->start(bind_addr);
+
+#if !EXEPTION_DEBUG
+	} catch (std::exception &e) {
+		*error_message = std::string("Unable to create server: ") + e.what();
+		errorstream << *error_message << std::endl;
+		return false;
+#else
+	} catch (int) {
+#endif
+	}
 
 	return true;
 }
@@ -2172,6 +2284,7 @@ bool Game::createClient(const std::string &playername,
 	camera = new Camera(smgr, *draw_control, gamedef);
 	if (!camera || !camera->successfullyCreated(*error_message))
 		return false;
+	client->setCamera(camera);
 
 	/* Clouds
 	 */
@@ -2287,7 +2400,7 @@ bool Game::initGui()
 
 	// Chat backend and console
 	gui_chat_console = new GUIChatConsole(guienv, guienv->getRootGUIElement(),
-			-1, chat_backend, client);
+			-1, chat_backend, client, &g_menumgr);
 	if (!gui_chat_console) {
 		*error_message = "Could not allocate memory for chat console";
 		errorstream << *error_message << std::endl;
@@ -2315,7 +2428,7 @@ bool Game::initGui()
 #ifdef HAVE_TOUCHSCREENGUI
 
 	if (g_touchscreengui)
-		g_touchscreengui->init(texture_src, porting::getDisplayDensity());
+		g_touchscreengui->init(texture_src);
 
 #endif
 
@@ -2376,11 +2489,12 @@ bool Game::connectToServer(const std::string &playername,
 	if (!client)
 		return false;
 
+	client->chat_backend = chat_backend;
 	gamedef = client;	// Client acts as our GameDef
 
-	infostream << "Connecting to server at ";
-	connect_address.print(&infostream);
-	infostream << std::endl;
+	actionstream << "Connecting to server at ";
+	connect_address.print(&actionstream);
+	actionstream << std::endl;
 
 	try {
 
@@ -2444,8 +2558,12 @@ bool Game::connectToServer(const std::string &playername,
 			showOverlayMessage((wstrgettext("Connecting to server... ") + narrow_to_wide(itos(int(wait_time)))).c_str(), dtime, 20);
 		}
 
-#ifdef NDEBUG
+	} catch (con::ConnectionException &e) {
+		showOverlayMessage(std::string("Connection error: ") + e.what(), 0, 0, false);
+		errorstream << "Connection error: "<< e.what() << std::endl;
+		return false;
 
+#if !EXEPTION_DEBUG
 	} catch (std::exception &e) {
 		showOverlayMessage(std::string("Connection error: ") + e.what(), 0, 0, false);
 		errorstream << "Connection error: "<< e.what() << std::endl;
@@ -2480,7 +2598,6 @@ bool Game::getServerContent(bool *aborted)
 	fps_control.last_time = device->getTimer()->getTime();
 
 	while (device->run()) {
-
 		limitFps(&fps_control, &dtime);
 
 		// Update client and server
@@ -2761,12 +2878,24 @@ void Game::processUserInput(VolatileRunFlags *flags,
 			|| guienv->hasFocus(gui_chat_console)
             || guienv->hasFocus(gui_km_chat)) {
 		input->clear();
+#ifdef HAVE_TOUCHSCREENGUI
+		if (g_touchscreengui)
+		g_touchscreengui->hide();
+#endif
 	}
+#ifdef HAVE_TOUCHSCREENGUI
+	else if (g_touchscreengui) {
+		/* on touchscreengui step may generate own input events which ain't
+		 * what we want in case we just did clear them */
+		g_touchscreengui->step(dtime);
+	}
+#endif
 
 #ifdef __ANDROID__
 	if (gui_chat_console->isOpen()) {
 		if (gui_chat_console->getAndroidUIInput()) {
 			//gui_chat_console->closeConsoleAtOnce();
+			//gui_chat_console->closeConsole();
 		}
 	}
     
@@ -2788,18 +2917,11 @@ void Game::processUserInput(VolatileRunFlags *flags,
 	// Input handler step() (used by the random input generator)
 	input->step(dtime);
 
-#ifdef HAVE_TOUCHSCREENGUI
-
-	if (g_touchscreengui) {
-		g_touchscreengui->step(dtime);
-	}
-
-#endif
 #ifdef __ANDROID__
-
-	if (current_formspec != 0)
+	if (current_formspec != NULL)
 		current_formspec->getAndroidUIInput();
-
+	else
+		handleAndroidChatInput();
 #endif
 
 	// Increase timer for double tap of "keymap_jump"
@@ -2838,19 +2960,24 @@ void Game::processKeyboardInput(VolatileRunFlags *flags,
 			dropSelectedItem();
 		}
 #endif
+	// Add WoW-style autorun by toggling continuous forward.
+	} else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_AUTORUN])) {
+		toggleAutorun(statustext_time);
 	} else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_INVENTORY])) {
 		openInventory();
 	} else if (input->wasKeyDown(EscapeKey) || input->wasKeyDown(CancelKey)) {
-		show_pause_menu(&current_formspec, client, gamedef, texture_src, device,
-				simple_singleplayer_mode);
+		if (!gui_chat_console->isOpenInhibited()) {
+			show_pause_menu(&current_formspec, client, gamedef,
+					texture_src, device, simple_singleplayer_mode);
+		}
 	} else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_CHAT])) {
 		openKmChat();
 	} else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_CMD])) {
         openKmChat(L"/");
 	//} else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_MSG])) {
-	//	openConsole(CHAT_SIZE, true, L"/msg ");
+	//	openConsole(0.1, L"/msg ");
 	} else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_CONSOLE])) {
-		openConsole();
+		openConsole(0.5);
 	} else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_FREEMOVE])) {
 		toggleFreeMove(statustext_time);
 	} else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_JUMP])) {
@@ -2888,19 +3015,19 @@ void Game::processKeyboardInput(VolatileRunFlags *flags,
 	} else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_RANGESELECT])) {
 		toggleFullViewRange(statustext_time);
 		client->sendDrawControl();
-	} else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_QUICKTUNE_NEXT]))
+	} else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_QUICKTUNE_NEXT])) {
 		quicktune->next();
-	else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_QUICKTUNE_PREV]))
+	} else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_QUICKTUNE_PREV])) {
 		quicktune->prev();
-	else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_QUICKTUNE_INC]))
+	} else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_QUICKTUNE_INC])) {
 		quicktune->inc();
-	else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_QUICKTUNE_DEC]))
+	} else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_QUICKTUNE_DEC])) {
 		quicktune->dec();
-	else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_DEBUG_STACKS])) {
+	} else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_DEBUG_STACKS])) {
 		// Print debug stacks
 		dstream << "-----------------------------------------"
 		        << std::endl;
-		dstream << DTIME << "Printing debug stacks:" << std::endl;
+		dstream << "Printing debug stacks:" << std::endl;
 		dstream << "-----------------------------------------"
 		        << std::endl;
 		debug_stacks_print();
@@ -3074,28 +3201,47 @@ void Game::openInventory()
 }
 
 
-void Game::openConsole(float height, bool close_on_return, const std::wstring& input)
+void Game::openConsole(float height, const wchar_t *line)
 {
-	if (!gui_chat_console->isOpenInhibited()) {
-		// Set initial console prompt
-		if (!input.empty()) {
-			gui_chat_console->setPrompt(input);
-		}
-		gui_chat_console->openConsole(height, close_on_return);
-		guienv->setFocus(gui_chat_console);
+	if (gui_chat_console->isOpenInhibited())
+		return;
 
 #ifdef __ANDROID__
-		if (porting::canKeyboard() >= 2) {
-			// fmtodo: invisible input text before pressing enter
-			porting::displayKeyboard(true, porting::app_global, porting::jnienv);
-		} else {
-			int type = 1;
-			porting::showInputDialog(_("ok"), "", wide_to_narrow(gui_chat_console->getText()), type);
-		}
+	if (porting::canKeyboard() >= 2) {
+		// fmtodo: invisible input text before pressing enter
+		porting::displayKeyboard(true, porting::app_global, porting::jnienv);
 #endif
 
+	gui_chat_console->openConsole(height);
+	if (line) {
+		gui_chat_console->setCloseOnEnter(true);
+		gui_chat_console->replaceAndAddToHistory(line);
+	}
+
+#ifdef __ANDROID__
+	} else {
+		int type = 2;
+		porting::showInputDialog(_("ok"), "", wide_to_narrow(gui_chat_console->getText()), type);
+
+/*
+	porting::showInputDialog(_("ok"), "", "", 2);
+*/
+	m_android_chat_open = true;
+	}
+#endif
+
+}
+
+#ifdef __ANDROID__
+void Game::handleAndroidChatInput()
+{
+	if (m_android_chat_open && porting::getInputDialogState() == 0) {
+		std::string text = porting::getInputDialogValue();
+		client->typeChatMessage(text);
+		m_android_chat_open = false;
 	}
 }
+#endif
 
 void Game::openKmChat(const std::wstring& input)
 {
@@ -3177,13 +3323,33 @@ void Game::toggleNoClip(float *statustext_time)
 void Game::toggleCinematic(float *statustext_time)
 {
 	static const wchar_t *msg[] = { L"cinematic disabled", L"cinematic enabled" };
-	bool cinematic = !g_settings->getBool("cinematic");
-	g_settings->set("cinematic", bool_to_cstr(cinematic));
+	m_cinematic = !g_settings->getBool("cinematic");
+	g_settings->set("cinematic", bool_to_cstr(m_cinematic));
 
 	*statustext_time = 0;
-	statustext = msg[cinematic];
+	statustext = msg[m_cinematic];
 }
 
+void Game::enableCinematic()
+{
+	m_cinematic = true;
+}
+
+void Game::disableCinematic()
+{
+	m_cinematic = false;
+}
+
+// Add WoW-style autorun by toggling continuous forward.
+void Game::toggleAutorun(float *statustext_time)
+{
+	static const wchar_t *msg[] = { L"autorun disabled", L"autorun enabled" };
+	bool autorun_enabled = !g_settings->getBool("continuous_forward");
+	g_settings->set("continuous_forward", bool_to_cstr(autorun_enabled));
+
+	*statustext_time = 0;
+	statustext = msg[autorun_enabled ? 1 : 0];
+}
 
 void Game::toggleChat(float *statustext_time, bool *flag)
 {
@@ -3202,8 +3368,6 @@ void Game::toggleHud(float *statustext_time, bool *flag)
 	*flag = !*flag;
 	*statustext_time = 0;
 	statustext = msg[*flag];
-	if (g_settings->getBool("enable_node_highlighting"))
-		client->setHighlighted(client->getHighlighted(), *flag);
 }
 
 void Game::toggleMinimap(float *statustext_time, bool *flag,
@@ -3340,10 +3504,16 @@ void Game::toggleProfiler(float *statustext_time, u32 *profiler_current_page,
 
 void Game::increaseViewRange(float *statustext_time)
 {
-	s16 range = g_settings->getS16("viewing_range_nodes_min");
-	s16 range_new = range + 10;
-	g_settings->set("viewing_range_nodes_min", itos(range_new));
-	statustext = utf8_to_wide("Minimum viewing range changed to "
+	s16 range = g_settings->getS16("viewing_range");
+	s16 range_new = range * 1.5;
+
+	// it's < 0 if it's outside the range of s16
+	// and increase it directly from 1 to 5 for less key pressing
+	if (range_new < 5)
+		range_new = 5;
+
+	g_settings->set("viewing_range", itos(range_new));
+	statustext = utf8_to_wide("Viewing range changed to "
 			+ itos(range_new));
 	*statustext_time = 0;
 }
@@ -3351,14 +3521,14 @@ void Game::increaseViewRange(float *statustext_time)
 
 void Game::decreaseViewRange(float *statustext_time)
 {
-	s16 range = g_settings->getS16("viewing_range_nodes_min");
-	s16 range_new = range - 10;
+	s16 range = g_settings->getS16("viewing_range");
+	s16 range_new = range / 1.5;
 
-	if (range_new < 0)
-		range_new = range;
+	if (range_new < 20)
+		range_new = 20;
 
-	g_settings->set("viewing_range_nodes_min", itos(range_new));
-	statustext = utf8_to_wide("Minimum viewing range changed to "
+	g_settings->set("viewing_range", itos(range_new));
+	statustext = utf8_to_wide("Viewing range changed to "
 			+ itos(range_new));
 	*statustext_time = 0;
 }
@@ -3492,6 +3662,9 @@ void Game::updatePlayerControl(const CameraOrientation &cam)
 		bool changed = player->zoom == false;
 		player->zoom = true;
 		if (changed) {
+			if(g_settings->getBool("enable_zoom_cinematic") && !g_settings->getBool("cinematic")) {
+				enableCinematic();
+			}
 			draw_control.fov = g_settings->getFloat("zoom_fov");
 			client->sendDrawControl();
 		}
@@ -3499,6 +3672,9 @@ void Game::updatePlayerControl(const CameraOrientation &cam)
 		bool changed = player->zoom == true;
 		player->zoom = false;
 		if (changed) {
+			if(g_settings->getBool("enable_zoom_cinematic") && !g_settings->getBool("cinematic")) {
+				disableCinematic();
+			}
 			draw_control.fov = g_settings->getFloat("fov");
 			client->sendDrawControl();
 		}
@@ -3558,6 +3734,7 @@ void Game::processClientEvents(CameraOrientation *cam, float *damage_flash)
 			cam->camera_yaw = event.player_force_move.yaw;
 			cam->camera_pitch = event.player_force_move.pitch;
 		} else if (event.type == CE_DEATHSCREEN) {
+			player->m_sneak_node_exists = false;
 			if (g_settings->getBool("respawn_auto")) {
 				client->sendRespawn();
 			} else {
@@ -3835,8 +4012,8 @@ void Game::updateSound(f32 dtime)
 }
 
 
-void Game::processPlayerInteraction(std::vector<aabb3f> &highlight_boxes,
-		GameRunData *runData, f32 dtime, bool show_hud, bool show_debug)
+void Game::processPlayerInteraction(GameRunData *runData,
+		f32 dtime, bool show_hud, bool show_debug)
 {
 	LocalPlayer *player = client->getEnv().getLocalPlayer();
 
@@ -3884,7 +4061,8 @@ void Game::processPlayerInteraction(std::vector<aabb3f> &highlight_boxes,
 
 #ifdef HAVE_TOUCHSCREENGUI
 
-	if ((g_settings->getBool("touchtarget")) && (g_touchscreengui)) {
+	static const auto touchtarget = g_settings->getBool("touchtarget");
+	if (touchtarget && g_touchscreengui) {
 		shootline = g_touchscreengui->getShootline();
 		shootline.start += intToFloat(camera_offset, BS);
 		shootline.end += intToFloat(camera_offset, BS);
@@ -3894,17 +4072,17 @@ void Game::processPlayerInteraction(std::vector<aabb3f> &highlight_boxes,
 
 	PointedThing pointed = getPointedThing(
 			// input
-			client, player_position, camera_direction,
+			client, hud, player_position, camera_direction,
 			camera_position, shootline, d,
 			playeritem_def.liquids_pointable,
 			!runData->ldown_for_dig,
 			camera_offset,
 			// output
-			highlight_boxes,
 			runData->selected_object);
 
 	if (pointed != runData->pointed_old) {
 		infostream << "Pointing at " << pointed.dump() << std::endl;
+
 /* node debug
 			MapNode nu = client->getEnv().getClientMap().getNodeNoEx(pointed.node_undersurface);
 			MapNode na = client->getEnv().getClientMap().getNodeNoEx(pointed.node_abovesurface);
@@ -3913,13 +4091,7 @@ void Game::processPlayerInteraction(std::vector<aabb3f> &highlight_boxes,
 						<<std::endl;
 */
 
-		if (m_cache_enable_node_highlighting) {
-			if (pointed.type == POINTEDTHING_NODE) {
-				client->setHighlighted(pointed.node_undersurface, show_hud);
-			} else {
-				client->setHighlighted(pointed.node_undersurface, false);
-			}
-		}
+		hud->updateSelectionMesh(camera_offset);
 	}
 
 	/*
@@ -3943,6 +4115,7 @@ void Game::processPlayerInteraction(std::vector<aabb3f> &highlight_boxes,
 				infostream << "Pointing away from node"
 				           << " (stopped digging)" << std::endl;
 				runData->digging = false;
+				hud->updateSelectionMesh(camera_offset);
 			}
 		}
 
@@ -3980,6 +4153,8 @@ void Game::processPlayerInteraction(std::vector<aabb3f> &highlight_boxes,
 	} else if (input->getLeftState()) {
 		// When button is held down in air, show continuous animation
 		runData->left_punch = true;
+	} else if (input->getRightClicked()) {
+		handlePointingAtNothing(runData, playeritem);
 	}
 
 	runData->pointed_old = pointed;
@@ -3992,6 +4167,15 @@ void Game::processPlayerInteraction(std::vector<aabb3f> &highlight_boxes,
 
 	input->resetLeftReleased();
 	input->resetRightReleased();
+}
+
+
+void Game::handlePointingAtNothing(GameRunData *runData, const ItemStack &playerItem)
+{
+	infostream << "Right Clicked in Air" << std::endl;
+	PointedThing fauxPointed;
+	fauxPointed.type = POINTEDTHING_NOTHING;
+	client->interact(5, fauxPointed);
 }
 
 
@@ -4089,11 +4273,15 @@ void Game::handlePointingAtNode(GameRunData *runData,
 			} else {
 				soundmaker->m_player_rightpunch_sound =
 						SimpleSoundSpec();
-			}
 
-			if (playeritem_def.node_placement_prediction == "" ||
-					nodedef_manager->get(map.getNodeNoEx(nodepos)).rightclickable)
-				client->interact(3, pointed); // Report to server
+				if (playeritem_def.node_placement_prediction == "" ||
+						nodedef_manager->get(map.getNodeNoEx(nodepos)).rightclickable) {
+					client->interact(3, pointed); // Report to server
+				} else {
+					soundmaker->m_player_rightpunch_sound =
+						playeritem_def.sound_place_failed;
+				}
+			}
 		}
 	}
 }
@@ -4107,8 +4295,11 @@ void Game::handlePointingAtObject(GameRunData *runData,
 {
 	infotext = utf8_to_wide(runData->selected_object->infoText());
 
-	if (infotext == L"" && show_debug) {
-		infotext = utf8_to_wide(runData->selected_object->debugInfoText());
+	if (show_debug) {
+		if (infotext != L"") {
+			infotext += L"\n";
+		}
+		infotext += utf8_to_wide(runData->selected_object->debugInfoText());
 	}
 
 	if (input->getLeftState()) {
@@ -4228,7 +4419,7 @@ void Game::handleDigging(GameRunData *runData,
 		bool is_valid_position;
 		MapNode wasnode = map.getNodeNoEx(nodepos, &is_valid_position);
 		if (is_valid_position)
-			client->removeNode(nodepos, 2);
+			client->removeNode(nodepos);
 
 		if (m_cache_enable_particles) {
 			const ContentFeatures &features =
@@ -4271,9 +4462,9 @@ void Game::handleDigging(GameRunData *runData,
 }
 
 
-void Game::updateFrame(std::vector<aabb3f> &highlight_boxes,
-		ProfilerGraph *graph, RunStats *stats, GameRunData *runData,
-		f32 dtime, const VolatileRunFlags &flags, const CameraOrientation &cam)
+void Game::updateFrame(ProfilerGraph *graph, RunStats *stats,
+		GameRunData *runData, f32 dtime, const VolatileRunFlags &flags,
+		const CameraOrientation &cam)
 {
 	LocalPlayer *player = client->getEnv().getLocalPlayer();
 
@@ -4293,7 +4484,7 @@ void Game::updateFrame(std::vector<aabb3f> &highlight_boxes,
 		runData->fog_range = draw_control->wanted_range * BS
 				+ 0.0 * MAP_BLOCKSIZE * BS;
 
-		if (flags.use_weather) {
+		if (client->use_weather) {
 			auto humidity = client->getEnv().getClientMap().getHumidity(pos_i, 1);
 			runData->fog_range *= (1.55 - 1.4*(float)humidity/100);
 		}
@@ -4304,6 +4495,11 @@ void Game::updateFrame(std::vector<aabb3f> &highlight_boxes,
 		runData->fog_range *= 0.9;
 
 		runData->fog_range = fog_was + (runData->fog_range-fog_was)/50;
+
+/*
+	} else {
+		runData->fog_range = 0.9 * draw_control->wanted_range * BS;
+*/
 	}
 
 	/*
@@ -4449,7 +4645,6 @@ void Game::updateFrame(std::vector<aabb3f> &highlight_boxes,
 		if (client->getEnv().getClientMap().m_drawlist_last || runData->update_draw_list_timer >= 0.5 ||
 				runData->update_draw_list_last_cam_pos.getDistanceFrom(camera_position) > MAP_BLOCKSIZE*BS*2 ||
 				flags.camera_offset_changed){
-			runData->update_draw_list_timer = 0;
 			bool allow = true;
 #if ENABLE_THREADS && HAVE_FUTURE
 			if (g_settings->getBool("more_threads")) {
@@ -4460,14 +4655,19 @@ void Game::updateFrame(std::vector<aabb3f> &highlight_boxes,
 						allow = false;
 				}
 				if (allow) {
-					updateDrawList_future = std::async(std::launch::async, [](Client * client, video::IVideoDriver* driver, float dtime){ client->getEnv().getClientMap().updateDrawList(driver, dtime, 1000); }, client, driver, dtime);
+					updateDrawList_future = std::async(std::launch::async, [=](float dtime) {
+							client->getEnv().getClientMap().updateDrawList(driver, dtime, 1000);
+						}, runData->update_draw_list_timer);
+
 				}
 			}
 			else
 #endif
-				client->getEnv().getClientMap().updateDrawList(driver, dtime);
+				client->getEnv().getClientMap().updateDrawList(driver, runData->update_draw_list_timer);
 			if (allow)
 				runData->update_draw_list_last_cam_pos = camera->getPosition();
+
+			runData->update_draw_list_timer = 0;
 		}
 
 	updateGui(&runData->statustext_time, *stats, *runData, dtime, flags, cam);
@@ -4492,7 +4692,8 @@ void Game::updateFrame(std::vector<aabb3f> &highlight_boxes,
 
 	video::SColor skycolor = sky->getSkyColor();
 
-	TimeTaker tt_draw("mainloop: draw");
+	//TimeTaker tt_draw("mainloop: draw");
+	auto start_ms = porting::getTimeMs();
 	if (!flags.headless_optimize)
 	{
 		TimeTaker timer("beginScene");
@@ -4502,7 +4703,7 @@ void Game::updateFrame(std::vector<aabb3f> &highlight_boxes,
 
 	if (!flags.headless_optimize)
 	draw_scene(driver, smgr, *camera, *client, player, *hud, *mapper,
-			guienv,	highlight_boxes, screensize, skycolor, flags.show_hud,
+			guienv, screensize, skycolor, flags.show_hud,
 			flags.show_minimap);
 
 	/*
@@ -4563,7 +4764,11 @@ void Game::updateFrame(std::vector<aabb3f> &highlight_boxes,
 		stats->endscenetime = timer.stop(true);
 	}
 
+	/*
 	stats->drawtime = tt_draw.stop(true);
+	*/
+	stats->drawtime = (porting::getTimeMs() - start_ms);
+
 	g_profiler->graphAdd("mainloop_draw", stats->drawtime / 1000.0f);
 }
 
@@ -4599,8 +4804,9 @@ void Game::updateGui(float *statustext_time, const RunStats &stats,
 	v3f player_position = player->getPosition();
 
 	draw_control->drawtime_avg = draw_control->drawtime_avg * 0.95 + (float)stats.drawtime*0.05;
-	draw_control->fps_avg = 1000/draw_control->drawtime_avg;
+	//draw_control->fps_avg = 1000/draw_control->drawtime_avg;
 	draw_control->fps = (1.0/stats.dtime_jitter.avg);
+	draw_control->fps_avg = draw_control->fps_avg * 0.95 + draw_control->fps*0.05;
 
 	if (flags.show_debug) {
 /*
@@ -4613,9 +4819,12 @@ void Game::updateGui(float *statustext_time, const RunStats &stats,
 
 		std::ostringstream os(std::ios_base::binary);
 		os << std::fixed
+#if !defined(__ANDROID__)
 		   << PROJECT_NAME_C " " << g_version_hash
+#endif
 		   << std::setprecision(0)
 		   << " FPS = " << draw_control->fps
+//		   << "/" << draw_control->fps_avg
 /*
 		   << " (R: range_all=" << draw_control->range_all << ")"
 */
@@ -4827,12 +5036,13 @@ void Game::settingChangedCallback(const std::string &setting_name, void *data)
 void Game::readSettings()
 {
 	m_cache_doubletap_jump            = g_settings->getBool("doubletap_jump");
-	m_cache_enable_node_highlighting  = g_settings->getBool("enable_node_highlighting");
 	m_cache_enable_clouds             = g_settings->getBool("enable_clouds");
 	m_cache_enable_particles          = g_settings->getBool("enable_particles");
 	m_cache_enable_fog                = g_settings->getBool("enable_fog");
 	m_cache_mouse_sensitivity         = g_settings->getFloat("mouse_sensitivity");
 	m_repeat_right_click_time         = g_settings->getFloat("repeat_rightclick_time");
+
+	m_cinematic                       = g_settings->getBool("cinematic");
 
 	m_cache_mouse_sensitivity = rangelim(m_cache_mouse_sensitivity, 0.001, 100.0);
 }
@@ -4933,4 +5143,3 @@ bool the_game(bool *kill,
 
 	return started && game.flags.reconnect;
 }
-

@@ -29,7 +29,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <map>
 #include "debug.h"
-#include "util/concurrent_map.h"
+#include "threading/concurrent_map.h"
 
 struct StaticObject
 {
@@ -50,7 +50,7 @@ struct StaticObject
 	}
 
 	void serialize(std::ostream &os);
-	void deSerialize(std::istream &is, u8 version);
+	bool deSerialize(std::istream &is, u8 version);
 };
 
 class StaticObjectList
@@ -86,8 +86,10 @@ public:
 		auto lock = m_active.lock_shared_rec();
 		if(m_active.find(id) == m_active.end())
 		{
-			dstream<<"WARNING: StaticObjectList::remove(): id="<<id
+			/*
+			warningstream<<"StaticObjectList::remove(): id="<<id
 					<<" not found"<<std::endl;
+			*/
 			return;
 		}
 		m_active.erase(id);

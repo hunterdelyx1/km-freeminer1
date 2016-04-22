@@ -29,6 +29,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include "../irrlichttypes.h"
 #include "../msgpack_fix.h"
+#include "../config.h"
 
 #define MAX_PACKET_SIZE 1400
 
@@ -143,16 +144,23 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 		Rename GENERIC_CMD_SET_ATTACHMENT to GENERIC_CMD_ATTACH_TO
 	PROTOCOL_VERSION 26:
 		Add TileDef tileable_horizontal, tileable_vertical flags
+	PROTOCOL_VERSION 27:
+		backface_culling: backwards compatibility for playing with
+		newer client on pre-27 servers.
+		Add nodedef v3 - connected nodeboxes
 */
 
-#define LATEST_PROTOCOL_VERSION 26
+#define LATEST_PROTOCOL_VERSION 27
 
 // Server's supported network protocol range
 #define SERVER_PROTOCOL_VERSION_MIN 13
 #define SERVER_PROTOCOL_VERSION_MAX LATEST_PROTOCOL_VERSION
 
 // Client's supported network protocol range
-#define CLIENT_PROTOCOL_VERSION_MIN 13
+// The minimal version depends on whether
+// send_pre_v25_init is enabled or not
+#define CLIENT_PROTOCOL_VERSION_MIN 25
+#define CLIENT_PROTOCOL_VERSION_MIN_LEGACY 13
 #define CLIENT_PROTOCOL_VERSION_MAX LATEST_PROTOCOL_VERSION
 
 #define CLIENT_PROTOCOL_VERSION_FM 2
@@ -216,7 +224,8 @@ enum {
 	TOCLIENT_INIT_POS,
 	// json map params
 	TOCLIENT_INIT_MAP_PARAMS,
-	TOCLIENT_INIT_PROTOCOL_VERSION_FM
+	TOCLIENT_INIT_PROTOCOL_VERSION_FM,
+	TOCLIENT_INIT_WEATHER
 };
 
 	/*
@@ -259,7 +268,6 @@ enum {
 	TOCLIENT_ADDNODE_REMOVE_METADATA
 };
 	/*
-		u16 command
 		v3s16 position
 		serialized mapnode
 		u8 keep_metadata // Added in protocol version 22
@@ -280,6 +288,26 @@ enum {
 		[2] serialized inventory
 	*/
 
+	/*
+	TOCLIENT_OBJECTDATA = 0x28, // Obsolete
+	*/
+	/*
+		Sent as unreliable.
+
+		u16 number of player positions
+		for each player:
+			u16 peer_id
+			v3s32 position*100
+			v3s32 speed*100
+			s32 pitch*100
+			s32 yaw*100
+		u16 count of blocks
+		for each block:
+			v3s16 blockpos
+			block objects
+	*/
+
+
 #define TOCLIENT_TIME_OF_DAY 0x29
 enum {
 	// u16 time (0-23999)
@@ -288,7 +316,6 @@ enum {
 	TOCLIENT_TIME_OF_DAY_TIME_SPEED
 };
 	/*
-		u16 command
 		u16 time (0-23999)
 		Added in a later version:
 		f1000 time_speed
@@ -300,6 +327,12 @@ enum {
 	TOCLIENT_CHAT_MESSAGE_DATA
 };
 
+	/*
+		u16 length
+		wstring message
+	*/
+
+
 #define TOCLIENT_ACTIVE_OBJECT_REMOVE_ADD 0x31
 enum {
 	// list of ids
@@ -307,6 +340,19 @@ enum {
 	// list of [id, type, initialization_data]
 	TOCLIENT_ACTIVE_OBJECT_REMOVE_ADD_ADD
 };
+	/*
+		u16 count of removed objects
+		for all removed objects {
+			u16 id
+		}
+		u16 count of added objects
+		for all added objects {
+			u16 id
+			u8 type
+			u32 initialization data length
+			string initialization data
+		}
+	*/
 
 struct ActiveObjectAddData {
 	ActiveObjectAddData(u16 id_, u8 type_, std::string data_) : id(id_), type(type_), data(data_) {}
@@ -323,13 +369,20 @@ enum {
 	TOCLIENT_ACTIVE_OBJECT_MESSAGES_MESSAGES
 };
 typedef std::vector<std::pair<unsigned int, std::string> > ActiveObjectMessages;
+	/*
+		for all objects
+		{
+			u16 id
+			u16 message length
+			string message
+		}
+	*/
 
 #define TOCLIENT_HP 0x33
 enum {
 	TOCLIENT_HP_HP
 };
 	/*
-		u16 command
 		u8 hp
 	*/
 
@@ -341,7 +394,14 @@ enum {
 	TOCLIENT_MOVE_PLAYER_PITCH,
 	// f32 yaw
 	TOCLIENT_MOVE_PLAYER_YAW
+	//TOCLIENT_MOVE_PLAYER_SPEED
+
 };
+	/*
+		v3f1000 player position
+		f1000 player pitch
+		f1000 player yaw
+	*/
 
 #define TOCLIENT_ACCESS_DENIED_LEGACY 0x35
 enum {
@@ -352,10 +412,28 @@ enum {
 	TOCLIENT_ACCESS_DENIED_RECONNECT
 };
 	/*
-		u16 command
 		u16 reason_length
 		wstring reason
 	*/
+
+	/*
+	TOCLIENT_PLAYERITEM = 0x36, // Obsolete
+	*/
+	/*
+		u16 count of player items
+		for all player items {
+			u16 peer id
+			u16 length of serialized item
+			string serialized item
+		}
+	*/
+
+#define TOCLIENT_PUNCH_PLAYER 0x36
+enum {
+	// v3f player speed add
+	TOCLIENT_PUNCH_PLAYER_SPEED,
+};
+
 
 #define TOCLIENT_DEATHSCREEN 0x37
 enum {
@@ -364,6 +442,10 @@ enum {
 	// v3f camera point target (to point the death cause or whatever)
 	TOCLIENT_DEATHSCREEN_CAMERA_POINT
 };
+	/*
+		u8 bool set camera point target
+		v3f1000 camera point target (to point the death cause or whatever)
+	*/
 
 #define TOCLIENT_MEDIA 0x38
 enum {
@@ -371,6 +453,27 @@ enum {
 	TOCLIENT_MEDIA_MEDIA
 };
 typedef std::vector<std::pair<std::string, std::string> > MediaData;
+	/*
+		u16 total number of texture bunches
+		u16 index of this bunch
+		u32 number of files in this bunch
+		for each file {
+			u16 length of name
+			string name
+			u32 length of data
+			data
+		}
+		u16 length of remote media server url (if applicable)
+		string url
+	*/
+
+	/*
+	TOCLIENT_TOOLDEF = 0x39,
+	*/
+	/*
+		u32 length of the next item
+		serialized ToolDefManager
+	*/
 
 #define TOCLIENT_NODEDEF 0x3a
 enum {
@@ -378,9 +481,16 @@ enum {
 	TOCLIENT_NODEDEF_DEFINITIONS_ZIP
 };
 	/*
-		u16 command
 		u32 length of the next item
 		serialized NodeDefManager
+	*/
+
+	/*
+	TOCLIENT_CRAFTITEMDEF = 0x3b,
+	*/
+	/*
+		u32 length of the next item
+		serialized CraftiItemDefManager
 	*/
 
 #define TOCLIENT_ANNOUNCE_MEDIA 0x3c
@@ -391,7 +501,6 @@ enum {
 	TOCLIENT_ANNOUNCE_MEDIA_REMOTE_SERVER
 };
 	/*
-		u16 command
 		u32 number of files
 		for each texture {
 			u16 length of name
@@ -406,6 +515,11 @@ enum {
 	TOCLIENT_ITEMDEF_DEFINITIONS,
 	TOCLIENT_ITEMDEF_DEFINITIONS_ZIP
 };
+
+	/*
+		u32 length of next item
+		serialized ItemDefManager
+	*/
 
 typedef std::vector<std::pair<std::string, std::string> > MediaAnnounceList;
 
@@ -427,23 +541,48 @@ enum {
 	TOCLIENT_PLAY_SOUND_LOOP
 };
 
+	/*
+		s32 sound_id
+		u16 len
+		u8[len] sound name
+		s32 gain*1000
+		u8 type (0=local, 1=positional, 2=object)
+		s32[3] pos_nodes*10000
+		u16 object_id
+		u8 loop (bool)
+	*/
+
 #define TOCLIENT_STOP_SOUND 0x40
 enum {
 	// s32
 	TOCLIENT_STOP_SOUND_ID
 };
+	/*
+		s32 sound_id
+	*/
 
 #define TOCLIENT_PRIVILEGES 0x41
 enum {
 	// list of strings
 	TOCLIENT_PRIVILEGES_PRIVILEGES
 };
+	/*
+		u16 number of privileges
+		for each privilege
+			u16 len
+			u8[len] privilege
+	*/
 
 #define TOCLIENT_INVENTORY_FORMSPEC 0x42
 enum {
 	// string
 	TOCLIENT_INVENTORY_FORMSPEC_DATA
 };
+
+	/*
+		u32 len
+		u8[len] formspec
+	*/
 
 #define TOCLIENT_DETACHED_INVENTORY 0x43
 enum {
@@ -473,8 +612,23 @@ enum {
 	TOCLIENT_MOVEMENT_LIQUID_FLUIDITY,
 	TOCLIENT_MOVEMENT_LIQUID_FLUIDITY_SMOOTH,
 	TOCLIENT_MOVEMENT_LIQUID_SINK,
-	TOCLIENT_MOVEMENT_GRAVITY
+	TOCLIENT_MOVEMENT_GRAVITY,
+	TOCLIENT_MOVEMENT_FALL_AERODYNAMICS
 };
+	/*
+		f1000 movement_acceleration_default
+		f1000 movement_acceleration_air
+		f1000 movement_acceleration_fast
+		f1000 movement_speed_walk
+		f1000 movement_speed_crouch
+		f1000 movement_speed_fast
+		f1000 movement_speed_climb
+		f1000 movement_speed_jump
+		f1000 movement_liquid_fluidity
+		f1000 movement_liquid_fluidity_smooth
+		f1000 movement_liquid_sink
+		f1000 movement_gravity
+	*/
 
 #define TOCLIENT_SPAWN_PARTICLE 0x46
 enum {
@@ -487,6 +641,17 @@ enum {
 	TOCLIENT_SPAWN_PARTICLE_VERTICAL,
 	TOCLIENT_SPAWN_PARTICLE_TEXTURE
 };
+	/*
+		v3f1000 pos
+		v3f1000 velocity
+		v3f1000 acceleration
+		f1000 expirationtime
+		f1000 size
+		u8 bool collisiondetection
+		u8 bool vertical
+		u32 len
+		u8[len] texture
+	*/
 
 #define TOCLIENT_ADD_PARTICLESPAWNER 0x47
 enum {
@@ -507,6 +672,25 @@ enum {
 	TOCLIENT_ADD_PARTICLESPAWNER_TEXTURE,
 	TOCLIENT_ADD_PARTICLESPAWNER_ID
 };
+	/*
+		u16 amount
+		f1000 spawntime
+		v3f1000 minpos
+		v3f1000 maxpos
+		v3f1000 minvel
+		v3f1000 maxvel
+		v3f1000 minacc
+		v3f1000 maxacc
+		f1000 minexptime
+		f1000 maxexptime
+		f1000 minsize
+		f1000 maxsize
+		u8 bool collisiondetection
+		u8 bool vertical
+		u32 len
+		u8[len] texture
+		u32 id
+	*/
 
 #define TOCLIENT_DELETE_PARTICLESPAWNER_LEGACY 0x48
 #define TOCLIENT_DELETE_PARTICLESPAWNER 0x48
@@ -514,23 +698,8 @@ enum {
 	TOCLIENT_DELETE_PARTICLESPAWNER_ID
 };
 	/*
-		u16 command
 		u16 id
 	*/
-
-/*
-#define TOCLIENT_ANIMATIONS 0x4f
-enum {
-	TOCLIENT_ANIMATIONS_DEFAULT_START,
-	TOCLIENT_ANIMATIONS_DEFAULT_STOP,
-	TOCLIENT_ANIMATIONS_WALK_START,
-	TOCLIENT_ANIMATIONS_WALK_STOP,
-	TOCLIENT_ANIMATIONS_DIG_START,
-	TOCLIENT_ANIMATIONS_DIG_STOP,
-	TOCLIENT_ANIMATIONS_WD_START,
-	TOCLIENT_ANIMATIONS_WD_STOP
-};
-*/
 
 #define TOCLIENT_HUDADD 0x49
 enum {
@@ -549,7 +718,6 @@ enum {
 	TOCLIENT_HUDADD_SIZE,
 };
 	/*
-		u16 command
 		u32 id
 		u8 type
 		v2f1000 pos
@@ -571,6 +739,9 @@ enum {
 enum {
 	TOCLIENT_HUDRM_ID
 };
+	/*
+		u32 id
+	*/
 
 #define TOCLIENT_HUDCHANGE 0x4b
 enum {
@@ -583,7 +754,6 @@ enum {
 	TOCLIENT_HUDCHANGE_V2S32
 };
 	/*
-		u16 command
 		u32 id
 		u8 stat
 		[v2f1000 data |
@@ -597,6 +767,10 @@ enum {
 	TOCLIENT_HUD_SET_FLAGS_FLAGS,
 	TOCLIENT_HUD_SET_FLAGS_MASK
 };
+	/*
+		u32 flags
+		u32 mask
+	*/
 
 #define TOCLIENT_HUD_SET_PARAM 0x4d
 enum {
@@ -604,7 +778,6 @@ enum {
 	TOCLIENT_HUD_SET_PARAM_VALUE
 };
 	/*
-		u16 command
 		u16 param
 		u16 len
 		u8[len] value
@@ -615,6 +788,9 @@ enum {
 	// u16 breath
 	TOCLIENT_BREATH_BREATH
 };
+	/*
+		u16 breath
+	*/
 
 #define TOCLIENT_SET_SKY 0x4f
 enum {
@@ -623,7 +799,6 @@ enum {
 	TOCLIENT_SET_SKY_PARAMS
 };
 	/*
-		u16 command
 		u8[4] color (ARGB)
 		u8 len
 		u8[len] type
@@ -638,6 +813,10 @@ enum {
 	TOCLIENT_OVERRIDE_DAY_NIGHT_RATIO_DO,
 	TOCLIENT_OVERRIDE_DAY_NIGHT_RATIO_VALUE
 };
+	/*
+		u8 do_override (boolean)
+		u16 day-night ratio 0...65535
+	*/
 
 #define TOCLIENT_LOCAL_PLAYER_ANIMATIONS  0x51
 enum {
@@ -647,17 +826,28 @@ enum {
 	TOCLIENT_LOCAL_PLAYER_ANIMATIONS_WALKDIG,
 	TOCLIENT_LOCAL_PLAYER_ANIMATIONS_FRAME_SPEED
 };
+	/*
+		v2s32 stand/idle
+		v2s32 walk
+		v2s32 dig
+		v2s32 walk+dig
+		f1000 frame_speed
+	*/
+
 
 #define TOCLIENT_EYE_OFFSET 0x52
 enum {
 	TOCLIENT_EYE_OFFSET_FIRST,
 	TOCLIENT_EYE_OFFSET_THIRD
 };
+	/*
+		v3f1000 first
+		v3f1000 third
+	*/
 
 // minetest wtf
 //	TOCLIENT_DELETE_PARTICLESPAWNER = 0x53,
 	/*
-		u16 command
 		u32 id
 	*/
 
@@ -666,7 +856,6 @@ enum {
 	/*
 		Belonging to AUTH_MECHANISM_LEGACY_PASSWORD and AUTH_MECHANISM_SRP.
 
-		u16 command
 		std::string bytes_s
 		std::string bytes_B
 	*/
@@ -777,7 +966,62 @@ enum {
 		...
 	*/
 
+
+	/*
+	TOSERVER_ADDNODE_FROM_INVENTORY = 0x26, // Obsolete
+	*/
+	/*
+		[0] u16 command
+		[2] v3s16 pos
+		[8] u16 i
+	*/
+
+	/*
+	TOSERVER_CLICK_OBJECT = 0x27, // Obsolete
+	*/
+	/*
+		length: 13
+		[0] u16 command
+		[2] u8 button (0=left, 1=right)
+		[3] v3s16 blockpos
+		[9] s16 id
+		[11] u16 item
+	*/
+
+	/*
+	TOSERVER_GROUND_ACTION = 0x28, // Obsolete
+	*/
+	/*
+		length: 17
+		[0] u16 command
+		[2] u8 action
+		[3] v3s16 nodepos_undersurface
+		[9] v3s16 nodepos_abovesurface
+		[15] u16 item
+		actions:
+		0: start digging (from undersurface)
+		1: place block (to abovesurface)
+		2: stop digging (all parameters ignored)
+		3: digging completed
+	*/
+
+	/*
+	TOSERVER_RELEASE = 0x29, // Obsolete
+	*/
+	// (oops, there is some gap here)
+
+	/*
+	TOSERVER_SIGNTEXT = 0x30, // Old signs, obsolete
+	*/
+	/*
+		v3s16 blockpos
+		s16 id
+		u16 textlen
+		textdata
+	*/
+
 #define TOSERVER_INVENTORY_ACTION 0x31
+
 	/*
 		See InventoryAction in inventorymanager.h
 	*/
@@ -791,17 +1035,36 @@ enum {
 	TOSERVER_CHAT_MESSAGE_DATA
 };
 	/*
-		u16 command
 		u16 length
 		wstring message
+	*/
+
+	/*
+	TOSERVER_SIGNNODETEXT = 0x33, // obsolete
+	*/
+	/*
+		v3s16 p
+		u16 textlen
+		textdata
+	*/
+
+	/*
+	TOSERVER_CLICK_ACTIVEOBJECT = 0x34, // Obsolete
+	*/
+	/*
+		length: 7
+		[0] u16 command
+		[2] u8 button (0=left, 1=right)
+		[3] u16 id
+		[5] u16 item
 	*/
 
 #define TOSERVER_DAMAGE 0x35
 enum {
 	TOSERVER_DAMAGE_VALUE
 };
+
 	/*
-		u16 command
 		u8 amount
 	*/
 
@@ -840,7 +1103,6 @@ enum {
 	TOSERVER_REMOVED_SOUNDS_IDS
 };
 	/*
-		u16 command
 		u16 len
 		s32[len] sound_id
 	*/
@@ -852,7 +1114,6 @@ enum {
 	TOSERVER_NODEMETA_FIELDS_DATA
 };
 	/*
-		u16 command
 		v3s16 p
 		u16 len
 		u8[len] form name (reserved for future use)
@@ -879,7 +1140,6 @@ enum {
 	TOSERVER_INVENTORY_FIELDS_DATA
 };
 	/*
-		u16 command
 		u16 len
 		u8[len] form name (reserved for future use)
 		u16 number of fields
@@ -895,7 +1155,6 @@ enum {
 	TOSERVER_REQUEST_MEDIA_FILES
 };
 	/*
-		u16 command
 		u16 number of files requested
 		for each file {
 			u16 length of name
@@ -905,7 +1164,7 @@ enum {
 
 #define TOSERVER_RECEIVED_MEDIA 0x41
 	/*
-		u16 command
+		<no payload data>
 	*/
 
 #define TOSERVER_BREATH 0x42
@@ -913,7 +1172,6 @@ enum {
 	TOSERVER_BREATH_VALUE
 };
 	/*
-		u16 command
 		u16 breath
 	*/
 
@@ -978,11 +1236,7 @@ enum {
 		std::string bytes_M
 	*/
 
-#if !MINETEST_PROTO
-#define TOSERVER_NUM_MSG_TYPES 1
-#else
 #define TOSERVER_NUM_MSG_TYPES 0x53
-#endif
 
 /*
 };

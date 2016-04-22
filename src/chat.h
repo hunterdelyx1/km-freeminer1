@@ -30,7 +30,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "FMColoredString.h"
 
-// Chat console related classes, only used by the client
+// Chat console related classes
 
 struct ChatLine
 {
@@ -128,7 +128,7 @@ private:
 	u32 m_scrollback;
 	// Array of unformatted chat lines
 	std::vector<ChatLine> m_unformatted;
-	
+
 	// Number of character columns in console
 	u32 m_cols;
 	// Number of character rows in console
@@ -151,15 +151,24 @@ public:
 	void input(wchar_t ch);
 	void input(const std::wstring &str);
 
-	// Submit, clear and return current line
-	std::wstring submit();
+	// Add a string to the history
+	void addToHistory(std::wstring line);
+
+	// Get current line
+	std::wstring getLine() const { return m_line; }
+
+	// Get section of line that is currently selected
+	std::wstring getSelection() const
+		{ return m_line.substr(m_cursor, m_cursor_len); }
 
 	// Clear the current line
 	void clear();
 
 	// Replace the current line with the given text
-	void replace(std::wstring line);
+	std::wstring replace(std::wstring line);
 
+	// Add a line to history
+	void historyPush(std::wstring line);
 	// Select previous command from history
 	void historyPrev();
 	// Select next command from history
@@ -174,10 +183,13 @@ public:
 	std::wstring getVisiblePortion() const;
 	// Get cursor position (relative to visible portion). -1 if invalid
 	s32 getVisibleCursorPosition() const;
+	// Get length of cursor selection
+	s32 getCursorLength() const { return m_cursor_len; }
 
 	// Cursor operations
 	enum CursorOp {
 		CURSOROP_MOVE,
+		CURSOROP_SELECT,
 		CURSOROP_DELETE
 	};
 
@@ -191,7 +203,8 @@ public:
 	enum CursorOpScope {
 		CURSOROP_SCOPE_CHARACTER,
 		CURSOROP_SCOPE_WORD,
-		CURSOROP_SCOPE_LINE
+		CURSOROP_SCOPE_LINE,
+		CURSOROP_SCOPE_SELECTION
 	};
 
 	// Cursor operation
@@ -218,7 +231,7 @@ private:
 	std::wstring m_line;
 	// History buffer
 	std::vector<std::wstring> m_history;
-	// History index (0 <= m_history_index <= m_history.size()) 
+	// History index (0 <= m_history_index <= m_history.size())
 	u32 m_history_index;
 	// Maximum number of history entries
 	u32 m_history_limit;
@@ -229,6 +242,8 @@ private:
 	s32 m_view;
 	// Cursor (index into m_line)
 	s32 m_cursor;
+	// Cursor length (length of selected portion of line)
+	s32 m_cursor_len;
 
 	// Last nick completion start (index into m_line)
 	s32 m_nick_completion_start;

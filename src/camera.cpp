@@ -37,6 +37,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "util/numeric.h"
 #include "util/mathconstants.h"
 #include "constants.h"
+#include "fontengine.h"
 
 #define CAMERA_OFFSET_STEP 1000
 
@@ -68,13 +69,6 @@ Camera::Camera(scene::ISceneManager* smgr, MapDrawControl& draw_control,
 	m_fov_x(1.0),
 	m_fov_y(1.0),
 
-	m_added_busytime(0),
-	m_added_frames(0),
-	m_range_old(0),
-	m_busytime_old(0),
-	m_frametime_counter(0),
-	m_time_per_range(30. / 50), // a sane default of 30ms per 50 nodes of range
-
 	m_view_bobbing_anim(0),
 	m_view_bobbing_state(0),
 	m_view_bobbing_speed(0),
@@ -88,8 +82,9 @@ Camera::Camera(scene::ISceneManager* smgr, MapDrawControl& draw_control,
 
 	m_camera_mode(CAMERA_MODE_FIRST)
 {
-	//dstream<<__FUNCTION_NAME<<std::endl;
+	//dstream<<FUNCTION_NAME<<std::endl;
 
+	m_driver = smgr->getVideoDriver();
 	// note: making the camera node a child of the player node
 	// would lead to unexpected behaviour, so we don't do that.
 	m_playernode = smgr->addEmptySceneNode(smgr->getRootSceneNode());
@@ -122,6 +117,7 @@ Camera::Camera(scene::ISceneManager* smgr, MapDrawControl& draw_control,
 	m_cache_wanted_fps          = g_settings->getFloat("wanted_fps");
 	m_cache_fov                 = g_settings->getFloat("fov");
 	m_cache_view_bobbing        = g_settings->getBool("view_bobbing");
+	m_nametags.clear();
 }
 
 Camera::~Camera()
@@ -276,6 +272,7 @@ void Camera::update(LocalPlayer* player, f32 frametime, f32 busytime,
 		// Smoothen and invert the above
 		fall_bobbing = sin(fall_bobbing * 0.5 * M_PI) * -1;
 		// Amplify according to the intensity of the impact
+		if (player->camera_impact)
 		fall_bobbing *= (1 - rangelim(50 / player->camera_impact, 0, 1)) * 5;
 
 		fall_bobbing *= m_cache_fall_bobbing_amount;
@@ -410,20 +407,22 @@ void Camera::update(LocalPlayer* player, f32 frametime, f32 busytime,
 	} else {
 		m_wieldnode->setVisible(true);
 	}
-	f32 fov_degrees = MYMAX(MYMIN(m_draw_control.fov, 170.0), 10.0);
+	f32 fov_degrees = m_draw_control.fov;
 
 	// Greater FOV if running
 	v3f speed = player->getSpeed();
 
 	if (m_cache_movement_fov) {
-		auto fog_was = m_draw_control.fov_add;
+		auto fov_was = m_draw_control.fov_add;
 		m_draw_control.fov_add = speed.dotProduct(m_camera_direction)/(BS*4);
-		if (m_draw_control.fov_add > fog_was + 1)
-			m_draw_control.fov_add = fog_was + ( m_draw_control.fov_add - fog_was) / 3;
-		else if (m_draw_control.fov_add < fog_was - 1)
-			m_draw_control.fov_add = fog_was - (fog_was - m_draw_control.fov_add) / 3;
+		if (m_draw_control.fov_add > fov_was + 1)
+			m_draw_control.fov_add = fov_was + ( m_draw_control.fov_add - fov_was) / 3;
+		else if (m_draw_control.fov_add < fov_was - 1)
+			m_draw_control.fov_add = fov_was - (fov_was - m_draw_control.fov_add) / 3;
 		fov_degrees -= m_draw_control.fov_add;
 	}
+
+	fov_degrees = MYMAX(MYMIN(fov_degrees, 150.0), 10.0);
 
 	// FOV and aspect ratio
 	m_aspect = (f32) porting::getWindowSize().X / (f32) porting::getWindowSize().Y;
@@ -480,14 +479,14 @@ void Camera::update(LocalPlayer* player, f32 frametime, f32 busytime,
 
 	m_wieldnode->setColor(player->light_color);
 
-	// Render distance feedback loop
-	updateViewingRange(frametime, busytime);
+	// Set render distance
+	updateViewingRange();
 
 	// If the player is walking, swimming, or climbing,
 	// view bobbing is enabled and free_move is off,
 	// start (or continue) the view bobbing animation.
 	const bool movement_XZ = hypot(speed.X, speed.Z) > BS;
-	const bool movement_Y = std::abs(speed.Y) > BS;
+	const bool movement_Y = fabs(speed.Y) > BS;
 
 	const bool walking = movement_XZ && player->touching_ground;
 	const bool swimming = (movement_XZ || player->swimming_vertical) && player->in_liquid;
@@ -508,11 +507,15 @@ void Camera::update(LocalPlayer* player, f32 frametime, f32 busytime,
 	}
 }
 
-void Camera::updateViewingRange(f32 frametime_in, f32 busytime_in)
+void Camera::updateViewingRange()
 {
-	if (m_draw_control.range_all)
+	if (m_draw_control.range_all) {
+		m_cameranode->setFarValue(100000.0);
 		return;
+	}
 
+//fm dynamic range:
+/*
 	m_added_busytime += busytime_in;
 	m_added_frames += 1;
 
@@ -520,8 +523,8 @@ void Camera::updateViewingRange(f32 frametime_in, f32 busytime_in)
 	if (m_frametime_counter > 0)
 		return;
 	m_frametime_counter = 0.2; // Same as ClientMap::updateDrawList interval
-
-	/*dstream<<__FUNCTION_NAME
+*/
+	/*dstream<<FUNCTION_NAME
 			<<": Collected "<<m_added_frames<<" frames, total of "
 			<<m_added_busytime<<"s."<<std::endl;
 
@@ -532,13 +535,29 @@ void Camera::updateViewingRange(f32 frametime_in, f32 busytime_in)
 			<<std::endl;*/
 
 	// Get current viewing range and FPS settings
-	f32 viewing_range_min = g_settings->getFloat("viewing_range_nodes_min");
+	f32 viewing_range_min = g_settings->getFloat("viewing_range");
 	viewing_range_min = MYMAX(15.0, viewing_range_min);
 
-	f32 viewing_range_max = g_settings->getFloat("viewing_range_nodes_max");
+	f32 viewing_range_max = g_settings->getFloat("viewing_range_max");
 	viewing_range_max = MYMAX(viewing_range_min, viewing_range_max);
 	// vrange+position must be smaller than 32767
 	viewing_range_max = MYMIN(viewing_range_max, 32760 - MYMAX(MYMAX(std::abs(m_camera_position.X/BS), std::abs(m_camera_position.Y/BS)), std::abs(m_camera_position.Z/BS)));
+
+	f32 wanted_fps = m_cache_wanted_fps;
+	wanted_fps = MYMAX(wanted_fps, 1.0);
+
+	// todo: remake
+	if (m_draw_control.fps > wanted_fps && m_draw_control.fps_avg > wanted_fps * 1.2) {
+		m_draw_control.wanted_range += 1;
+	} else if (m_draw_control.fps_avg < wanted_fps) {
+		if (m_draw_control.fps < wanted_fps * 0.7) {
+			m_draw_control.wanted_range *= 0.9;
+		} else if (m_draw_control.fps < wanted_fps) {
+			m_draw_control.wanted_range -= 1;
+		}
+	} else if (m_draw_control.fps < wanted_fps * 0.7) {
+		m_draw_control.wanted_range *= 0.9;
+	}
 
 	// Immediately apply hard limits
 	if(m_draw_control.wanted_range < viewing_range_min)
@@ -546,26 +565,17 @@ void Camera::updateViewingRange(f32 frametime_in, f32 busytime_in)
 	if(m_draw_control.wanted_range > viewing_range_max)
 		m_draw_control.wanted_range = viewing_range_max;
 
-	// Just so big a value that everything rendered is visible
-	// Some more allowance than viewing_range_max * BS because of clouds,
-	// active objects, etc.
-	if(viewing_range_max < 200*BS)
-		m_cameranode->setFarValue(200 * BS * 10);
-	else
-		m_cameranode->setFarValue(viewing_range_max * BS * 10);
-
 	int farmesh = g_settings->getS32("farmesh");
-	int farmesh_step = g_settings->getS32("farmesh_step");
+	//int farmesh_step = g_settings->getS32("farmesh_step");
 	int farmesh_wanted = g_settings->getS32("farmesh_wanted");
 
-	f32 wanted_fps = m_cache_wanted_fps;
-	wanted_fps = MYMAX(wanted_fps, 1.0);
+#if OOOOOOOOOOOOOOOld
 	f32 wanted_frametime = 1.0 / wanted_fps;
 
-	m_draw_control.wanted_min_range = viewing_range_min;
-	m_draw_control.wanted_max_blocks = (2.0*m_draw_control.blocks_would_have_drawn)+1;
-	if (m_draw_control.wanted_max_blocks < 10)
-		m_draw_control.wanted_max_blocks = 10;
+	//m_draw_control.wanted_min_range = viewing_range_min;
+	//m_draw_control.wanted_max_blocks = (2.0*m_draw_control.blocks_would_have_drawn)+1;
+	//if (m_draw_control.wanted_max_blocks < 10)
+		//m_draw_control.wanted_max_blocks = 10;
 
 /*
 	f32 block_draw_ratio = 1.0;
@@ -586,15 +596,23 @@ void Camera::updateViewingRange(f32 frametime_in, f32 busytime_in)
 	f32 wanted_frametime_change = wanted_frametime - frametime;
 	//dstream<<"wanted_frametime_change="<<wanted_frametime_change<<std::endl;
 	//g_profiler->avg("wanted_frametime_change", wanted_frametime_change);
+#endif
 
+	static int framecnt = 0;
 	m_draw_control.fps_wanted = wanted_fps;
 	if (farmesh) {
 			//infostream<<" m_draw_control.fps="<<m_draw_control.fps<< " wanted_fps="<< wanted_fps << " m_draw_control.fps_avg="<< m_draw_control.fps_avg <<" wanted_fps*1.4="<< wanted_fps*1.4 /*<<" block_draw_ratio="<<block_draw_ratio */<< " wanted_frametime="<< wanted_frametime <<" .blocks_would_have_drawn=" <<m_draw_control.blocks_would_have_drawn <<" .blocks_drawn=" <<m_draw_control.blocks_drawn <<std::endl;
-			if (m_draw_control.fps > wanted_fps && m_draw_control.fps_avg >= wanted_fps*1.4) {
-				if (m_draw_control.wanted_range >= farmesh_wanted)
-					m_draw_control.farmesh = (int)m_draw_control.farmesh + 1;
-				if (m_draw_control.farmesh >= farmesh*1.3 && m_draw_control.farmesh_step < farmesh_step)
-					++m_draw_control.farmesh_step;
+			if (m_draw_control.fps > wanted_fps && m_draw_control.fps_avg >= wanted_fps*1.3) {
+				if (++framecnt > m_draw_control.fps_avg/2) {
+					if (m_draw_control.wanted_range >= farmesh_wanted) {
+						m_draw_control.farmesh = (int)m_draw_control.farmesh + 1;
+						framecnt = 0;
+					}
+					//if (m_draw_control.farmesh >= farmesh*1.3 && m_draw_control.farmesh_step < farmesh_step) {
+					//	++m_draw_control.farmesh_step;
+					//	framecnt = 0;
+					//}
+				}
 			} else if (m_draw_control.fps <= wanted_fps*0.8){
 				float farmesh_was = m_draw_control.farmesh;
 				if (m_draw_control.fps <= wanted_fps*0.6)
@@ -607,13 +625,14 @@ void Camera::updateViewingRange(f32 frametime_in, f32 busytime_in)
 					m_draw_control.farmesh -= 1;
 				if (m_draw_control.farmesh < farmesh)
 					m_draw_control.farmesh = farmesh;
-				if (m_draw_control.farmesh <= farmesh && m_draw_control.farmesh_step > 1 && m_draw_control.fps <= wanted_fps*0.3)
-					--m_draw_control.farmesh_step;
+				//if (m_draw_control.farmesh <= farmesh && m_draw_control.farmesh_step > 1 && m_draw_control.fps <= wanted_fps*0.3)
+				//	--m_draw_control.farmesh_step;
 				if (farmesh_was != m_draw_control.farmesh)
 					return;
 			}
 	}
 
+#if OOOOOOOOOOOOOOOld
 	// If needed frametime change is small, just return
 	// This value was 0.4 for many months until 2011-10-18 by c55;
 	//if (fabs(wanted_frametime_change) < wanted_frametime*0.33)
@@ -678,15 +697,23 @@ void Camera::updateViewingRange(f32 frametime_in, f32 busytime_in)
 	//f32 new_range_unclamped = new_range;
 	new_range = MYMAX(new_range, viewing_range_min);
 	new_range = MYMIN(new_range, viewing_range_max);
-	/*dstream<<"new_range="<<new_range_unclamped
-			<<", clamped to "<<new_range<<std::endl;*/
+	/ * dstream<<"new_range="<<new_range_unclamped
+			<<", clamped to "<<new_range<<std::endl;* /
 
 	m_range_old = m_draw_control.wanted_range;
 	m_busytime_old = busytime_in;
 
 	m_draw_control.wanted_range = new_range;
+#endif
 
 	g_profiler->add("CM: wanted_range", m_draw_control.wanted_range);
+
+	const auto viewing_range = m_draw_control.wanted_range;
+/* mt static range:
+	f32 viewing_range = g_settings->getFloat("viewing_range");
+	m_draw_control.wanted_range = viewing_range;
+*/
+	m_cameranode->setFarValue((viewing_range < 2000) ? 2000 * BS : viewing_range * BS);
 }
 
 void Camera::setDigging(s32 button)
@@ -729,7 +756,7 @@ void Camera::drawWieldedTool(irr::core::matrix4* translation)
 	scene::ICameraSceneNode* cam = m_wieldmgr->getActiveCamera();
 	cam->setAspectRatio(m_cameranode->getAspectRatio());
 	cam->setFOV(72.0*M_PI/180.0);
-	cam->setNearValue(0.1);
+	cam->setNearValue(10);
 	cam->setFarValue(1000);
 	if (translation != NULL)
 	{
@@ -744,4 +771,63 @@ void Camera::drawWieldedTool(irr::core::matrix4* translation)
 		cam->setTarget(focusPoint);
 	}
 	m_wieldmgr->drawAll();
+}
+
+void Camera::drawNametags()
+{
+	core::matrix4 trans = m_cameranode->getProjectionMatrix();
+	trans *= m_cameranode->getViewMatrix();
+
+	for (std::list<Nametag *>::const_iterator
+			i = m_nametags.begin();
+			i != m_nametags.end(); ++i) {
+		Nametag *nametag = *i;
+		if (nametag->nametag_color.getAlpha() == 0) {
+			// Enforce hiding nametag,
+			// because if freetype is enabled, a grey
+			// shadow can remain.
+			continue;
+		}
+		v3f pos = nametag->parent_node->getPosition() + v3f(0.0, 1.1 * BS, 0.0);
+		f32 transformed_pos[4] = { pos.X, pos.Y, pos.Z, 1.0f };
+		trans.multiplyWith1x4Matrix(transformed_pos);
+		if (transformed_pos[3] > 0) {
+			core::dimension2d<u32> textsize =
+				g_fontengine->getFont()->getDimension(
+				utf8_to_wide(nametag->nametag_text).c_str());
+			f32 zDiv = transformed_pos[3] == 0.0f ? 1.0f :
+				core::reciprocal(transformed_pos[3]);
+			v2u32 screensize = m_driver->getScreenSize();
+			v2s32 screen_pos;
+			screen_pos.X = screensize.X *
+				(0.5 * transformed_pos[0] * zDiv + 0.5) - textsize.Width / 2;
+			screen_pos.Y = screensize.Y *
+				(0.5 - transformed_pos[1] * zDiv * 0.5) - textsize.Height / 2;
+			core::rect<s32> size(0, 0, textsize.Width, textsize.Height);
+			g_fontengine->getFont()->draw(utf8_to_wide(nametag->nametag_text).c_str(),
+					size + screen_pos, nametag->nametag_color);
+		}
+	}
+}
+
+Nametag *Camera::addNametag(scene::ISceneNode *parent_node,
+		std::string nametag_text, video::SColor nametag_color)
+{
+
+	auto nametag_text_wide = utf8_to_wide(nametag_text);
+	if (nametag_text_wide.size() > 15) {
+		nametag_text_wide.resize(15);
+		nametag_text_wide += L".";
+		nametag_text = wide_to_utf8(nametag_text_wide);
+	}
+
+	Nametag *nametag = new Nametag(parent_node, nametag_text, nametag_color);
+	m_nametags.push_back(nametag);
+	return nametag;
+}
+
+void Camera::removeNametag(Nametag *nametag)
+{
+	m_nametags.remove(nametag);
+	delete nametag;
 }

@@ -26,7 +26,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include <sstream>
 #include "log.h"
 #include "itemdef.h"
-#include "strfnd.h"
+#include "util/strfnd.h"
 #include "content_mapnode.h" // For loading legacy MaterialItems
 #include "nameidmapping.h" // For loading legacy MaterialItems
 #include "util/serialize.h"
@@ -130,7 +130,7 @@ ItemStack::ItemStack(std::string name_, u16 count_,
 
 void ItemStack::serialize(std::ostream &os) const
 {
-	DSTACK(__FUNCTION_NAME);
+	DSTACK(FUNCTION_NAME);
 
 	if(empty())
 		return;
@@ -155,7 +155,7 @@ void ItemStack::serialize(std::ostream &os) const
 
 void ItemStack::deSerialize(std::istream &is, IItemDefManager *itemdef)
 {
-	DSTACK(__FUNCTION_NAME);
+	DSTACK(FUNCTION_NAME);
 
 	clear();
 
@@ -222,7 +222,7 @@ void ItemStack::deSerialize(std::istream &is, IItemDefManager *itemdef)
 		Strfnd fnd(all);
 		fnd.next("\"");
 		// If didn't skip to end, we have ""s
-		if(!fnd.atend()){
+		if(!fnd.at_end()){
 			name = fnd.next("\"");
 		} else { // No luck, just read a word then
 			fnd.start(all);
@@ -250,7 +250,7 @@ void ItemStack::deSerialize(std::istream &is, IItemDefManager *itemdef)
 		Strfnd fnd(all);
 		fnd.next("\"");
 		// If didn't skip to end, we have ""s
-		if(!fnd.atend()){
+		if(!fnd.at_end()){
 			name = fnd.next("\"");
 		} else { // No luck, just read a word then
 			fnd.start(all);
@@ -342,8 +342,7 @@ ItemStack ItemStack::addItem(const ItemStack &newitem_,
 		*this = newitem;
 		newitem.clear();
 	}
-    
-	// If item name differs, bail out
+	// If item name or metadata differs, bail out
 	else if(name != newitem.name or
             inventoryLabel != newitem.inventoryLabel or
             metadata != newitem.metadata)
@@ -388,7 +387,7 @@ bool ItemStack::itemFits(const ItemStack &newitem_,
 	else if(name != newitem.name or
             inventoryLabel != newitem.inventoryLabel or
             metadata != newitem.metadata)
-	{
+    {
 		// cannot be added
 	}
 	// If the item fits fully, delete it
@@ -751,7 +750,7 @@ bool InventoryList::containsItem(const ItemStack &item) const
 		return true;
 	for(std::vector<ItemStack>::const_reverse_iterator
 			i = m_items.rbegin();
-			i != m_items.rend(); i++)
+			i != m_items.rend(); ++i)
 	{
 		if(count == 0)
 			break;
@@ -771,7 +770,7 @@ ItemStack InventoryList::removeItem(const ItemStack &item)
 	ItemStack removed;
 	for(std::vector<ItemStack>::reverse_iterator
 			i = m_items.rbegin();
-			i != m_items.rend(); i++)
+			i != m_items.rend(); ++i)
 	{
 		if(i->name == item.name)
 		{

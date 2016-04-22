@@ -20,17 +20,21 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #ifndef MINIMAP_HEADER
 #define MINIMAP_HEADER
 
-#include <map>
-#include <string>
-#include <vector>
 #include "irrlichttypes_extrabloated.h"
 #include "client.h"
 #include "voxel.h"
-#include "jthread/jmutex.h"
-#include "jthread/jsemaphore.h"
+#include "threading/mutex.h"
+#include "threading/semaphore.h"
+#include <map>
+#include <string>
+#include <vector>
+#include "camera.h"
+
+#include "util/unordered_map_hash.h"
 
 #define MINIMAP_MAX_SX 512
 #define MINIMAP_MAX_SY 512
+
 
 enum MinimapMode {
 	MINIMAP_MODE_OFF,
@@ -70,7 +74,7 @@ struct MinimapData {
 	u16 scan_height;
 	u16 map_size;
 	MinimapPixel minimap_scan[MINIMAP_MAX_SX * MINIMAP_MAX_SY];
-	bool map_invalidated;
+	std::atomic_bool map_invalidated;
 	bool minimap_shape_round;
 	video::IImage *minimap_image;
 	video::IImage *heightmap_image;
@@ -81,7 +85,8 @@ struct MinimapData {
 	video::ITexture *minimap_overlay_round;
 	video::ITexture *minimap_overlay_square;
 	video::ITexture *player_marker;
-	JMutex m_mutex;
+	Mutex m_mutex;
+	video::ITexture *object_marker_red;
 };
 
 struct QueuedMinimapUpdate {
@@ -91,6 +96,7 @@ struct QueuedMinimapUpdate {
 
 class MinimapUpdateThread : public UpdateThread {
 public:
+	MinimapUpdateThread() : UpdateThread("Minimap") { next_update = 0; }
 	virtual ~MinimapUpdateThread();
 
 	void getMap(v3s16 pos, s16 size, s16 height, bool radar);
@@ -104,15 +110,17 @@ public:
 	bool popBlockUpdate(QueuedMinimapUpdate *update);
 
 	MinimapData *data;
+	std::atomic_uint next_update;
 
 protected:
-	const char *getName() { return "MinimapUpdateThread"; }
 	virtual void doUpdate();
 
 private:
-	JMutex m_queue_mutex;
+	Mutex m_queue_mutex;
 	std::deque<QueuedMinimapUpdate> m_update_queue;
-	std::map<v3s16, MinimapMapblock *> m_blocks_cache;
+	unordered_map_v3POS<MinimapMapblock *> m_blocks_cache;
+	//simple: unordered_map_v2POS<std::vector<MinimapMapblock*>> getmap_cache
+	unordered_map_v2POS<std::map<POS, MinimapMapblock*>> getmap_cache;
 };
 
 class Mapper {
@@ -138,9 +146,12 @@ public:
 		video::IImage *heightmap_image);
 
 	scene::SMeshBuffer *getMinimapMeshBuffer();
+
+	void updateActiveMarkers();
 	void drawMinimap();
 
 	video::IVideoDriver *driver;
+	Client* client;
 	MinimapData *data;
 
 private:
@@ -152,7 +163,10 @@ private:
 	bool m_enable_shaders;
 	u16 m_surface_mode_scan_height;
 	f32 m_angle;
-	//JMutex m_mutex;
+/*
+	Mutex m_mutex;
+*/
+	std::list<v2f> m_active_markers;
 };
 
 #endif

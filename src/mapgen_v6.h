@@ -1,6 +1,6 @@
 /*
 mapgen_v6.h
-Copyright (C) 2010-2013 celeron55, Perttu Ahola <celeron55@gmail.com>
+Copyright (C) 2010-2015 celeron55, Perttu Ahola <celeron55@gmail.com>
 */
 
 /*
@@ -26,19 +26,21 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "mapgen.h"
 #include "noise.h"
 
-#define AVERAGE_MUD_AMOUNT 4
-#define DESERT_STONE_BASE -32
-#define ICE_BASE 0
-#define FREQ_HOT 0.4
-#define FREQ_SNOW -0.4
-#define FREQ_TAIGA 0.5
-#define FREQ_JUNGLE 0.5
+#define MGV6_AVERAGE_MUD_AMOUNT 4
+#define MGV6_DESERT_STONE_BASE -32
+#define MGV6_ICE_BASE 0
+#define MGV6_FREQ_HOT 0.4
+#define MGV6_FREQ_SNOW -0.4
+#define MGV6_FREQ_TAIGA 0.5
+#define MGV6_FREQ_JUNGLE 0.5
 
 //////////// Mapgen V6 flags
 #define MGV6_JUNGLES    0x01
 #define MGV6_BIOMEBLEND 0x02
 #define MGV6_MUDFLOW    0x04
 #define MGV6_SNOWBIOMES 0x08
+#define MGV6_FLAT       0x10
+#define MGV6_TREES      0x20
 
 
 extern FlagDesc flagdesc_mapgen_v6[];
@@ -120,7 +122,7 @@ public:
 	content_t c_snow;
 	content_t c_snowblock;
 
-	content_t c_ice;
+	content_t c_ice, c_clay;
 
 	content_t c_cobble;
 	content_t c_mossycobble;
@@ -131,6 +133,7 @@ public:
 
 	void makeChunk(BlockMakeData *data);
 	int getGroundLevelAtPoint(v2s16 p);
+	int getSpawnLevelAtPoint(v2s16 p);
 
 	float baseTerrainLevel(float terrain_base, float terrain_higher,
 		float steepness, float height_select);
@@ -161,6 +164,7 @@ public:
 	void growGrass();
 	void placeTreesAndJungleGrass();
 	virtual void generateCaves(int max_stone_y);
+	virtual void generateExperimental() {}
 };
 
 

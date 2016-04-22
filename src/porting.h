@@ -46,8 +46,6 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "threads.h"
 #include <atomic>
 
-#define IRRLICHT_VERSION_10000 IRRLICHT_VERSION_MAJOR*10000 + IRRLICHT_VERSION_MINOR * 100 + IRRLICHT_VERSION_REVISION
-
 #ifdef _MSC_VER
 	#define SWPRINTF_CHARSTRING L"%S"
 #else
@@ -72,28 +70,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 		#define _GNU_SOURCE
 	#endif
 
-	#include <sched.h>
-
-	#ifdef __FreeBSD__
-		#include <pthread_np.h>
-		typedef cpuset_t cpu_set_t;
-	#elif defined(__sun) || defined(sun)
-		#include <sys/types.h>
-		#include <sys/processor.h>
-	#elif defined(_AIX)
-		#include <sys/processor.h>
-	#elif __APPLE__
-		#include <mach/mach_init.h>
-		#include <mach/thread_policy.h>
-	#endif
-
 	#define sleep_ms(x) usleep(x*1000)
-
-	#define THREAD_PRIORITY_LOWEST       0
-	#define THREAD_PRIORITY_BELOW_NORMAL 1
-	#define THREAD_PRIORITY_NORMAL       2
-	#define THREAD_PRIORITY_ABOVE_NORMAL 3
-	#define THREAD_PRIORITY_HIGHEST      4
 
 	#define MAX_PACKET_SIZE_SINGLEPLAYER 8192
 #endif
@@ -139,6 +116,15 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 	#include <CoreFoundation/CoreFoundation.h>
 #endif
 
+#ifndef _WIN32 // Posix
+	#include <sys/time.h>
+	#include <time.h>
+	#if defined(__MACH__) && defined(__APPLE__)
+		#include <mach/clock.h>
+		#include <mach/mach.h>
+	#endif
+#endif
+
 namespace porting
 {
 
@@ -166,30 +152,31 @@ extern std::string path_share;
 extern std::string path_user;
 
 /*
+	Path to gettext locale files
+*/
+extern std::string path_locale;
+
+/*
+	Path to directory for storing caches.
+*/
+extern std::string path_cache;
+
+/*
 	Get full path of stuff in data directory.
 	Example: "stone.png" -> "../data/stone.png"
 */
 std::string getDataPath(const char *subpath);
 
 /*
-	Initialize path_share and path_user.
+	Move cache folder from path_user to the
+	system cache location if possible.
+*/
+void migrateCachePath();
+
+/*
+	Initialize path_*.
 */
 void initializePaths();
-
-/*
-	Get number of online processors in the system.
-*/
-int getNumberOfProcessors();
-
-/*
-	Set a thread's affinity to a particular processor.
-*/
-bool threadBindToProcessor(threadid_t tid, int pnumber);
-
-/*
-	Set a thread's priority.
-*/
-bool threadSetPriority(threadid_t tid, int prio);
 
 /*
 	Return system information
@@ -205,10 +192,6 @@ void initIrrlicht(irr::IrrlichtDevice * );
 	Overflow can occur at any value higher than 10000000.
 */
 #ifdef _WIN32 // Windows
-#ifndef _WIN32_WINNT
-	#define _WIN32_WINNT 0x0501
-#endif
-	#include <windows.h>
 
 	inline u32 getTimeS()
 	{
@@ -237,49 +220,56 @@ void initIrrlicht(irr::IrrlichtDevice * );
 	}
 
 #else // Posix
-#include <sys/time.h>
-#include <time.h>
+	inline void _os_get_clock(struct timespec *ts)
+	{
 #if defined(__MACH__) && defined(__APPLE__)
-#include <mach/clock.h>
-#include <mach/mach.h>
-#endif
-
-	inline u32 getTimeS()
-	{
-		struct timeval tv;
-		gettimeofday(&tv, NULL);
-		return tv.tv_sec;
-	}
-
-	inline u32 getTimeMs()
-	{
-		struct timeval tv;
-		gettimeofday(&tv, NULL);
-		return tv.tv_sec * 1000 + tv.tv_usec / 1000;
-	}
-
-	inline u32 getTimeUs()
-	{
-		struct timeval tv;
-		gettimeofday(&tv, NULL);
-		return tv.tv_sec * 1000000 + tv.tv_usec;
-	}
-
-	inline u32 getTimeNs()
-	{
-		struct timespec ts;
-		// from http://stackoverflow.com/questions/5167269/clock-gettime-alternative-in-mac-os-x
-#if defined(__MACH__) && defined(__APPLE__) // OS X does not have clock_gettime, use clock_get_time
+	// from http://stackoverflow.com/questions/5167269/clock-gettime-alternative-in-mac-os-x
+	// OS X does not have clock_gettime, use clock_get_time
 		clock_serv_t cclock;
 		mach_timespec_t mts;
 		host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
 		clock_get_time(cclock, &mts);
 		mach_port_deallocate(mach_task_self(), cclock);
-		ts.tv_sec = mts.tv_sec;
-		ts.tv_nsec = mts.tv_nsec;
+		ts->tv_sec = mts.tv_sec;
+		ts->tv_nsec = mts.tv_nsec;
+#elif defined(CLOCK_MONOTONIC_RAW)
+		clock_gettime(CLOCK_MONOTONIC_RAW, ts);
+#elif defined(_POSIX_MONOTONIC_CLOCK)
+		clock_gettime(CLOCK_MONOTONIC, ts);
 #else
-		clock_gettime(CLOCK_REALTIME, &ts);
-#endif
+		struct timeval tv;
+		gettimeofday(&tv, NULL);
+		TIMEVAL_TO_TIMESPEC(&tv, ts);
+#endif // defined(__MACH__) && defined(__APPLE__)
+	}
+
+	// Note: these clock functions do not return wall time, but
+	// generally a clock that starts at 0 when the process starts.
+	inline u32 getTimeS()
+	{
+		struct timespec ts;
+		_os_get_clock(&ts);
+		return ts.tv_sec;
+	}
+
+	inline u32 getTimeMs()
+	{
+		struct timespec ts;
+		_os_get_clock(&ts);
+		return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+	}
+
+	inline u32 getTimeUs()
+	{
+		struct timespec ts;
+		_os_get_clock(&ts);
+		return ts.tv_sec * 1000000 + ts.tv_nsec / 1000;
+	}
+
+	inline u32 getTimeNs()
+	{
+		struct timespec ts;
+		_os_get_clock(&ts);
 		return ts.tv_sec * 1000000000 + ts.tv_nsec;
 	}
 
@@ -376,6 +366,7 @@ inline u32 getDeltaMs(u32 old_time_ms, u32 new_time_ms)
 	inline void setThreadName(const char* name) {}
 #endif
 
+
 #if defined(linux) || defined(__linux) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
 	#define PORTING_USE_PTHREAD 1
 	#include <pthread.h>
@@ -395,6 +386,9 @@ inline u32 getDeltaMs(u32 old_time_ms, u32 new_time_ms)
 
 #ifndef SERVER
 float getDisplayDensity();
+float get_dpi();
+int get_densityDpi();
+void irr_device_wait_egl (irr::IrrlichtDevice * device = nullptr);
 
 v2u32 getDisplaySize();
 v2u32 getWindowSize();
@@ -456,6 +450,7 @@ void setXorgClassHint(const video::SExposedVideoData &video_data,
 // threads in the process inherit this exception handler
 void setWin32ExceptionHandler();
 
+bool secure_rand_fill_buf(void *buf, size_t len);
 } // namespace porting
 
 #ifdef __ANDROID__
