@@ -21,7 +21,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <ICameraSceneNode.h>
-#include <ITextSceneNode.h>
+#include <IBillboardTextSceneNode.h>
 #include <IBillboardSceneNode.h>
 #include <IMeshManipulator.h>
 #include <IAnimatedMeshSceneNode.h>
@@ -48,6 +48,8 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "camera.h" // CameraModes
 #include "wieldmesh.h"
 #include "log.h"
+
+#define NICK_SCALE 0.2
 
 class Settings;
 struct ToolCapabilities;
@@ -1634,7 +1636,7 @@ void GenericCAO::processMessage(const std::string &data)
 			m_initial_tx_basepos_set = true;
 			m_tx_basepos = m_prop.initial_sprite_basepos;
 		}
-
+        
 		if ((m_is_player && !m_is_local_player) && m_prop.nametag == "")
 			m_prop.nametag = m_name;
 

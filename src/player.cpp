@@ -50,6 +50,9 @@ Player::Player(IGameDef *gamedef, const std::string & name):
 	hurt_tilt_strength(0),
 	zoom(false),
 	superspeed(false),
+//==================================================================================    
+    m_chatOpened(false),
+//==================================================================================    
 	free_move(false),
 	protocol_version(0),
 	keyPressed(0),
@@ -120,6 +123,18 @@ Player::~Player()
 {
 	clearHud();
 }
+
+//==================================================================================    
+bool Player::isChatOpened()
+{
+    return this->m_chatOpened;
+}
+
+void Player::setChatOpened(bool chatOpened)
+{
+    m_chatOpened = chatOpened;
+}
+//==================================================================================    
 
 v3s16 Player::getLightPosition() const
 {

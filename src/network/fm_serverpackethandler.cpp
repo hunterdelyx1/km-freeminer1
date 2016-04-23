@@ -54,7 +54,6 @@ void Server::handleCommand_Init(NetworkPacket* pkt) {
 	//auto & packet = *(pkt->packet);
 
 // TODO
-
 }
 
 void Server::handleCommand_Init_Legacy(NetworkPacket* pkt) {

@@ -22,6 +22,8 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "tile.h"
 
+#include "httpfetch.h"
+
 #include <ICameraSceneNode.h>
 #include "util/string.h"
 #include "util/container.h"
@@ -40,6 +42,12 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "guiscalingfilter.h"
 #include "nodedef.h"
 
+
+
+static std::string getMediaCacheDir()
+{
+	return porting::path_user + DIR_DELIM + "cache" + DIR_DELIM + "media";
+}
 
 #ifdef __ANDROID__
 #include <GLES/gl.h>
@@ -223,30 +231,80 @@ public:
 			return n->second;
 		return NULL;
 	}
+        
 	// Primarily fetches from cache, secondarily tries to read from filesystem
 	video::IImage* getOrLoad(const std::string &name, IrrlichtDevice *device)
 	{
-		std::map<std::string, video::IImage*>::iterator n;
-		n = m_images.find(name);
-		if (n != m_images.end()){
-			n->second->grab(); // Grab for caller
-			return n->second;
-		}
-		video::IVideoDriver* driver = device->getVideoDriver();
-		std::string path = getTexturePath(name);
-		if (path == ""){
-			infostream<<"SourceImageCache::getOrLoad(): No path found for \""
-					<<name<<"\""<<std::endl;
-			return NULL;
-		}
-		infostream<<"SourceImageCache::getOrLoad(): Loading path \""<<path
-				<<"\""<<std::endl;
-		video::IImage *img = driver->createImageFromFile(path.c_str());
+        video::IVideoDriver* driver = device->getVideoDriver();
 
-		if (img){
-			m_images[name] = img;
-			img->grab(); // Grab for caller
-		}
+        video::IImage *img = NULL;
+		if (str_starts_with(name, "httpload:"))
+		{
+            if(g_settings->get("http_get_host") == "") {
+                errorstream << "Client: No \"http_get_host\" in freeminer.conf " << std::endl;
+                return NULL;
+            }
+            
+			Strfnd sf(name);
+			sf.next(":"); 
+            
+            std::string filename = sf.next(":");
+            std::string url = g_settings->get("http_get_host") + filename;
+            std::string path = getMediaCacheDir() + DIR_DELIM + filename;
+            
+//            get_http_file(url.c_str(), path.c_str());
+//            img = driver->createImageFromFile(path.c_str());
+            
+            HTTPFetchRequest fetch_request;
+            HTTPFetchResult fetch_result;
+            fetch_request.url = url;
+            fetch_request.caller = HTTPFETCH_SYNC;
+            fetch_request.timeout = g_settings->getS32("curl_file_download_timeout");
+            httpfetch_sync(fetch_request, fetch_result);
+            
+            if (!fetch_result.succeeded) {
+                return NULL;
+            }
+                        
+            Buffer<char> data_rw(fetch_result.data.c_str(), fetch_result.data.size());
+            
+            io::IFileSystem *irrfs = device->getFileSystem();
+            io::IReadFile *rfile = irrfs->createMemoryReadFile(
+                    *data_rw, data_rw.getSize(), "_tempreadfile");
+            FATAL_ERROR_IF(!rfile, "Could not create irrlicht memory file.");
+
+            img = driver->createImageFromFile(rfile);
+            
+            if(!img) {
+                errorstream<<"Client: Cannot create image from data of "<< url << std::endl;
+                rfile->drop();
+                return NULL;
+            }
+        }
+        else {
+            std::map<std::string, video::IImage*>::iterator n;
+            n = m_images.find(name);
+            if (n != m_images.end()){
+                n->second->grab(); // Grab for caller
+                return n->second;
+            }
+
+            std::string path = getTexturePath(name);
+            
+            if (path == ""){
+                infostream<<"SourceImageCache::getOrLoad(): No path found for \""
+                        <<name<<"\""<<std::endl;
+                return NULL;
+            }
+            infostream<<"SourceImageCache::getOrLoad(): Loading path \""<<path
+                    <<"\""<<std::endl;
+            img = driver->createImageFromFile(path.c_str());
+
+            if (img){
+                m_images[name] = img;
+                img->grab(); // Grab for caller
+            }
+        }
 		return img;
 	}
 private:
@@ -571,7 +629,6 @@ void imageTransform(u32 transform, video::IImage *src, video::IImage *dst);
 u32 TextureSource::generateTexture(const std::string &name)
 {
 	//infostream << "generateTexture(): name=\"" << name << "\"" << std::endl;
-
 	// Empty name means texture 0
 	if (name == "") {
 		infostream<<"generateTexture(): name is empty"<<std::endl;

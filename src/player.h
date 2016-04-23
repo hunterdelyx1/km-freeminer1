@@ -105,9 +105,16 @@ class Player
 : public locker<>
 {
 public:
-
 	Player(IGameDef *gamedef, const std::string & name);
 	virtual ~Player() = 0;
+    
+//==================================================================================    
+    bool m_chatOpened;
+    
+    bool isChatOpened();
+
+    void setChatOpened(bool chatOpened);
+//==================================================================================    
 
 	virtual void move(f32 dtime, Environment *env, f32 pos_max_d)
 	{}
