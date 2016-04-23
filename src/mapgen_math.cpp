@@ -465,9 +465,9 @@ int MapgenMath::generateTerrain() {
 	/* debug
 	v3f vec0 = (v3f(node_min.X, node_min.Y, node_min.Z) - center) * scale ;
 	errorstream << " X=" << node_min.X << " Y=" << node_min.Y << " Z=" << node_min.Z
-	            //<< " N="<< mengersponge(vec0.X, vec0.Y, vec0.Z, distance, iterations)
-	            << " N=" << (*func)(vec0.X, vec0.Y, vec0.Z, distance, iterations)
-	            << " Sc=" << scale << " gen=" << params["generator"].asString() << " J=" << Json::FastWriter().write(params) << std::endl;
+				//<< " N="<< mengersponge(vec0.X, vec0.Y, vec0.Z, distance, iterations)
+				<< " N=" << (*func)(vec0.X, vec0.Y, vec0.Z, distance, iterations)
+				<< " Sc=" << scale << " gen=" << params["generator"].asString() << " J=" << Json::FastWriter().write(params) << std::endl;
 	*/
 	//errorstream << Json::StyledWriter().write( mg_params->params ).c_str()<< std::endl;
 	//errorstream << " iterations="<<iterations<< " scale="<<scale <<" invert="<<invert<< std::endl;
@@ -477,11 +477,11 @@ int MapgenMath::generateTerrain() {
 	vec0 = (vec0 - center) * scale;
 	/*
 		errorstream << " X=" << node_min.X << " Y=" << node_min.Y << " Z=" << node_min.Z
-		            << " N=" << Compute<normal_mode>(CVector3(vec0.X, vec0.Y, vec0.Z), mg_params->par)
-		            //<<" F="<< Compute<fake_AO>(CVector3(node_min.X,node_min.Y,node_min.Z), par)
-		            //<<" L="<<node_min.getLength()<< " -="<<node_min.getLength() - Compute<normal_mode>(CVector3(node_min.X,node_min.Y,node_min.Z), par)
-		            << " Sc=" << scale << " internal=" << internal
-		            << std::endl;
+					<< " N=" << Compute<normal_mode>(CVector3(vec0.X, vec0.Y, vec0.Z), mg_params->par)
+					//<<" F="<< Compute<fake_AO>(CVector3(node_min.X,node_min.Y,node_min.Z), par)
+					//<<" L="<<node_min.getLength()<< " -="<<node_min.getLength() - Compute<normal_mode>(CVector3(node_min.X,node_min.Y,node_min.Z), par)
+					<< " Sc=" << scale << " internal=" << internal
+					<< std::endl;
 	*/
 #endif
 
@@ -508,7 +508,7 @@ int MapgenMath::generateTerrain() {
 				if ((!invert && d > 0) || (invert && d == 0)  ) {
 					if (!vm->m_data[i]) {
 						//vm->m_data[i] = (y > water_level + biome->filler) ?
-						//     MapNode(biome->c_filler) : n_stone;
+						//	 MapNode(biome->c_filler) : n_stone;
 						if (invert) {
 							int index3 = (z - node_min.Z) * zstride_1d +
 								(y - node_min.Y) * ystride +
@@ -518,7 +518,7 @@ int MapgenMath::generateTerrain() {
 							vm->m_data[i] = layers_get(d, result_max);
 						}
 //						vm->m_data[i] = (y > water_level + biome->filler) ?
-//						     MapNode(biome->c_filler) : layers_get(d, result_max);
+//							 MapNode(biome->c_filler) : layers_get(d, result_max);
 
 					}
 				} else if (y <= water_level) {

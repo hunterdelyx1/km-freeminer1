@@ -32,9 +32,9 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "exceptions.h"
 #include "log_types.h"
 
-#define NOISE_MAGIC_X    1619
-#define NOISE_MAGIC_Y    31337
-#define NOISE_MAGIC_Z    52591
+#define NOISE_MAGIC_X	1619
+#define NOISE_MAGIC_Y	31337
+#define NOISE_MAGIC_Z	52591
 #define NOISE_MAGIC_SEED 1013
 
 typedef float (*Interp2dFxn)(
@@ -52,12 +52,12 @@ float cos_lookup[16] = {
 };
 
 FlagDesc flagdesc_noiseparams[] = {
-	{"defaults",    NOISE_FLAG_DEFAULTS},
-	{"eased",       NOISE_FLAG_EASED},
-	{"absvalue",    NOISE_FLAG_ABSVALUE},
+	{"defaults",	NOISE_FLAG_DEFAULTS},
+	{"eased",	   NOISE_FLAG_EASED},
+	{"absvalue",	NOISE_FLAG_ABSVALUE},
 	{"pointbuffer", NOISE_FLAG_POINTBUFFER},
-	{"simplex",     NOISE_FLAG_SIMPLEX},
-	{NULL,          0}
+	{"simplex",	 NOISE_FLAG_SIMPLEX},
+	{NULL,		  0}
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -268,13 +268,13 @@ float noise3d_gradient(float x, float y, float z, int seed, bool eased)
 	float yl = y - (float)y0;
 	float zl = z - (float)z0;
 	// Get values for corners of cube
-	float v000 = noise3d(x0,     y0,     z0,     seed);
-	float v100 = noise3d(x0 + 1, y0,     z0,     seed);
-	float v010 = noise3d(x0,     y0 + 1, z0,     seed);
-	float v110 = noise3d(x0 + 1, y0 + 1, z0,     seed);
-	float v001 = noise3d(x0,     y0,     z0 + 1, seed);
-	float v101 = noise3d(x0 + 1, y0,     z0 + 1, seed);
-	float v011 = noise3d(x0,     y0 + 1, z0 + 1, seed);
+	float v000 = noise3d(x0,	 y0,	 z0,	 seed);
+	float v100 = noise3d(x0 + 1, y0,	 z0,	 seed);
+	float v010 = noise3d(x0,	 y0 + 1, z0,	 seed);
+	float v110 = noise3d(x0 + 1, y0 + 1, z0,	 seed);
+	float v001 = noise3d(x0,	 y0,	 z0 + 1, seed);
+	float v101 = noise3d(x0 + 1, y0,	 z0 + 1, seed);
+	float v011 = noise3d(x0,	 y0 + 1, z0 + 1, seed);
 	float v111 = noise3d(x0 + 1, y0 + 1, z0 + 1, seed);
 	// Interpolate
 	if (eased) {
@@ -445,7 +445,7 @@ Noise::Noise(NoiseParams *np_, int seed, u32 sx, u32 sy, u32 sz)
 
 	this->persist_buf  = NULL;
 	this->gradient_buf = NULL;
-	this->result       = NULL;
+	this->result	   = NULL;
 
 	allocBuffers();
 }
@@ -485,7 +485,7 @@ void Noise::allocBuffers()
 		size_t bufsize = sx * sy * sz;
 		this->persist_buf  = NULL;
 		this->gradient_buf = new float[bufsize];
-		this->result       = new float[bufsize];
+		this->result	   = new float[bufsize];
 	} catch (std::bad_alloc &e) {
 		throw InvalidNoiseParamsException();
 	}
@@ -670,12 +670,12 @@ void Noise::gradientMap3D(
 		v = orig_v;
 		noisey = 0;
 		for (j = 0; j != sy; j++) {
-			v000 = noise_buf[idx(0, noisey,     noisez)];
-			v100 = noise_buf[idx(1, noisey,     noisez)];
+			v000 = noise_buf[idx(0, noisey,	 noisez)];
+			v100 = noise_buf[idx(1, noisey,	 noisez)];
 			v010 = noise_buf[idx(0, noisey + 1, noisez)];
 			v110 = noise_buf[idx(1, noisey + 1, noisez)];
-			v001 = noise_buf[idx(0, noisey,     noisez + 1)];
-			v101 = noise_buf[idx(1, noisey,     noisez + 1)];
+			v001 = noise_buf[idx(0, noisey,	 noisez + 1)];
+			v101 = noise_buf[idx(1, noisey,	 noisez + 1)];
 			v011 = noise_buf[idx(0, noisey + 1, noisez + 1)];
 			v111 = noise_buf[idx(1, noisey + 1, noisez + 1)];
 
@@ -693,11 +693,11 @@ void Noise::gradientMap3D(
 					noisex++;
 					v000 = v100;
 					v010 = v110;
-					v100 = noise_buf[idx(noisex + 1, noisey,     noisez)];
+					v100 = noise_buf[idx(noisex + 1, noisey,	 noisez)];
 					v110 = noise_buf[idx(noisex + 1, noisey + 1, noisez)];
 					v001 = v101;
 					v011 = v111;
-					v101 = noise_buf[idx(noisex + 1, noisey,     noisez + 1)];
+					v101 = noise_buf[idx(noisex + 1, noisey,	 noisez + 1)];
 					v111 = noise_buf[idx(noisex + 1, noisey + 1, noisez + 1)];
 				}
 			}
@@ -833,11 +833,11 @@ void Noise::updateResults(float g, float *gmap,
 }
 
 float farscale(float scale, float z) {
-	return ( 1 + ( 1 - (MAX_MAP_GENERATION_LIMIT * 1 - (fabs(z))                     ) / (MAX_MAP_GENERATION_LIMIT * 1) ) * (scale - 1) );
+	return ( 1 + ( 1 - (MAX_MAP_GENERATION_LIMIT * 1 - (fabs(z))					 ) / (MAX_MAP_GENERATION_LIMIT * 1) ) * (scale - 1) );
 }
 
 float farscale(float scale, float x, float z) {
-	return ( 1 + ( 1 - (MAX_MAP_GENERATION_LIMIT * 2 - (fabs(x) + fabs(z))           ) / (MAX_MAP_GENERATION_LIMIT * 2) ) * (scale - 1) );
+	return ( 1 + ( 1 - (MAX_MAP_GENERATION_LIMIT * 2 - (fabs(x) + fabs(z))		   ) / (MAX_MAP_GENERATION_LIMIT * 2) ) * (scale - 1) );
 }
 
 float farscale(float scale, float x, float y, float z) {

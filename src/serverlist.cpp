@@ -203,21 +203,21 @@ void sendAnnounce(const std::string &action,
 	}
 	if (action != "delete") {
 		bool strict_checking = g_settings->getBool("strict_protocol_version_checking");
-		server["name"]         = g_settings->get("server_name");
+		server["name"]		 = g_settings->get("server_name");
 		server["description"]  = g_settings->get("server_description");
-		server["version"]      = g_version_string;
-		server["proto_min"]    = strict_checking ? LATEST_PROTOCOL_VERSION : SERVER_PROTOCOL_VERSION_MIN;
-		server["proto_max"]    = strict_checking ? LATEST_PROTOCOL_VERSION : SERVER_PROTOCOL_VERSION_MAX;
-		server["url"]          = g_settings->get("server_url");
-		server["creative"]     = g_settings->getBool("creative_mode");
-		server["damage"]       = g_settings->getBool("enable_damage");
-		server["password"]     = g_settings->getBool("disallow_empty_password");
-		server["pvp"]          = g_settings->getBool("enable_pvp");
+		server["version"]	  = g_version_string;
+		server["proto_min"]	= strict_checking ? LATEST_PROTOCOL_VERSION : SERVER_PROTOCOL_VERSION_MIN;
+		server["proto_max"]	= strict_checking ? LATEST_PROTOCOL_VERSION : SERVER_PROTOCOL_VERSION_MAX;
+		server["url"]		  = g_settings->get("server_url");
+		server["creative"]	 = g_settings->getBool("creative_mode");
+		server["damage"]	   = g_settings->getBool("enable_damage");
+		server["password"]	 = g_settings->getBool("disallow_empty_password");
+		server["pvp"]		  = g_settings->getBool("enable_pvp");
 		if (uptime >= 1)
 			server["uptime"]   = (int) uptime;
 		if (game_time >= 1)
 			server["game_time"]= game_time;
-		server["clients"]      = (int) clients_names.size();
+		server["clients"]	  = (int) clients_names.size();
 		server["clients_max"]  = g_settings->getU16("max_users");
 		server["clients_list"] = Json::Value(Json::arrayValue);
 		for (std::vector<std::string>::const_iterator it = clients_names.begin();
@@ -226,18 +226,18 @@ void sendAnnounce(const std::string &action,
 			server["clients_list"].append(*it);
 		}
 		if (gameid != "") server["gameid"] = gameid;
-		server["proto"]        = g_settings->get("server_proto");
+		server["proto"]		= g_settings->get("server_proto");
 	}
 
 	if (action == "start") {
-		server["dedicated"]         = g_settings->getBool("server_dedicated");
-		server["rollback"]          = g_settings->getBool("enable_rollback_recording");
-		server["mapgen"]            = mg_name;
-		server["privs"]             = g_settings->getBool("creative_mode") ? g_settings->get("default_privs_creative") : g_settings->get("default_privs");
+		server["dedicated"]		 = g_settings->getBool("server_dedicated");
+		server["rollback"]		  = g_settings->getBool("enable_rollback_recording");
+		server["mapgen"]			= mg_name;
+		server["privs"]			 = g_settings->getBool("creative_mode") ? g_settings->get("default_privs_creative") : g_settings->get("default_privs");
 		server["can_see_far_names"] = g_settings->getS16("player_transfer_distance") <= 0;
-		server["liquid_real"]       = g_settings->getBool("liquid_real");
-		server["version_hash"]      = g_version_hash;
-		server["mods"]              = Json::Value(Json::arrayValue);
+		server["liquid_real"]	   = g_settings->getBool("liquid_real");
+		server["version_hash"]	  = g_version_hash;
+		server["mods"]			  = Json::Value(Json::arrayValue);
 		for (std::vector<ModSpec>::const_iterator it = mods.begin();
 				it != mods.end();
 				++it) {

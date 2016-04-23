@@ -59,7 +59,7 @@ enum{
 };*/
 
 // NOTE: If this is enabled, set MapBlock to be initialized with
-//       CONTENT_IGNORE.
+//	   CONTENT_IGNORE.
 /*enum BlockGenerationStatus
 {
 	// Completely non-generated (filled with CONTENT_IGNORE).
@@ -120,26 +120,26 @@ struct abm_trigger_one {
 //// MapBlock modified reason flags
 ////
 
-#define MOD_REASON_INITIAL                   (1 << 0)
-#define MOD_REASON_REALLOCATE                (1 << 1)
-#define MOD_REASON_SET_IS_UNDERGROUND        (1 << 2)
-#define MOD_REASON_SET_LIGHTING_EXPIRED      (1 << 3)
-#define MOD_REASON_SET_GENERATED             (1 << 4)
-#define MOD_REASON_SET_NODE                  (1 << 5)
-#define MOD_REASON_SET_NODE_NO_CHECK         (1 << 6)
-#define MOD_REASON_SET_TIMESTAMP             (1 << 7)
-#define MOD_REASON_REPORT_META_CHANGE        (1 << 8)
-#define MOD_REASON_CLEAR_ALL_OBJECTS         (1 << 9)
-#define MOD_REASON_BLOCK_EXPIRED             (1 << 10)
-#define MOD_REASON_ADD_ACTIVE_OBJECT_RAW     (1 << 11)
-#define MOD_REASON_REMOVE_OBJECTS_REMOVE     (1 << 12)
+#define MOD_REASON_INITIAL				   (1 << 0)
+#define MOD_REASON_REALLOCATE				(1 << 1)
+#define MOD_REASON_SET_IS_UNDERGROUND		(1 << 2)
+#define MOD_REASON_SET_LIGHTING_EXPIRED	  (1 << 3)
+#define MOD_REASON_SET_GENERATED			 (1 << 4)
+#define MOD_REASON_SET_NODE				  (1 << 5)
+#define MOD_REASON_SET_NODE_NO_CHECK		 (1 << 6)
+#define MOD_REASON_SET_TIMESTAMP			 (1 << 7)
+#define MOD_REASON_REPORT_META_CHANGE		(1 << 8)
+#define MOD_REASON_CLEAR_ALL_OBJECTS		 (1 << 9)
+#define MOD_REASON_BLOCK_EXPIRED			 (1 << 10)
+#define MOD_REASON_ADD_ACTIVE_OBJECT_RAW	 (1 << 11)
+#define MOD_REASON_REMOVE_OBJECTS_REMOVE	 (1 << 12)
 #define MOD_REASON_REMOVE_OBJECTS_DEACTIVATE (1 << 13)
-#define MOD_REASON_TOO_MANY_OBJECTS          (1 << 14)
-#define MOD_REASON_STATIC_DATA_ADDED         (1 << 15)
-#define MOD_REASON_STATIC_DATA_REMOVED       (1 << 16)
-#define MOD_REASON_STATIC_DATA_CHANGED       (1 << 17)
-#define MOD_REASON_EXPIRE_DAYNIGHTDIFF       (1 << 18)
-#define MOD_REASON_UNKNOWN                   (1 << 19)
+#define MOD_REASON_TOO_MANY_OBJECTS		  (1 << 14)
+#define MOD_REASON_STATIC_DATA_ADDED		 (1 << 15)
+#define MOD_REASON_STATIC_DATA_REMOVED	   (1 << 16)
+#define MOD_REASON_STATIC_DATA_CHANGED	   (1 << 17)
+#define MOD_REASON_EXPIRE_DAYNIGHTDIFF	   (1 << 18)
+#define MOD_REASON_UNKNOWN				   (1 << 19)
 
 ////
 //// MapBlock itself

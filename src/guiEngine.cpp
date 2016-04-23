@@ -50,7 +50,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include <thread>
 
 /******************************************************************************/
-/** TextDestGuiEngine                                                         */
+/** TextDestGuiEngine														 */
 /******************************************************************************/
 TextDestGuiEngine::TextDestGuiEngine(GUIEngine* engine)
 {
@@ -70,7 +70,7 @@ void TextDestGuiEngine::gotText(std::wstring text)
 }
 
 /******************************************************************************/
-/** MenuTextureSource                                                         */
+/** MenuTextureSource														 */
 /******************************************************************************/
 MenuTextureSource::MenuTextureSource(video::IVideoDriver *driver)
 {
@@ -111,7 +111,7 @@ video::ITexture* MenuTextureSource::getTexture(const std::string &name, u32 *id)
 }
 
 /******************************************************************************/
-/** MenuMusicFetcher                                                          */
+/** MenuMusicFetcher														  */
 /******************************************************************************/
 void MenuMusicFetcher::fetchSounds(const std::string &name,
 			std::set<std::string> &dst_paths,
@@ -133,7 +133,7 @@ void MenuMusicFetcher::fetchSounds(const std::string &name,
 }
 
 /******************************************************************************/
-/** GUIEngine                                                                 */
+/** GUIEngine																 */
 /******************************************************************************/
 GUIEngine::GUIEngine(	irr::IrrlichtDevice* dev,
 						gui::IGUIElement* parent,
@@ -535,7 +535,7 @@ bool GUIEngine::setTexture(texture_layer layer, std::string texturepath,
 	}
 
 	m_textures[layer].texture = driver->getTexture(texturepath.c_str());
-	m_textures[layer].tile    = tile_image;
+	m_textures[layer].tile	= tile_image;
 	m_textures[layer].minsize = minsize;
 
 	if (m_textures[layer].texture == NULL)

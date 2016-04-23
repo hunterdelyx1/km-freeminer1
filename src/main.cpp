@@ -255,7 +255,7 @@ int main(int argc, char *argv[])
 	sanity_check(!game_params.world_path.empty());
 
 	infostream << "Using commanded world path ["
-	           << game_params.world_path << "]" << std::endl;
+			   << game_params.world_path << "]" << std::endl;
 
 	//Run dedicated server if asked to or no other option
 	g_settings->set("server_dedicated",
@@ -527,9 +527,9 @@ static bool init_common(const Settings &cmd_args, int argc, char *argv[])
 static void startup_message()
 {
 	infostream << PROJECT_NAME << " " << _("with")
-	           << " SER_FMT_VER_HIGHEST_READ="
-               << (int)SER_FMT_VER_HIGHEST_READ << ", "
-               << g_build_info << std::endl;
+			   << " SER_FMT_VER_HIGHEST_READ="
+			   << (int)SER_FMT_VER_HIGHEST_READ << ", "
+			   << g_build_info << std::endl;
 }
 
 static bool read_config_file(const Settings &cmd_args)
@@ -540,7 +540,7 @@ static bool read_config_file(const Settings &cmd_args)
 		bool r = g_settings->readConfigFile(cmd_args.get("config").c_str());
 		if (!r) {
 			errorstream << "Could not read configuration from \""
-			            << cmd_args.get("config") << "\"" << std::endl;
+						<< cmd_args.get("config") << "\"" << std::endl;
 			//return false;
 		}
 		g_settings_path = cmd_args.get("config");
@@ -694,7 +694,7 @@ static bool get_world_from_cmdline(GameParams *game_params, const Settings &cmd_
 			game_configure_subgame(game_params, cmd_args);
 			if (!loadGameConfAndInitWorld(fullpath, game_params->game_spec)) {
 			dstream << _("World") << " '" << commanded_worldname
-			        << _("' not available. Available worlds:") << std::endl;
+					<< _("' not available. Available worlds:") << std::endl;
 			print_worldspecs(worldspecs, dstream);
 			return false;
 			} else {
@@ -744,7 +744,7 @@ static bool auto_select_world(GameParams *game_params)
 	if (worldspecs.size() == 1) {
 		world_path = worldspecs[0].path;
 		dstream <<_("Automatically selecting world at") << " ["
-		        << world_path << "]" << std::endl;
+				<< world_path << "]" << std::endl;
 	// If there are multiple worlds, list them
 	} else if (worldspecs.size() > 1 && game_params->is_dedicated_server) {
 		std::cerr << _("Multiple worlds are available.") << std::endl;
@@ -758,7 +758,7 @@ static bool auto_select_world(GameParams *game_params)
 		world_path = porting::path_user + DIR_DELIM + "worlds" +
 				DIR_DELIM + "world";
 		infostream << "Creating default world at ["
-		           << world_path << "]" << std::endl;
+				   << world_path << "]" << std::endl;
 	}
 
 	//assert(world_path != "");	// Post-condition
@@ -805,7 +805,7 @@ static bool get_game_from_cmdline(GameParams *game_params, const Settings &cmd_a
 			return false;
 		}
 		dstream << _("Using game specified by --gameid on the command line")
-		        << std::endl;
+				<< std::endl;
 		game_params->game_spec = commanded_gamespec;
 		return true;
 	}
@@ -832,8 +832,8 @@ static bool determine_subgame(GameParams *game_params)
 			infostream << "Using default gameid [" << gamespec.id << "]" << std::endl;
 			if (!gamespec.isValid()) {
 				errorstream << "Subgame specified in default_game ["
-				            << g_settings->get("default_game")
-				            << "] is invalid." << std::endl;
+							<< g_settings->get("default_game")
+							<< "] is invalid." << std::endl;
 				return false;
 			}
 		}
@@ -844,8 +844,8 @@ static bool determine_subgame(GameParams *game_params)
 			gamespec = game_params->game_spec;
 			if (game_params->game_spec.id != world_gameid) {
 				warningstream << "Using commanded gameid ["
-				            << gamespec.id << "]" << " instead of world gameid ["
-				            << world_gameid << "]" << std::endl;
+							<< gamespec.id << "]" << " instead of world gameid ["
+							<< world_gameid << "]" << std::endl;
 			}
 		} else {
 			// If world contains an embedded game, use it;
@@ -857,7 +857,7 @@ static bool determine_subgame(GameParams *game_params)
 
 	if (!gamespec.isValid()) {
 		errorstream << "Subgame [" << gamespec.id << "] could not be found."
-		            << std::endl;
+					<< std::endl;
 		return false;
 	}
 
@@ -874,9 +874,9 @@ static bool run_dedicated_server(const GameParams &game_params, const Settings &
 	DSTACK("Dedicated server branch");
 
 	verbosestream << _("Using world path") << " ["
-	              << game_params.world_path << "]" << std::endl;
+				  << game_params.world_path << "]" << std::endl;
 	verbosestream << _("Using gameid") << " ["
-	              << game_params.game_spec.id << "]" << std::endl;
+				  << game_params.game_spec.id << "]" << std::endl;
 
 	// Bind address
 	std::string bind_str = g_settings->get("bind_address");
@@ -890,13 +890,13 @@ static bool run_dedicated_server(const GameParams &game_params, const Settings &
 		bind_addr.Resolve(bind_str.c_str());
 	} catch (ResolveError &e) {
 		infostream << "Resolving bind address \"" << bind_str
-		           << "\" failed: " << e.what()
-		           << " -- Listening on all addresses." << std::endl;
+				   << "\" failed: " << e.what()
+				   << " -- Listening on all addresses." << std::endl;
 	}
 	if (bind_addr.isIPv6() && !g_settings->getBool("enable_ipv6")) {
 		errorstream << "Unable to listen on "
-		            << bind_addr.serializeString()
-		            << L" because IPv6 is disabled" << std::endl;
+					<< bind_addr.serializeString()
+					<< L" because IPv6 is disabled" << std::endl;
 		return false;
 	}
 

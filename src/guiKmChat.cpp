@@ -82,23 +82,23 @@ GUIKmChat::GUIKmChat(
 	m_background_color.setAlpha(clamp_u8(backgrount_alpha));
 
 	// load the background texture depending on settings
-    v3f chat_color = g_settings->getV3F("km_chat_color");
-    m_background_color.setRed(clamp_u8(myround(chat_color.X)));
-    m_background_color.setGreen(clamp_u8(myround(chat_color.Y)));
-    m_background_color.setBlue(clamp_u8(myround(chat_color.Z)));
+	v3f chat_color = g_settings->getV3F("km_chat_color");
+	m_background_color.setRed(clamp_u8(myround(chat_color.X)));
+	m_background_color.setGreen(clamp_u8(myround(chat_color.Y)));
+	m_background_color.setBlue(clamp_u8(myround(chat_color.Z)));
 
 	m_font = g_fontengine->getFont(FONT_SIZE_UNSPECIFIED, FM_Mono);
 
 	int font_size = g_settings->getS32("km_chat_font_size");
-    setFont(font_size);
-        
-    int rows = g_settings->getS32("km_chat_rows");
-    setRows(rows);
-    
-    // set default cursor options
+	setFont(font_size);
+		
+	int rows = g_settings->getS32("km_chat_rows");
+	setRows(rows);
+	
+	// set default cursor options
 	setCursor(true, true, 2.0, 0.1);
-    
-    parent->sendToBack(this);
+	
+	parent->sendToBack(this);
 }
 
 GUIKmChat::~GUIKmChat()
@@ -108,11 +108,11 @@ GUIKmChat::~GUIKmChat()
 }
 
 void GUIKmChat::setFont(int font_size) {
-    if(font_size < 2) font_size = 2;
-    if(font_size > 200) font_size = 200;
-    
-    m_font = g_fontengine->getFont(font_size, FM_Mono);
-    
+	if(font_size < 2) font_size = 2;
+	if(font_size > 200) font_size = 200;
+	
+	m_font = g_fontengine->getFont(font_size, FM_Mono);
+	
 	if (m_font == NULL)
 	{
 		errorstream << "GUIKmChat: Unable to load mono font ";
@@ -123,24 +123,24 @@ void GUIKmChat::setFont(int font_size) {
 		m_fontsize = v2u32(dim.Width, dim.Height);
 		m_font->grab();
 	}
-    
+	
 	m_fontsize.X = MYMAX(m_fontsize.X, 1);
 	m_fontsize.Y = MYMAX(m_fontsize.Y, 1);
-    
-    if (font_size != g_settings->getS32("km_chat_font_size")) {
-        g_settings->set("km_chat_font_size", std::to_string(font_size));
-    }
+	
+	if (font_size != g_settings->getS32("km_chat_font_size")) {
+		g_settings->set("km_chat_font_size", std::to_string(font_size));
+	}
 }
 
 void GUIKmChat::setRows(int rows) {
-    if(rows < 1) rows = 1;
-    if(rows > 500) rows = 500;
-    
-    m_rows = rows;
-    
-    if (rows != g_settings->getS32("km_chat_rows")) {
-        g_settings->set("km_chat_rows", std::to_string(rows));
-    }
+	if(rows < 1) rows = 1;
+	if(rows > 500) rows = 500;
+	
+	m_rows = rows;
+	
+	if (rows != g_settings->getS32("km_chat_rows")) {
+		g_settings->set("km_chat_rows", std::to_string(rows));
+	}
 }
 
 void GUIKmChat::open()
@@ -322,7 +322,7 @@ void GUIKmChat::drawNewMessageText()
 {
 	if (m_font == NULL)
 		return;
-    
+	
 	video::IVideoDriver* driver = Environment->getVideoDriver();
 	irr::gui::CGUITTFont *font = static_cast<irr::gui::CGUITTFont*>(m_font);
 

@@ -490,13 +490,13 @@ void ChatPrompt::nickCompletion(const std::list<std::string>& names, bool backwa
 {
 	// Two cases:
 	// (a) m_nick_completion_start == m_nick_completion_end == 0
-	//     Then no previous nick completion is active.
-	//     Get the word around the cursor and replace with any nick
-	//     that has that word as a prefix.
+	//	 Then no previous nick completion is active.
+	//	 Get the word around the cursor and replace with any nick
+	//	 that has that word as a prefix.
 	// (b) else, continue a previous nick completion.
-	//     m_nick_completion_start..m_nick_completion_end are the
-	//     interval where the originally used prefix was. Cycle
-	//     through the list of completions of that prefix.
+	//	 m_nick_completion_start..m_nick_completion_end are the
+	//	 interval where the originally used prefix was. Cycle
+	//	 through the list of completions of that prefix.
 	u32 prefix_start = m_nick_completion_start;
 	u32 prefix_end = m_nick_completion_end;
 	bool initial = (prefix_end == 0);
@@ -688,7 +688,7 @@ ChatBackend::ChatBackend():
 	m_recent_buffer(500),
 	m_prompt(L"> ", 500)
 {
-    m_nmsg_time = g_settings->getFloat("km_chat_nmsg_time");
+	m_nmsg_time = g_settings->getFloat("km_chat_nmsg_time");
 }
 
 ChatBackend::~ChatBackend(){
@@ -708,10 +708,10 @@ void ChatBackend::addMessage(std::wstring name, std::wstring text)
 	{
 		std::wstring line = fnd.next(L"\n");
 		m_console_buffer.addLine(name, line);
-        
-        m_chat_buffer.addLine(name, line);
+		
+		m_chat_buffer.addLine(name, line);
 		m_recent_buffer.addLine(name, line);
-        
+		
 	}
 }
 
@@ -804,30 +804,30 @@ void ChatBackend::step(float dtime)
 #else
 m_nmsg_time
 #endif
-    );
+	);
 	// no need to age messages in anything but m_recent_buffer
 }
 
 void ChatBackend::scroll(s32 rows)
 {
 	m_console_buffer.scroll(rows);
-    
+	
 	m_chat_buffer.scroll(rows);
-    m_recent_buffer.scroll(rows);
+	m_recent_buffer.scroll(rows);
 }
 
 void ChatBackend::scrollPageDown()
 {
 	m_console_buffer.scroll(m_console_buffer.getRows());
-    
-    m_chat_buffer.scroll(m_chat_buffer.getRows());
-    m_recent_buffer.scroll(m_recent_buffer.getRows());
+	
+	m_chat_buffer.scroll(m_chat_buffer.getRows());
+	m_recent_buffer.scroll(m_recent_buffer.getRows());
 }
 
 void ChatBackend::scrollPageUp()
 {
 	m_console_buffer.scroll(-(s32)m_console_buffer.getRows());
-    
-    m_chat_buffer.scroll(-(s32)m_chat_buffer.getRows());
-    m_recent_buffer.scroll(-(s32)m_recent_buffer.getRows());
+	
+	m_chat_buffer.scroll(-(s32)m_chat_buffer.getRows());
+	m_recent_buffer.scroll(-(s32)m_recent_buffer.getRows());
 }

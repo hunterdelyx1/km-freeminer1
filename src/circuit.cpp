@@ -152,7 +152,7 @@ void Circuit::addElement(v3POS pos) {
 	MapNode node = m_map->getNode(pos);
 
 	auto current_element_iterator = m_elements.insert(m_elements.begin(),
-	                                CircuitElement(pos, m_max_id++, m_ndef->get(node).circuit_element_delay));
+									CircuitElement(pos, m_max_id++, m_ndef->get(node).circuit_element_delay));
 	m_pos_to_iterator[pos] = current_element_iterator;
 
 	// For each face add all other connected faces.
@@ -177,7 +177,7 @@ void Circuit::addElement(v3POS pos) {
 				} else {
 					already_existed[i] = false;
 					virtual_element_it = m_virtual_elements.insert(m_virtual_elements.begin(),
-					                     CircuitElementVirtual(m_max_virtual_id++));
+										 CircuitElementVirtual(m_max_virtual_id++));
 				}
 
 				std::list <CircuitElementVirtualContainer>::iterator it;
@@ -251,7 +251,7 @@ void Circuit::addWire(v3POS pos) {
 	std::vector <std::pair <std::list <CircuitElement>::iterator, u8> > connected_to_face[6];
 	for(int i = 0; i < 6; ++i) {
 		CircuitElement::findConnectedWithFace(connected_to_face[i], m_map, m_ndef, pos, SHIFT_TO_FACE(i),
-		                                      m_pos_to_iterator, connected_faces);
+											  m_pos_to_iterator, connected_faces);
 	}
 
 	for(int i = 0; i < 6; ++i) {
@@ -287,7 +287,7 @@ void Circuit::addWire(v3POS pos) {
 				// Clear old connections (remove some virtual elements)
 				for(auto i = all_connected.begin(); i != all_connected.end(); ++i) {
 					if(i->first->getFace(i->second).is_connected
-					        && (i->first->getFace(i->second).list_pointer != element_with_virtual.list_pointer)) {
+							&& (i->first->getFace(i->second).list_pointer != element_with_virtual.list_pointer)) {
 						m_virtual_database->del(itos(i->first->getFace(i->second).list_pointer->getId()));
 						i->first->disconnectFace(i->second);
 						m_virtual_elements.erase(i->first->getFace(i->second).list_pointer);
@@ -295,7 +295,7 @@ void Circuit::addWire(v3POS pos) {
 				}
 			} else {
 				element_with_virtual.list_pointer = m_virtual_elements.insert(m_virtual_elements.begin(),
-				                                    CircuitElementVirtual(m_max_virtual_id++));
+													CircuitElementVirtual(m_max_virtual_id++));
 			}
 			created_virtual_elements.push_back(element_with_virtual.list_pointer);
 
@@ -303,7 +303,7 @@ void Circuit::addWire(v3POS pos) {
 			for(auto i = all_connected.begin(); i != all_connected.end(); ++i) {
 				if(!(i->first->getFace(i->second).is_connected)) {
 					auto it = element_with_virtual.list_pointer->insert(
-					              element_with_virtual.list_pointer->begin(), CircuitElementVirtualContainer());
+								  element_with_virtual.list_pointer->begin(), CircuitElementVirtualContainer());
 					it->element_pointer = i->first;
 					it->shift = i->second;
 					i->first->connectFace(i->second, it, element_with_virtual.list_pointer);
@@ -333,7 +333,7 @@ void Circuit::removeWire(v3POS pos) {
 		if(!connected_faces[i]) {
 			current_face_connected.clear();
 			CircuitElement::findConnectedWithFace(current_face_connected, m_map, m_ndef, pos,
-			                                      SHIFT_TO_FACE(i), m_pos_to_iterator, connected_faces);
+												  SHIFT_TO_FACE(i), m_pos_to_iterator, connected_faces);
 			for(auto j = current_face_connected.begin(); j != current_face_connected.end(); ++j) {
 				CircuitElementContainer current_edge = j->first->getFace(j->second);
 				if(current_edge.is_connected) {
@@ -360,19 +360,19 @@ void Circuit::removeWire(v3POS pos) {
 			if(!connected_faces[i]) {
 				current_face_connected.clear();
 				CircuitElement::findConnectedWithFace(current_face_connected, m_map, m_ndef, pos, SHIFT_TO_FACE(i),
-				                                      m_pos_to_iterator, connected_faces);
+													  m_pos_to_iterator, connected_faces);
 
 				if(current_face_connected.size() > 1) {
 					auto new_virtual_element = m_virtual_elements.insert(
-					                               m_virtual_elements.begin(), CircuitElementVirtual(m_max_virtual_id++));
+												   m_virtual_elements.begin(), CircuitElementVirtual(m_max_virtual_id++));
 
 					for(u32 j = 0; j < current_face_connected.size(); ++j) {
 						auto new_container = new_virtual_element->insert(
-						                         new_virtual_element->begin(), CircuitElementVirtualContainer());
+												 new_virtual_element->begin(), CircuitElementVirtualContainer());
 						new_container->element_pointer = current_face_connected[j].first;
 						new_container->shift = current_face_connected[j].second;
 						current_face_connected[j].first->connectFace(current_face_connected[j].second,
-						        new_container, new_virtual_element);
+								new_container, new_virtual_element);
 
 						saveElement(current_face_connected[j].first, false);
 					}
@@ -457,7 +457,7 @@ void Circuit::load() {
 	for(virtual_it->SeekToFirst(); virtual_it->Valid(); virtual_it->Next()) {
 		element_id = stoi(virtual_it->key().ToString());
 		id_to_virtual_element[element_id] =
-		    m_virtual_elements.insert(m_virtual_elements.begin(), CircuitElementVirtual(element_id));
+			m_virtual_elements.insert(m_virtual_elements.begin(), CircuitElementVirtual(element_id));
 		if(element_id + 1 > m_max_virtual_id) {
 			m_max_virtual_id = element_id + 1;
 		}
@@ -471,7 +471,7 @@ void Circuit::load() {
 	for(it->SeekToFirst(); it->Valid(); it->Next()) {
 		element_id = stoi(it->key().ToString());
 		id_to_element[element_id] =
-		    m_elements.insert(m_elements.begin(), CircuitElement(element_id));
+			m_elements.insert(m_elements.begin(), CircuitElement(element_id));
 		if(element_id + 1 > m_max_id) {
 			m_max_id = element_id + 1;
 		}
@@ -485,7 +485,7 @@ void Circuit::load() {
 				id_to_element[element_id]->deSerializeState(input_elements_states);
 			} else {
 				throw SerializationError(static_cast<std::string>("File \"")
-				                         + elements_states_file + "\" seems to be corrupted.");
+										 + elements_states_file + "\" seems to be corrupted.");
 			}
 		}
 	}

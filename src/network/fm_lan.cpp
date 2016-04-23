@@ -191,21 +191,21 @@ void * lan_adv::run() {
 	std::string answer_str;
 	Json::Value server;
 	if (server_port) {
-		server["name"]         = g_settings->get("server_name");
+		server["name"]		 = g_settings->get("server_name");
 		server["description"]  = g_settings->get("server_description");
-		server["version"]      = g_version_string;
+		server["version"]	  = g_version_string;
 		bool strict_checking = g_settings->getBool("strict_protocol_version_checking");
-		server["proto_min"]    = strict_checking ? LATEST_PROTOCOL_VERSION : SERVER_PROTOCOL_VERSION_MIN;
-		server["proto_max"]    = strict_checking ? LATEST_PROTOCOL_VERSION : SERVER_PROTOCOL_VERSION_MAX;
-		server["url"]          = g_settings->get("server_url");
-		server["creative"]     = g_settings->getBool("creative_mode");
-		server["damage"]       = g_settings->getBool("enable_damage");
-		server["password"]     = g_settings->getBool("disallow_empty_password");
-		server["pvp"]          = g_settings->getBool("enable_pvp");
-		server["port"]         = server_port;
-		server["clients"]      = clients_num.load();
+		server["proto_min"]	= strict_checking ? LATEST_PROTOCOL_VERSION : SERVER_PROTOCOL_VERSION_MIN;
+		server["proto_max"]	= strict_checking ? LATEST_PROTOCOL_VERSION : SERVER_PROTOCOL_VERSION_MAX;
+		server["url"]		  = g_settings->get("server_url");
+		server["creative"]	 = g_settings->getBool("creative_mode");
+		server["damage"]	   = g_settings->getBool("enable_damage");
+		server["password"]	 = g_settings->getBool("disallow_empty_password");
+		server["pvp"]		  = g_settings->getBool("enable_pvp");
+		server["port"]		 = server_port;
+		server["clients"]	  = clients_num.load();
 		server["clients_max"]  = g_settings->getU16("max_users");
-		server["proto"]        = g_settings->get("server_proto");
+		server["proto"]		= g_settings->get("server_proto");
 
 		send_string(writer.write(server));
 	}

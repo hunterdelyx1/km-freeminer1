@@ -60,7 +60,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 		Many things
 	PROTOCOL_VERSION 9:
 		ContentFeatures and NodeDefManager use a different serialization
-		    format; better for future version cross-compatibility
+			format; better for future version cross-compatibility
 		Many things
 	PROTOCOL_VERSION 10:
 		TOCLIENT_PRIVILEGES
@@ -169,8 +169,8 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 // Constant that differentiates the protocol from random data and other protocols
 #define PROTOCOL_ID 0x4f457403
 
-#define PASSWORD_SIZE 28       // Maximum password length. Allows for
-                               // base64-encoded SHA-1 (27+\0).
+#define PASSWORD_SIZE 28	   // Maximum password length. Allows for
+							   // base64-encoded SHA-1 (27+\0).
 
 #define FORMSPEC_API_VERSION 1
 #define FORMSPEC_VERSION_STRING "formspec_version[" TOSTRING(FORMSPEC_API_VERSION) "]"
@@ -200,7 +200,7 @@ enum ToClientCommand
 		u64 map seed
 		f1000 recommended send interval
 		u32 : supported auth methods for sudo mode
-		      (where the user can change their password)
+			  (where the user can change their password)
 	*/
 #define TOCLIENT_ACCEPT_SUDO_MODE 0x04
 	/*
@@ -239,7 +239,7 @@ enum {
 		[20] f1000 recommended send interval (in seconds) (new as of 14)
 
 		NOTE: The position in here is deprecated; position is
-		      explicitly sent afterwards
+			  explicitly sent afterwards
 	*/
 
 #define TOCLIENT_ACCESS_DENIED 0x0A
@@ -1225,8 +1225,8 @@ enum {
 
 		std::string bytes_A
 		u8 current_login_based_on : on which version of the password's
-		                            hash this login is based on (0 legacy hash,
-		                            or 1 directly the password)
+									hash this login is based on (0 legacy hash,
+									or 1 directly the password)
 	*/
 
 #define TOSERVER_SRP_BYTES_M 0x52

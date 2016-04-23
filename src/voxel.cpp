@@ -72,10 +72,10 @@ void VoxelManipulator::print(std::ostream &o, INodeDefManager *ndef,
 	{
 		if(em.X >= 3 && em.Y >= 3)
 		{
-			if     (y==m_area.MinEdge.Y+2) o<<"^     ";
-			else if(y==m_area.MinEdge.Y+1) o<<"|     ";
+			if	 (y==m_area.MinEdge.Y+2) o<<"^	 ";
+			else if(y==m_area.MinEdge.Y+1) o<<"|	 ";
 			else if(y==m_area.MinEdge.Y+0) o<<"y x-> ";
-			else                           o<<"      ";
+			else						   o<<"	  ";
 		}
 
 		for(s32 z=m_area.MinEdge.Z; z<=m_area.MaxEdge.Z; z++)
@@ -239,8 +239,8 @@ void VoxelManipulator::copyFrom(MapNode *src, const VoxelArea& src_area,
 	 * and a "row" in the destination data (I am using the term row loosely
 	 * and for illustrative purposes). E.g.
 	 *
-	 * src       <-------------------->|'''''' dest mod ''''''''
-	 * dest      <--------------------------------------------->
+	 * src	   <-------------------->|'''''' dest mod ''''''''
+	 * dest	  <--------------------------------------------->
 	 *
 	 * dest_mod (it's essentially a modulus) is added to the destination index
 	 * after every full iteration of the y span.

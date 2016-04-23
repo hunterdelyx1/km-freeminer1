@@ -30,15 +30,15 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 
 // kmfreeminer part:
 void set_km_default_settings(Settings *settings) {
-    settings->setDefault("http_get_host", "");
+	settings->setDefault("http_get_host", "");
 
-    settings->setDefault("km_chat_rows", "20");
-    settings->setDefault("km_chat_font_size", "26");
-    
+	settings->setDefault("km_chat_rows", "20");
+	settings->setDefault("km_chat_font_size", "26");
+	
 	settings->setDefault("km_chat_color", "(0,0,0)");
 	settings->setDefault("km_chat_alpha", "180");
-    
-    settings->setDefault("km_chat_nmsg_time", "15.0");
+	
+	settings->setDefault("km_chat_nmsg_time", "15.0");
 
 }
 // End of kmfreeminer ======
@@ -52,54 +52,54 @@ void set_km_default_settings(Settings *settings) {
 
 const bool debug =
 #ifdef NDEBUG
-    false
+	false
 #else
-    true
+	true
 #endif
-    ;
+	;
 
 const bool win32 =
 #if defined(_WIN32) && !defined(_WIN64)
-    true
+	true
 #else
-    false
+	false
 #endif
-    ;
+	;
 
 const bool win64 =
 #if defined(_WIN64)
-    true
+	true
 #else
-    false
+	false
 #endif
-    ;
+	;
 
 const bool win = win32 || win64;
 
 
 const bool android =
 #if defined(__ANDROID__)
-    true
+	true
 #else
-    false
+	false
 #endif
-    ;
+	;
 
 const bool arm =
 #if defined(__arm__)
-    true
+	true
 #else
-    false
+	false
 #endif
-    ;
+	;
 
 const bool threads =
 #if ENABLE_THREADS
-    true
+	true
 #else
-    false
+	false
 #endif
-    ;
+	;
 
 
 void fm_set_default_settings(Settings *settings) {
@@ -692,7 +692,7 @@ void set_default_settings(Settings *settings)
 	settings->setDefault("modstore_download_url", "https://forum.minetest.net/media/");
 	settings->setDefault("modstore_listmods_url", "https://forum.minetest.net/mmdb/mods/");
 	settings->setDefault("modstore_details_url", "https://forum.minetest.net/mmdb/mod/*/");
-    
+	
 	settings->setDefault("http_get_host", "http://konungstvo.ru/skin/");
 
 	settings->setDefault("high_precision_fpu", "true");
@@ -716,7 +716,7 @@ void set_default_settings(Settings *settings)
 
 	settings->setDefault("viewing_range", "50");
 	settings->setDefault("inventory_image_hack", "false");
-    
+	
 	//check for device with small screen
 	float x_inches = ((double) porting::getDisplaySize().X /
 			(160 * porting::getDisplayDensity()));
@@ -732,7 +732,7 @@ void set_default_settings(Settings *settings)
 #endif
 
 	fm_set_default_settings(settings);
-    set_km_default_settings(settings);
+	set_km_default_settings(settings);
 }
 
 

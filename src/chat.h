@@ -213,9 +213,9 @@ public:
 	// scope specifies how far the operation will reach (char/word/line)
 	// Examples:
 	//   cursorOperation(CURSOROP_MOVE, CURSOROP_DIR_RIGHT, CURSOROP_SCOPE_LINE)
-	//     moves the cursor to the end of the line.
+	//	 moves the cursor to the end of the line.
 	//   cursorOperation(CURSOROP_DELETE, CURSOROP_DIR_LEFT, CURSOROP_SCOPE_WORD)
-	//     deletes the word to the left of the cursor.
+	//	 deletes the word to the left of the cursor.
 	void cursorOperation(CursorOp op, CursorOpDir dir, CursorOpScope scope);
 
 protected:
@@ -264,7 +264,7 @@ public:
 
 	// Get the console buffer
 	ChatBuffer& getConsoleBuffer();
-    
+	
 	// Get the chat buffer
 	ChatBuffer& getChatBuffer();
 	// Get the recent messages buffer
@@ -276,10 +276,10 @@ public:
 
 	// Reformat all buffers
 	void reformat(u32 cols, u32 rows);
-    
+	
 	// Reformat chat buffers
-    void reformatChat(u32 cols, u32 rows);
-    
+	void reformatChat(u32 cols, u32 rows);
+	
 	// Clear all recent messages
 	void clearRecentChat();
 
@@ -292,12 +292,12 @@ public:
 	void scrollPageUp();
 private:
 	ChatBuffer m_console_buffer;
-    
+	
 	ChatBuffer m_chat_buffer;
 	ChatBuffer m_recent_buffer;
 	ChatPrompt m_prompt;
-    
-    float m_nmsg_time;
+	
+	float m_nmsg_time;
 };
 
 #endif

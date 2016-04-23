@@ -108,7 +108,7 @@ void MinimapUpdateThread::doUpdate()
 		if (update.data) {
 			// Swap two values in the map using single lookup
 			auto
-			    result = m_blocks_cache.insert(std::make_pair(update.pos, update.data));
+				result = m_blocks_cache.insert(std::make_pair(update.pos, update.data));
 			if (result.second == false) {
 				delete result.first->second;
 				result.first->second = update.data;
@@ -230,11 +230,11 @@ void MinimapUpdateThread::getMap(v3s16 pos, s16 size, s16 height, bool is_radar)
 
 Mapper::Mapper(IrrlichtDevice *device, Client *client)
 {
-	this->client    = client;
-	this->driver    = device->getVideoDriver();
-	this->m_tsrc    = client->getTextureSource();
+	this->client	= client;
+	this->driver	= device->getVideoDriver();
+	this->m_tsrc	= client->getTextureSource();
 	this->m_shdrsrc = client->getShaderSource();
-	this->m_ndef    = client->getNodeDefManager();
+	this->m_ndef	= client->getNodeDefManager();
 
 	m_angle = 0.f;
 
@@ -247,12 +247,12 @@ Mapper::Mapper(IrrlichtDevice *device, Client *client)
 
 	// Initialize minimap data
 	data = new MinimapData;
-	data->mode              = MINIMAP_MODE_OFF;
-	data->is_radar          = false;
+	data->mode			  = MINIMAP_MODE_OFF;
+	data->is_radar		  = false;
 	data->map_invalidated   = true;
 	data->heightmap_image   = NULL;
-	data->minimap_image     = NULL;
-	data->texture           = NULL;
+	data->minimap_image	 = NULL;
+	data->texture		   = NULL;
 	data->heightmap_texture = NULL;
 	data->minimap_shape_round = g_settings->getBool("minimap_shape_round");
 
@@ -349,10 +349,10 @@ void Mapper::setMinimapMode(MinimapMode mode)
 
 	MutexAutoLock lock(data->m_mutex);
 
-	data->is_radar    = modedefs[mode].is_radar;
+	data->is_radar	= modedefs[mode].is_radar;
 	data->scan_height = modedefs[mode].scan_height;
-	data->map_size    = modedefs[mode].map_size;
-	data->mode        = mode;
+	data->map_size	= modedefs[mode].map_size;
+	data->mode		= mode;
 
 	m_minimap_update_thread->next_update = 0;
 
@@ -422,7 +422,7 @@ video::ITexture *Mapper::getMinimapTexture()
 
 	// create minimap and heightmap images in memory
 	core::dimension2d<u32> dim(data->map_size, data->map_size);
-	video::IImage *map_image       = driver->createImage(video::ECF_A8R8G8B8, dim);
+	video::IImage *map_image	   = driver->createImage(video::ECF_A8R8G8B8, dim);
 	video::IImage *heightmap_image = driver->createImage(video::ECF_A8R8G8B8, dim);
 	video::IImage *minimap_image   = driver->createImage(video::ECF_A8R8G8B8,
 		core::dimension2d<u32>(MINIMAP_MAX_SX, MINIMAP_MAX_SY));

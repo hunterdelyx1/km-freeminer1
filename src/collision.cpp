@@ -47,7 +47,7 @@ int axisAlignedCollision(
 {
 	//TimeTaker tt("axisAlignedCollision");
 
-	f32 xsize = (staticbox.MaxEdge.X - staticbox.MinEdge.X); // - COLL_ZEROY;     // reduce box size for solve collision stuck (flying sand)
+	f32 xsize = (staticbox.MaxEdge.X - staticbox.MinEdge.X); // - COLL_ZEROY;	 // reduce box size for solve collision stuck (flying sand)
 	f32 ysize = (staticbox.MaxEdge.Y - staticbox.MinEdge.Y); // - COLL_ZERO; // Y - no sense for falling, but maybe try later
 	f32 zsize = (staticbox.MaxEdge.Z - staticbox.MinEdge.Z); // - COLL_ZEROY;
 
@@ -62,12 +62,12 @@ int axisAlignedCollision(
 
 	// These cases can (and should) be rejected immediately
 	if( (speed.X >= 0 && relbox.MinEdge.X > xsize) ||
-	    (speed.X <= 0 && relbox.MaxEdge.X < 0) ||
-	    (speed.Y >= 0 && relbox.MinEdge.Y > ysize) ||
-	    (speed.Y <= 0 && relbox.MaxEdge.Y < 0) ||
-	    (speed.Z >= 0 && relbox.MinEdge.Z > zsize) ||
-	    (speed.Z <= 0 && relbox.MaxEdge.Z < 0))
-	    	return -1;
+		(speed.X <= 0 && relbox.MaxEdge.X < 0) ||
+		(speed.Y >= 0 && relbox.MinEdge.Y > ysize) ||
+		(speed.Y <= 0 && relbox.MaxEdge.Y < 0) ||
+		(speed.Z >= 0 && relbox.MinEdge.Z > zsize) ||
+		(speed.Z <= 0 && relbox.MaxEdge.Z < 0))
+			return -1;
 
 	if(speed.X > 0) // Check for collision with X- plane
 	{
@@ -389,11 +389,11 @@ collisionMoveResult collisionMoveSimple(Environment *env, IGameDef *gamedef,
 	} //tt3
 
 /*
-	assert(cboxes.size() == is_unloaded.size());    // post-condition
-	assert(cboxes.size() == is_step_up.size());     // post-condition
+	assert(cboxes.size() == is_unloaded.size());	// post-condition
+	assert(cboxes.size() == is_step_up.size());	 // post-condition
 	assert(cboxes.size() == bouncy_values.size());  // post-condition
 	assert(cboxes.size() == node_positions.size()); // post-condition
-	assert(cboxes.size() == is_object.size());      // post-condition
+	assert(cboxes.size() == is_object.size());	  // post-condition
 */
 
 	/*
@@ -417,7 +417,7 @@ collisionMoveResult collisionMoveSimple(Environment *env, IGameDef *gamedef,
 	while(dtime > BS * 1e-10) {
 		//TimeTaker tt3("collisionMoveSimple dtime loop");
 /*
-        	ScopeProfiler sp(g_profiler, "collisionMoveSimple dtime loop avg", SPT_AVG);
+			ScopeProfiler sp(g_profiler, "collisionMoveSimple dtime loop avg", SPT_AVG);
 */
 
 		// Avoid infinite loop

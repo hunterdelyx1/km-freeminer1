@@ -253,7 +253,7 @@ void init_gettext(const char *path, const std::string &configured_language,
 #endif // if USE_GETTEXT
 
 	/* no matter what locale is used we need number format to be "C" */
-	/* to ensure formspec parameters are evaluated correct!          */
+	/* to ensure formspec parameters are evaluated correct!		  */
 
 	setlocale(LC_NUMERIC, "C");
 	infostream << "Message locale is now set to: "

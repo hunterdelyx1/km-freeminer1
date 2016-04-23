@@ -96,11 +96,11 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 // We can't simply alias strlcpy to MSVC's strcpy_s, since strcpy_s by
 // default raises an assertion error and aborts the program if the buffer is
 // too small.
-#if defined(__FreeBSD__) || defined(__NetBSD__)    || \
+#if defined(__FreeBSD__) || defined(__NetBSD__)	|| \
 	defined(__OpenBSD__) || defined(__DragonFly__) || \
-	defined(__APPLE__)   ||                           \
-	defined(__sun)       || defined(sun)           || \
-	defined(__QNX__)     || defined(__QNXNTO__)
+	defined(__APPLE__)   ||						   \
+	defined(__sun)	   || defined(sun)		   || \
+	defined(__QNX__)	 || defined(__QNXNTO__)
 	#define HAVE_STRLCPY
 #endif
 

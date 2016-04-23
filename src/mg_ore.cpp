@@ -25,10 +25,10 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "log.h"
 
 FlagDesc flagdesc_ore[] = {
-	{"absheight",                 OREFLAG_ABSHEIGHT},
-	{"puff_cliffs",               OREFLAG_PUFF_CLIFFS},
+	{"absheight",				 OREFLAG_ABSHEIGHT},
+	{"puff_cliffs",			   OREFLAG_PUFF_CLIFFS},
 	{"puff_additive_composition", OREFLAG_PUFF_ADDITIVE},
-	{NULL,                        0}
+	{NULL,						0}
 };
 
 
@@ -133,8 +133,8 @@ void OreScatter::generate(MMVManip *vm, int mapseed, u32 blockseed,
 	u32 volume = (nmax.X - nmin.X + 1) *
 				 (nmax.Y - nmin.Y + 1) *
 				 (nmax.Z - nmin.Z + 1);
-	u32 csize     = clust_size;
-	u32 cvolume    = csize * csize * csize;
+	u32 csize	 = clust_size;
+	u32 cvolume	= csize * csize * csize;
 	u32 nclusters = volume / clust_scarcity;
 
 	if (clust_scarcity > volume && 1 >= pr.range(0, clust_scarcity/volume))
@@ -233,7 +233,7 @@ void OreSheet::generate(MMVManip *vm, int mapseed, u32 blockseed,
 OrePuff::OrePuff() :
 	Ore()
 {
-	noise_puff_top    = NULL;
+	noise_puff_top	= NULL;
 	noise_puff_bottom = NULL;
 }
 
@@ -284,7 +284,7 @@ void OrePuff::generate(MMVManip *vm, int mapseed, u32 blockseed,
 			noise_puff_bottom->perlinMap2D(nmin.X, nmin.Z);
 		}
 
-		float ntop    = noise_puff_top->result[index];
+		float ntop	= noise_puff_top->result[index];
 		float nbottom = noise_puff_bottom->result[index];
 
 		if (!(flags & OREFLAG_PUFF_CLIFFS)) {

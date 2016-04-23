@@ -69,8 +69,8 @@ Schematic::Schematic()
 {
 	schemdata   = NULL;
 	slice_probs = NULL;
-	flags       = 0;
-	size        = v3s16(0, 0, 0);
+	flags	   = 0;
+	size		= v3s16(0, 0, 0);
 }
 
 
@@ -147,7 +147,7 @@ void Schematic::blitToVManip(MMVManip *vm, v3s16 p, Rotation rot, bool force_pla
 				if (schemdata[i].getContent() == CONTENT_IGNORE)
 					continue;
 
-				u8 placement_prob     = schemdata[i].param1 & MTSCHEM_PROB_MASK;
+				u8 placement_prob	 = schemdata[i].param1 & MTSCHEM_PROB_MASK;
 				bool force_place_node = schemdata[i].param1 & MTSCHEM_FORCE_PLACE;
 
 				if (placement_prob == MTSCHEM_PROB_NEVER)
@@ -355,11 +355,11 @@ bool Schematic::serializeToMts(std::ostream *os,
 {
 	std::ostream &ss = *os;
 
-	writeU32(ss, MTSCHEM_FILE_SIGNATURE);         // signature
+	writeU32(ss, MTSCHEM_FILE_SIGNATURE);		 // signature
 	writeU16(ss, MTSCHEM_FILE_VER_HIGHEST_WRITE); // version
-	writeV3S16(ss, size);                         // schematic size
+	writeV3S16(ss, size);						 // schematic size
 
-	for (int y = 0; y != size.Y; y++)             // Y slice probabilities
+	for (int y = 0; y != size.Y; y++)			 // Y slice probabilities
 		writeU8(ss, slice_probs[y]);
 
 	writeU16(ss, names.size()); // name count

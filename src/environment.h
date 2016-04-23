@@ -151,13 +151,13 @@ protected:
 	*/
 
 	/* TODO: Add a callback function so these can be updated when a setting
-	 *       changes.  At this point in time it doesn't matter (e.g. /set
-	 *       is documented to change server settings only)
+	 *	   changes.  At this point in time it doesn't matter (e.g. /set
+	 *	   is documented to change server settings only)
 	 *
 	 * TODO: Local caching of settings is not optimal and should at some stage
-	 *       be updated to use a global settings object for getting thse values
-	 *       (as opposed to the this local caching). This can be addressed in
-	 *       a later release.
+	 *	   be updated to use a global settings object for getting thse values
+	 *	   (as opposed to the this local caching). This can be addressed in
+	 *	   a later release.
 	 */
 	bool m_cache_enable_shaders;
 	float m_cache_active_block_mgmt_interval;
@@ -362,7 +362,7 @@ class ServerEnvironment : public Environment
 {
 public:
 	ServerEnvironment(ServerMap *map, GameScripting *scriptIface,
-	                  IGameDef *gamedef, const std::string &path_world);
+					  IGameDef *gamedef, const std::string &path_world);
 	~ServerEnvironment();
 
 	Map & getMap();

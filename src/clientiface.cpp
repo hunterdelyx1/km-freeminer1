@@ -32,7 +32,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "environment.h"
 #include "map.h"
 #include "emerge.h"
-#include "serverobject.h"              // TODO this is used for cleanup of only
+#include "serverobject.h"			  // TODO this is used for cleanup of only
 #include "log_types.h"
 #include "util/srp.h"
 
@@ -1091,7 +1091,7 @@ void ClientInterface::event(u16 peer_id, ClientStateEvent event)
 	client->notifyEvent(event);
 
 	if ((event == CSE_SetClientReady) ||
-		(event == CSE_Disconnect)     ||
+		(event == CSE_Disconnect)	 ||
 		(event == CSE_SetDenied))
 	{
 		UpdatePlayerList();

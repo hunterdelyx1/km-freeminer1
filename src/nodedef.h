@@ -200,7 +200,7 @@ enum NodeDrawType
 	NDT_RAILLIKE,
 	NDT_NODEBOX,
 	NDT_GLASSLIKE_FRAMED, // Glass-like, draw connected frames and all all
-	                      // visible faces
+						  // visible faces
 						  // uses 2 textures, one for frames, second for faces
 	NDT_FIRELIKE, // Draw faces slightly rotated and only on connecting nodes,
 	NDT_GLASSLIKE_FRAMED_OPTIONAL,	// enabled -> connected, disabled -> Glass-like
@@ -279,8 +279,8 @@ struct ContentFeatures
 		Cached stuff
 	*/
 #ifndef SERVER
-	// 0     1     2     3     4     5
-	// up    down  right left  back  front
+	// 0	 1	 2	 3	 4	 5
+	// up	down  right left  back  front
 	TileSpec tiles[6];
 	// Special tiles
 	// - Currently used for flowing liquids

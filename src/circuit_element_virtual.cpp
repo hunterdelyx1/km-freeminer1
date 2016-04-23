@@ -25,7 +25,7 @@ CircuitElementVirtual::CircuitElementVirtual(u32 id) : m_state(false) {
 
 CircuitElementVirtual::~CircuitElementVirtual() {
 	for(std::list <CircuitElementVirtualContainer>::iterator i = this->begin();
-	        i != this->end(); ++i) {
+			i != this->end(); ++i) {
 		i->element_pointer->disconnectFace(i->shift);
 	}
 }
@@ -33,7 +33,7 @@ CircuitElementVirtual::~CircuitElementVirtual() {
 void CircuitElementVirtual::update() {
 	if(m_state) {
 		for(std::list <CircuitElementVirtualContainer>::iterator i = this->begin();
-		        i != this->end(); ++i) {
+				i != this->end(); ++i) {
 			i->element_pointer->addState(SHIFT_TO_FACE(i->shift));
 		}
 		m_state = false;
@@ -44,7 +44,7 @@ void CircuitElementVirtual::serialize(std::ostream& out) {
 	u32 connections_num = this->size();
 	out.write(reinterpret_cast<char*>(&connections_num), sizeof(connections_num));
 	for(std::list <CircuitElementVirtualContainer>::iterator i = this->begin();
-	        i != this->end(); ++i) {
+			i != this->end(); ++i) {
 		u32 element_id = i->element_pointer->getId();
 		u8  shift = i->shift;
 		out.write(reinterpret_cast<char*>(&element_id), sizeof(element_id));
@@ -53,7 +53,7 @@ void CircuitElementVirtual::serialize(std::ostream& out) {
 }
 
 void CircuitElementVirtual::deSerialize(std::istream& in, std::list <CircuitElementVirtual>::iterator current_element_it,
-                                        std::map <u32, std::list <CircuitElement>::iterator>& id_to_pointer) {
+										std::map <u32, std::list <CircuitElement>::iterator>& id_to_pointer) {
 	u32 connections_num;
 	in.read(reinterpret_cast<char*>(&connections_num), sizeof(connections_num));
 	for(u32 i = 0; i < connections_num; ++i) {

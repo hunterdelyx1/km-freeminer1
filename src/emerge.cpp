@@ -110,14 +110,14 @@ private:
 ////
 
 MapgenDesc g_reg_mapgens[] = {
-	{"indev",      new MapgenFactoryIndev,      true},
-	{"v5",         new MapgenFactoryV5,         true},
-	{"v6",         new MapgenFactoryV6,         true},
-	{"v7",         new MapgenFactoryV7,         true},
-	{"math",       new MapgenFactoryMath,       true},
-	{"flat",       new MapgenFactoryFlat,       true},
-	{"fractal",    new MapgenFactoryFractal,    true},
-	{"valleys",    new MapgenFactoryValleys,    true},
+	{"indev",	  new MapgenFactoryIndev,	  true},
+	{"v5",		 new MapgenFactoryV5,		 true},
+	{"v6",		 new MapgenFactoryV6,		 true},
+	{"v7",		 new MapgenFactoryV7,		 true},
+	{"math",	   new MapgenFactoryMath,	   true},
+	{"flat",	   new MapgenFactoryFlat,	   true},
+	{"fractal",	new MapgenFactoryFractal,	true},
+	{"valleys",	new MapgenFactoryValleys,	true},
 	{"singlenode", new MapgenFactorySinglenode, false},
 };
 
@@ -127,9 +127,9 @@ MapgenDesc g_reg_mapgens[] = {
 
 EmergeManager::EmergeManager(IGameDef *gamedef)
 {
-	this->ndef      = gamedef->getNodeDefManager();
+	this->ndef	  = gamedef->getNodeDefManager();
 	this->biomemgr  = new BiomeManager(gamedef);
-	this->oremgr    = new OreManager(gamedef);
+	this->oremgr	= new OreManager(gamedef);
 	this->decomgr   = new DecorationManager(gamedef);
 	this->schemmgr  = new SchematicManager(gamedef);
 	this->gen_notify_on = 0;
@@ -564,7 +564,7 @@ void EmergeThread::runCompletionCallbacks(
 		void *param;
 
 		callback = callbacks[i].first;
-		param    = callbacks[i].second;
+		param	= callbacks[i].second;
 
 		callback(pos, action, param);
 	}
@@ -696,7 +696,7 @@ void *EmergeThread::run()
 
 	v3s16 pos;
 
-	m_map    = (ServerMap *)&(m_server->m_env->getMap());
+	m_map	= (ServerMap *)&(m_server->m_env->getMap());
 	m_emerge = m_server->m_emerge;
 	m_mapgen = m_emerge->m_mapgens[id];
 	enable_mapgen_debug_info = m_emerge->enable_mapgen_debug_info;

@@ -24,7 +24,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #define GUI_ENGINE_H_
 
 /******************************************************************************/
-/* Includes                                                                   */
+/* Includes																   */
 /******************************************************************************/
 #include "irrlichttypes.h"
 #include "modalMenu.h"
@@ -33,7 +33,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "client/tile.h"
 
 /******************************************************************************/
-/* Typedefs and macros                                                        */
+/* Typedefs and macros														*/
 /******************************************************************************/
 /** texture layer ids */
 typedef enum {
@@ -46,12 +46,12 @@ typedef enum {
 
 typedef struct {
 	video::ITexture* texture;
-	bool             tile;
-	unsigned int     minsize;
+	bool			 tile;
+	unsigned int	 minsize;
 } image_definition;
 
 /******************************************************************************/
-/* forward declarations                                                       */
+/* forward declarations													   */
 /******************************************************************************/
 class GUIEngine;
 class MainMenuScripting;
@@ -59,7 +59,7 @@ class Clouds;
 struct MainMenuData;
 
 /******************************************************************************/
-/* declarations                                                               */
+/* declarations															   */
 /******************************************************************************/
 
 /** GUIEngine specific implementation of TextDest used within guiFormSpecMenu */
@@ -195,38 +195,38 @@ private:
 	void updateTopLeftTextSize();
 
 	/** device to draw at */
-	irr::IrrlichtDevice*     m_device;
+	irr::IrrlichtDevice*	 m_device;
 	/** parent gui element */
-	gui::IGUIElement*        m_parent;
+	gui::IGUIElement*		m_parent;
 	/** manager to add menus to */
-	IMenuManager*            m_menumanager;
+	IMenuManager*			m_menumanager;
 	/** scene manager to add scene elements to */
-	scene::ISceneManager*    m_smgr;
+	scene::ISceneManager*	m_smgr;
 	/** pointer to data beeing transfered back to main game handling */
-	MainMenuData*            m_data;
+	MainMenuData*			m_data;
 	/** pointer to texture source */
-	ISimpleTextureSource*    m_texture_source;
+	ISimpleTextureSource*	m_texture_source;
 	/** pointer to soundmanager*/
-	ISoundManager*           m_sound_manager;
+	ISoundManager*		   m_sound_manager;
 
 	/** representation of form source to be used in mainmenu formspec */
-	FormspecFormSource*      m_formspecgui;
+	FormspecFormSource*	  m_formspecgui;
 	/** formspec input receiver */
-	TextDestGuiEngine*       m_buttonhandler;
+	TextDestGuiEngine*	   m_buttonhandler;
 	/** the formspec menu */
-	GUIFormSpecMenu*         m_menu;
+	GUIFormSpecMenu*		 m_menu;
 
 	/** reference to kill variable managed by SIGINT handler */
-	bool&                    m_kill;
+	bool&					m_kill;
 
 	/** variable used to abort menu and return back to main game handling */
-	bool                     m_startgame;
+	bool					 m_startgame;
 
 	/** scripting interface */
-	MainMenuScripting*       m_script;
+	MainMenuScripting*	   m_script;
 
 	/** script basefolder */
-	std::string              m_scriptdir;
+	std::string			  m_scriptdir;
 
 	/**
 	 * draw background layer
@@ -289,9 +289,9 @@ private:
 	/** internam data required for drawing clouds */
 	struct clouddata {
 		/** delta time since last cloud processing */
-		f32     dtime;
+		f32	 dtime;
 		/** absolute time of last cloud processing */
-		u32     lasttime;
+		u32	 lasttime;
 		/** pointer to cloud class */
 		Clouds* clouds;
 		/** camera required for drawing clouds */
@@ -299,7 +299,7 @@ private:
 	};
 
 	/** is drawing of clouds enabled atm */
-	bool        m_clouds_enabled;
+	bool		m_clouds_enabled;
 	/** data used to draw clouds */
 	clouddata   m_cloud;
 

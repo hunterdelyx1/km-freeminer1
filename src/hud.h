@@ -38,7 +38,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 // Note that these visibility flags do not determine if the hud items are
 // actually drawn, but rather, whether to draw the item should the rest
 // of the game state permit it.
-#define HUD_FLAG_HOTBAR_VISIBLE    (1 << 0)
+#define HUD_FLAG_HOTBAR_VISIBLE	(1 << 0)
 #define HUD_FLAG_HEALTHBAR_VISIBLE (1 << 1)
 #define HUD_FLAG_CROSSHAIR_VISIBLE (1 << 2)
 #define HUD_FLAG_WIELDITEM_VISIBLE (1 << 3)
@@ -51,14 +51,14 @@ static const int  HUD_PARAM_HOTBAR_IMAGE_ITEMS = 104;
 #define HUD_PARAM_HOTBAR_SELECTED_IMAGE 3
 
 #define HUD_HOTBAR_ITEMCOUNT_DEFAULT 8
-#define HUD_HOTBAR_ITEMCOUNT_MAX     23
+#define HUD_HOTBAR_ITEMCOUNT_MAX	 23
 
 
 #define HOTBAR_IMAGE_SIZE 48
 
 enum HudElementType {
-	HUD_ELEM_IMAGE     = 0,
-	HUD_ELEM_TEXT      = 1,
+	HUD_ELEM_IMAGE	 = 0,
+	HUD_ELEM_TEXT	  = 1,
 	HUD_ELEM_STATBAR   = 2,
 	HUD_ELEM_INVENTORY = 3,
 	HUD_ELEM_WAYPOINT  = 4,

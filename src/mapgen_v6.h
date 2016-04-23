@@ -35,12 +35,12 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #define MGV6_FREQ_JUNGLE 0.5
 
 //////////// Mapgen V6 flags
-#define MGV6_JUNGLES    0x01
+#define MGV6_JUNGLES	0x01
 #define MGV6_BIOMEBLEND 0x02
-#define MGV6_MUDFLOW    0x04
+#define MGV6_MUDFLOW	0x04
 #define MGV6_SNOWBIOMES 0x08
-#define MGV6_FLAT       0x10
-#define MGV6_TREES      0x20
+#define MGV6_FLAT	   0x10
+#define MGV6_TREES	  0x20
 
 
 extern FlagDesc flagdesc_mapgen_v6[];

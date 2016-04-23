@@ -638,10 +638,10 @@ public:
 	~PeerHelper();
 
 	PeerHelper&   operator=(Peer* peer);
-	Peer*         operator->() const;
-	bool          operator!();
-	Peer*         operator&() const;
-	bool          operator!=(void* ptr);
+	Peer*		 operator->() const;
+	bool		  operator!();
+	Peer*		 operator&() const;
+	bool		  operator!=(void* ptr);
 
 private:
 	Peer* m_peer;
@@ -786,7 +786,7 @@ class Peer {
 		};
 
 		rttstats m_rtt;
-		float    m_last_rtt;
+		float	m_last_rtt;
 
 		// current usage count
 		unsigned int m_usage;
@@ -949,25 +949,25 @@ public:
 		{ m_timeout = peer_timeout; }
 
 private:
-	void runTimeouts    (float dtime);
-	void rawSend        (const BufferedPacket &packet);
+	void runTimeouts	(float dtime);
+	void rawSend		(const BufferedPacket &packet);
 	bool rawSendAsPacket(u16 peer_id, u8 channelnum,
 							SharedBuffer<u8> data, bool reliable);
 
 	void processReliableCommand (ConnectionCommand &c);
 	void processNonReliableCommand (ConnectionCommand &c);
-	void serve          (Address bind_address);
-	void connect        (Address address);
-	void disconnect     ();
+	void serve		  (Address bind_address);
+	void connect		(Address address);
+	void disconnect	 ();
 	void disconnect_peer(u16 peer_id);
-	void send           (u16 peer_id, u8 channelnum,
+	void send		   (u16 peer_id, u8 channelnum,
 							SharedBuffer<u8> data);
 	void sendReliable   (ConnectionCommand &c);
-	void sendToAll      (u8 channelnum,
+	void sendToAll	  (u8 channelnum,
 							SharedBuffer<u8> data);
 	void sendToAllReliable(ConnectionCommand &c);
 
-	void sendPackets    (float dtime);
+	void sendPackets	(float dtime);
 
 	void sendAsPacket   (u16 peer_id, u8 channelnum,
 							SharedBuffer<u8> data,bool ack=false);
@@ -976,16 +976,16 @@ private:
 
 	bool packetsQueued();
 
-	Connection*           m_connection;
-	unsigned int          m_max_packet_size;
-	float                 m_timeout;
+	Connection*		   m_connection;
+	unsigned int		  m_max_packet_size;
+	float				 m_timeout;
 	std::queue<OutgoingPacket> m_outgoing_queue;
-	Semaphore             m_send_sleep_semaphore;
+	Semaphore			 m_send_sleep_semaphore;
 
-	unsigned int          m_iteration_packets_avaialble;
-	unsigned int          m_max_commands_per_iteration;
-	unsigned int          m_max_data_packets_per_iteration;
-	unsigned int          m_max_packets_requeued;
+	unsigned int		  m_iteration_packets_avaialble;
+	unsigned int		  m_max_commands_per_iteration;
+	unsigned int		  m_max_data_packets_per_iteration;
+	unsigned int		  m_max_packets_requeued;
 };
 
 class ConnectionReceiveThread : public Thread {
@@ -1023,7 +1023,7 @@ private:
 							u8 channelnum, bool reliable);
 
 
-	Connection*           m_connection;
+	Connection*		   m_connection;
 };
 
 class Connection

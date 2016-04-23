@@ -68,7 +68,7 @@ Json::Value fetchJsonValue(const std::string &url,
 	return root;
 }
 
-std::vector<ModStoreMod>    readModStoreList(Json::Value& modlist) {
+std::vector<ModStoreMod>	readModStoreList(Json::Value& modlist) {
 		std::vector<ModStoreMod> retval;
 
 	if (modlist.isArray()) {
@@ -128,7 +128,7 @@ std::vector<ModStoreMod>    readModStoreList(Json::Value& modlist) {
 	return retval;
 }
 
-ModStoreModDetails          readModStoreModDetails(Json::Value& details) {
+ModStoreModDetails		  readModStoreModDetails(Json::Value& details) {
 
 	ModStoreModDetails retval;
 

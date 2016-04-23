@@ -71,7 +71,7 @@ ObjDef *ObjDefManager::set(ObjDefHandle handle, ObjDef *obj)
 
 	ObjDef *oldobj = setRaw(index, obj);
 
-	obj->uid    = oldobj->uid;
+	obj->uid	= oldobj->uid;
 	obj->index  = oldobj->index;
 	obj->handle = oldobj->handle;
 
@@ -98,7 +98,7 @@ u32 ObjDefManager::addRaw(ObjDef *obj)
 	infostream << "ObjDefManager: added " << getObjectTitle()
 		<< ": name=\"" << obj->name
 		<< "\" index=" << obj->index
-		<< " uid="     << obj->uid
+		<< " uid="	 << obj->uid
 		<< std::endl;
 
 	return nobjects;
@@ -147,10 +147,10 @@ u32 ObjDefManager::validateHandle(ObjDefHandle handle) const
 	u32 uid;
 
 	bool is_valid =
-		(handle != OBJDEF_INVALID_HANDLE)         &&
+		(handle != OBJDEF_INVALID_HANDLE)		 &&
 		decodeHandle(handle, &index, &type, &uid) &&
-		(type == m_objtype)                       &&
-		(index < m_objects.size())                &&
+		(type == m_objtype)					   &&
+		(index < m_objects.size())				&&
 		(m_objects[index]->uid == uid);
 
 	return is_valid ? index : -1;

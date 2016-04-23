@@ -607,17 +607,17 @@ void FMStaticText::serializeAttributes(io::IAttributes* out, io::SAttributeReadW
 {
 	IGUIStaticText::serializeAttributes(out,options);
 
-	out->addBool	("Border",              Border);
+	out->addBool	("Border",			  Border);
 	out->addBool	("OverrideColorEnabled",OverrideColorEnabled);
 	out->addBool	("OverrideBGColorEnabled",OverrideBGColorEnabled);
 	out->addBool	("WordWrap",		WordWrap);
-	out->addBool	("Background",          Background);
-	out->addBool	("RightToLeft",         RightToLeft);
+	out->addBool	("Background",		  Background);
+	out->addBool	("RightToLeft",		 RightToLeft);
 	out->addBool	("RestrainTextInside",  RestrainTextInside);
-	out->addColor	("OverrideColor",       OverrideColor);
-	out->addColor	("BGColor",       	BGColor);
-	out->addEnum	("HTextAlign",          HAlign, GUIAlignmentNames);
-	out->addEnum	("VTextAlign",          VAlign, GUIAlignmentNames);
+	out->addColor	("OverrideColor",	   OverrideColor);
+	out->addColor	("BGColor",	   	BGColor);
+	out->addEnum	("HTextAlign",		  HAlign, GUIAlignmentNames);
+	out->addEnum	("VTextAlign",		  VAlign, GUIAlignmentNames);
 
 	// out->addFont ("OverrideFont",	OverrideFont);
 }
@@ -639,7 +639,7 @@ void FMStaticText::deserializeAttributes(io::IAttributes* in, io::SAttributeRead
 	BGColor = in->getAttributeAsColor("BGColor");
 
 	setTextAlignment( (EGUI_ALIGNMENT) in->getAttributeAsEnumeration("HTextAlign", GUIAlignmentNames),
-                      (EGUI_ALIGNMENT) in->getAttributeAsEnumeration("VTextAlign", GUIAlignmentNames));
+					  (EGUI_ALIGNMENT) in->getAttributeAsEnumeration("VTextAlign", GUIAlignmentNames));
 
 	// OverrideFont = in->getAttributeAsFont("OverrideFont");
 }

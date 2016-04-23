@@ -32,11 +32,11 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #define DEFAULT_MAPGEN "indev"
 
 /////////////////// Mapgen flags
-#define MG_TREES       0x01
-#define MG_CAVES       0x02
-#define MG_DUNGEONS    0x04
-#define MG_FLAT        0x08
-#define MG_LIGHT       0x10
+#define MG_TREES	   0x01
+#define MG_CAVES	   0x02
+#define MG_DUNGEONS	0x04
+#define MG_FLAT		0x08
+#define MG_LIGHT	   0x10
 #define MG_DECORATIONS 0x20
 
 class Settings;

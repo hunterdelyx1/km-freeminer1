@@ -24,7 +24,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #define PATHFINDER_H_
 
 /******************************************************************************/
-/* Includes                                                                   */
+/* Includes																   */
 /******************************************************************************/
 #include <vector>
 #include <string>
@@ -35,13 +35,13 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 
 
 /******************************************************************************/
-/* Forward declarations                                                       */
+/* Forward declarations													   */
 /******************************************************************************/
 
 class ServerEnvironment;
 
 /******************************************************************************/
-/* Typedefs and macros                                                        */
+/* Typedefs and macros														*/
 /******************************************************************************/
 
 /** List of supported algorithms */
@@ -57,18 +57,18 @@ enum Adjacency
 };
 
 /******************************************************************************/
-/* declarations                                                               */
+/* declarations															   */
 /******************************************************************************/
 
 /** c wrapper function to use from scriptapi */
 std::vector<v3POS> getPath(ServerEnvironment* env,
-                           v3POS source,
-                           v3POS destination,
-                           unsigned int searchdistance,
-                           unsigned int max_jump,
-                           unsigned int max_drop,
-                           Algorithm algo,
-                           Adjacency adjacency);
+						   v3POS source,
+						   v3POS destination,
+						   unsigned int searchdistance,
+						   unsigned int max_jump,
+						   unsigned int max_drop,
+						   Algorithm algo,
+						   Adjacency adjacency);
 
 struct OpenElement
 {
@@ -100,13 +100,13 @@ public:
 	 * @param algo algorithm to use for finding a path
 	 */
 	std::vector<v3POS> getPath(ServerEnvironment* env,
-	                           v3POS source,
-	                           v3POS destination,
-	                           unsigned int searchdistance,
-	                           unsigned int max_jump,
-	                           unsigned int max_drop,
-	                           Algorithm algo,
-	                           Adjacency adjacency);
+							   v3POS source,
+							   v3POS destination,
+							   unsigned int searchdistance,
+							   unsigned int max_jump,
+							   unsigned int max_drop,
+							   Algorithm algo,
+							   Adjacency adjacency);
 
 private:
 	struct limits {
@@ -136,7 +136,7 @@ private:
 	 */
 
 	bool findPathHeuristic(v3POS pos, std::vector <v3POS>& adjacencies,
-	                       unsigned int (*heuristicFunction)(v3POS, v3POS));
+						   unsigned int (*heuristicFunction)(v3POS, v3POS));
 
 	/**
 	 * Create a vector containing all nodes from source to destination
@@ -146,16 +146,16 @@ private:
 	 */
 	void buildPath(std::vector<v3POS>& path, v3POS start_pos, v3POS end_pos);
 
-	int m_searchdistance;       /**< max distance to search in each direction */
-	int m_maxdrop;              /**< maximum number of blocks a path may drop */
-	int m_maxjump;              /**< maximum number of blocks a path may jump */
+	int m_searchdistance;	   /**< max distance to search in each direction */
+	int m_maxdrop;			  /**< maximum number of blocks a path may drop */
+	int m_maxjump;			  /**< maximum number of blocks a path may jump */
 
-	v3POS m_start;              /**< source position                          */
-	v3POS m_destination;        /**< destination position                     */
+	v3POS m_start;			  /**< source position						  */
+	v3POS m_destination;		/**< destination position					 */
 
-	limits m_limits;            /**< position limits in real map coordinates  */
+	limits m_limits;			/**< position limits in real map coordinates  */
 
-	ServerEnvironment* m_env;   /**< minetest environment pointer             */
+	ServerEnvironment* m_env;   /**< minetest environment pointer			 */
 
 	Adjacency m_adjacency;
 

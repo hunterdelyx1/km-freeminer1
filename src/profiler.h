@@ -31,8 +31,8 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "threading/mutex.h"
 #include "threading/mutex_auto_lock.h"
 #include "util/timetaker.h"
-#include "util/numeric.h"      // paging()
-#include "debug.h"             // assert()
+#include "util/numeric.h"	  // paging()
+#include "debug.h"			 // assert()
 
 #define MAX_PROFILER_TEXT_ROWS 20
 

@@ -39,18 +39,18 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #define PPOS(pos) "(" << pos.X << "," << pos.Y << "," << pos.Z << ")"
 
 std::vector<v3POS> getPath(ServerEnvironment* env,
-                           v3POS source,
-                           v3POS destination,
-                           unsigned int searchdistance,
-                           unsigned int max_jump,
-                           unsigned int max_drop,
-                           Algorithm algo,
-                           Adjacency adjacency) {
+						   v3POS source,
+						   v3POS destination,
+						   unsigned int searchdistance,
+						   unsigned int max_jump,
+						   unsigned int max_drop,
+						   Algorithm algo,
+						   Adjacency adjacency) {
 
 	PathFinder searchclass;
 
 	return searchclass.getPath(env, source, destination, searchdistance,
-	                           max_jump, max_drop, algo, adjacency);
+							   max_jump, max_drop, algo, adjacency);
 }
 
 OpenElement::OpenElement() :
@@ -81,13 +81,13 @@ bool OpenElement::operator<(const OpenElement& e) const {
 
 /******************************************************************************/
 std::vector<v3POS> PathFinder::getPath(ServerEnvironment* env,
-                                       v3POS source,
-                                       v3POS destination,
-                                       unsigned int searchdistance,
-                                       unsigned int max_jump,
-                                       unsigned int max_drop,
-                                       Algorithm algo,
-                                       Adjacency adjacency) {
+									   v3POS source,
+									   v3POS destination,
+									   unsigned int searchdistance,
+									   unsigned int max_jump,
+									   unsigned int max_drop,
+									   Algorithm algo,
+									   Adjacency adjacency) {
 #ifdef PATHFINDER_CALC_TIME
 	timespec ts;
 	clock_gettime(CLOCK_REALTIME, &ts);
@@ -104,7 +104,7 @@ std::vector<v3POS> PathFinder::getPath(ServerEnvironment* env,
 	m_env = env;
 	m_maxjump = max_jump;
 	m_maxdrop = max_drop;
-	m_start       = source;
+	m_start	   = source;
 	m_destination = destination;
 	m_adjacency = adjacency;
 
@@ -154,7 +154,7 @@ std::vector<v3POS> PathFinder::getPath(ServerEnvironment* env,
 
 
 		std::cout << "Calculating path took: " << (ts2.tv_sec - ts.tv_sec) <<
-		          "s " << ms << "ms " << us << "us " << ns << "ns " << std::endl;
+				  "s " << ms << "ms " << us << "us " << ns << "ns " << std::endl;
 #endif
 		return path;
 	}
@@ -212,7 +212,7 @@ unsigned int PathFinder::getDirectionCost(unsigned int id) {
 }
 
 bool PathFinder::findPathHeuristic(v3POS pos, std::vector <v3POS>& directions,
-                                   unsigned int (*heuristicFunction)(v3POS, v3POS)) {
+								   unsigned int (*heuristicFunction)(v3POS, v3POS)) {
 	std::multiset <OpenElement> q;
 
 	used.clear();
@@ -227,9 +227,9 @@ bool PathFinder::findPathHeuristic(v3POS pos, std::vector <v3POS>& directions,
 			unsigned int next_cost = current_cost + getDirectionCost(i);
 			// Check limits or already processed
 			if((next_pos.X <  m_limits.X.min) ||
-			        (next_pos.X >= m_limits.X.max) ||
-			        (next_pos.Z <  m_limits.Z.min) ||
-			        (next_pos.Z >= m_limits.Z.max)) {
+					(next_pos.X >= m_limits.X.max) ||
+					(next_pos.Z <  m_limits.Z.min) ||
+					(next_pos.Z >= m_limits.Z.max)) {
 				continue;
 			}
 
@@ -242,7 +242,7 @@ bool PathFinder::findPathHeuristic(v3POS pos, std::vector <v3POS>& directions,
 
 			if(node_at_next_pos.param0 == CONTENT_AIR) {
 				MapNode node_below_next_pos =
-				    m_env->getMap().getNodeNoEx(next_pos + v3POS(0, -1, 0));
+					m_env->getMap().getNodeNoEx(next_pos + v3POS(0, -1, 0));
 
 
 				if(node_below_next_pos.param0 == CONTENT_IGNORE) {
@@ -255,16 +255,16 @@ bool PathFinder::findPathHeuristic(v3POS pos, std::vector <v3POS>& directions,
 					MapNode node_at_test_pos = m_env->getMap().getNodeNoEx(test_pos);
 
 					while((node_at_test_pos.param0 == CONTENT_AIR) &&
-					        (test_pos.Y > m_limits.Y.min)) {
+							(test_pos.Y > m_limits.Y.min)) {
 						--test_pos.Y;
 						node_at_test_pos = m_env->getMap().getNodeNoEx(test_pos);
 					}
 					++test_pos.Y;
 
 					if((test_pos.Y >= m_limits.Y.min) &&
-					        (node_at_test_pos.param0 != CONTENT_IGNORE) &&
-					        (node_at_test_pos.param0 != CONTENT_AIR) &&
-					        ((next_pos.Y - test_pos.Y) <= m_maxdrop)) {
+							(node_at_test_pos.param0 != CONTENT_IGNORE) &&
+							(node_at_test_pos.param0 != CONTENT_AIR) &&
+							((next_pos.Y - test_pos.Y) <= m_maxdrop)) {
 						next_pos.Y = test_pos.Y;
 						next_cost = current_cost + getDirectionCost(i) * 2;
 					} else {
@@ -277,16 +277,16 @@ bool PathFinder::findPathHeuristic(v3POS pos, std::vector <v3POS>& directions,
 				MapNode node_at_test_pos = m_env->getMap().getNodeNoEx(test_pos);
 
 				while((node_at_test_pos.param0 != CONTENT_IGNORE) &&
-				        (node_at_test_pos.param0 != CONTENT_AIR) &&
-				        (test_pos.Y < m_limits.Y.max)) {
+						(node_at_test_pos.param0 != CONTENT_AIR) &&
+						(test_pos.Y < m_limits.Y.max)) {
 					++test_pos.Y;
 					node_at_test_pos = m_env->getMap().getNodeNoEx(test_pos);
 				}
 
 				// Did we find surface?
 				if((test_pos.Y <= m_limits.Y.max) &&
-				        (node_at_test_pos.param0 == CONTENT_AIR) &&
-				        (test_pos.Y - next_pos.Y <= m_maxjump)) {
+						(node_at_test_pos.param0 == CONTENT_AIR) &&
+						(test_pos.Y - next_pos.Y <= m_maxjump)) {
 					next_pos.Y = test_pos.Y;
 					next_cost = current_cost + getDirectionCost(i) * 2;
 				} else {
@@ -298,7 +298,7 @@ bool PathFinder::findPathHeuristic(v3POS pos, std::vector <v3POS>& directions,
 				used[next_pos].first = current_pos;
 				used[next_pos].second = next_cost;
 				q.insert(OpenElement(next_cost + heuristicFunction(next_pos, m_destination),
-				                     next_cost, next_pos, current_pos));
+									 next_cost, next_pos, current_pos));
 			}
 		}
 		if(current_pos == m_destination) {

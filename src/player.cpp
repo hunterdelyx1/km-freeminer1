@@ -50,9 +50,9 @@ Player::Player(IGameDef *gamedef, const std::string & name):
 	hurt_tilt_strength(0),
 	zoom(false),
 	superspeed(false),
-//==================================================================================    
-    m_chatOpened(false),
-//==================================================================================    
+//==================================================================================	
+	m_chatOpened(false),
+//==================================================================================	
 	free_move(false),
 	protocol_version(0),
 	keyPressed(0),
@@ -89,30 +89,30 @@ Player::Player(IGameDef *gamedef, const std::string & name):
 
 	// Initialize movement settings at default values, so movement can work
 	// if the server fails to send them
-	movement_acceleration_default   = 3    * BS;
-	movement_acceleration_air       = 2    * BS;
-	movement_acceleration_fast      = 10   * BS;
-	movement_speed_walk             = 4    * BS;
-	movement_speed_crouch           = 1.35 * BS;
-	movement_speed_fast             = 20   * BS;
-	movement_speed_climb            = 2    * BS;
-	movement_speed_jump             = 6.5  * BS;
-	movement_liquid_fluidity        = 1    * BS;
+	movement_acceleration_default   = 3	* BS;
+	movement_acceleration_air	   = 2	* BS;
+	movement_acceleration_fast	  = 10   * BS;
+	movement_speed_walk			 = 4	* BS;
+	movement_speed_crouch		   = 1.35 * BS;
+	movement_speed_fast			 = 20   * BS;
+	movement_speed_climb			= 2	* BS;
+	movement_speed_jump			 = 6.5  * BS;
+	movement_liquid_fluidity		= 1	* BS;
 	movement_liquid_fluidity_smooth = 0.5  * BS;
-	movement_liquid_sink            = 10   * BS;
-	movement_gravity                = 9.81 * BS;
-	movement_fall_aerodynamics      = 110;
-	local_animation_speed           = 0.0;
+	movement_liquid_sink			= 10   * BS;
+	movement_gravity				= 9.81 * BS;
+	movement_fall_aerodynamics	  = 110;
+	local_animation_speed		   = 0.0;
 
 	// Movement overrides are multipliers and must be 1 by default
-	physics_override_speed        = 1;
-	physics_override_jump         = 1;
-	physics_override_gravity      = 1;
-	physics_override_sneak        = true;
+	physics_override_speed		= 1;
+	physics_override_jump		 = 1;
+	physics_override_gravity	  = 1;
+	physics_override_sneak		= true;
 	physics_override_sneak_glitch = true;
 
 	hud_flags =
-		HUD_FLAG_HOTBAR_VISIBLE    | HUD_FLAG_HEALTHBAR_VISIBLE |
+		HUD_FLAG_HOTBAR_VISIBLE	| HUD_FLAG_HEALTHBAR_VISIBLE |
 		HUD_FLAG_CROSSHAIR_VISIBLE | HUD_FLAG_WIELDITEM_VISIBLE |
 		HUD_FLAG_BREATHBAR_VISIBLE | HUD_FLAG_MINIMAP_VISIBLE;
 
@@ -124,17 +124,17 @@ Player::~Player()
 	clearHud();
 }
 
-//==================================================================================    
+//==================================================================================	
 bool Player::isChatOpened()
 {
-    return this->m_chatOpened;
+	return this->m_chatOpened;
 }
 
 void Player::setChatOpened(bool chatOpened)
 {
-    m_chatOpened = chatOpened;
+	m_chatOpened = chatOpened;
 }
-//==================================================================================    
+//==================================================================================	
 
 v3s16 Player::getLightPosition() const
 {
@@ -255,17 +255,17 @@ RemotePlayer::RemotePlayer(IGameDef *gamedef, const std::string & name):
 	m_sao(NULL)
 {
 	movement_acceleration_default   = g_settings->getFloat("movement_acceleration_default")   * BS;
-	movement_acceleration_air       = g_settings->getFloat("movement_acceleration_air")       * BS;
-	movement_acceleration_fast      = g_settings->getFloat("movement_acceleration_fast")      * BS;
-	movement_speed_walk             = g_settings->getFloat("movement_speed_walk")             * BS;
-	movement_speed_crouch           = g_settings->getFloat("movement_speed_crouch")           * BS;
-	movement_speed_fast             = g_settings->getFloat("movement_speed_fast")             * BS;
-	movement_speed_climb            = g_settings->getFloat("movement_speed_climb")            * BS;
-	movement_speed_jump             = g_settings->getFloat("movement_speed_jump")             * BS;
-	movement_liquid_fluidity        = g_settings->getFloat("movement_liquid_fluidity")        * BS;
+	movement_acceleration_air	   = g_settings->getFloat("movement_acceleration_air")	   * BS;
+	movement_acceleration_fast	  = g_settings->getFloat("movement_acceleration_fast")	  * BS;
+	movement_speed_walk			 = g_settings->getFloat("movement_speed_walk")			 * BS;
+	movement_speed_crouch		   = g_settings->getFloat("movement_speed_crouch")		   * BS;
+	movement_speed_fast			 = g_settings->getFloat("movement_speed_fast")			 * BS;
+	movement_speed_climb			= g_settings->getFloat("movement_speed_climb")			* BS;
+	movement_speed_jump			 = g_settings->getFloat("movement_speed_jump")			 * BS;
+	movement_liquid_fluidity		= g_settings->getFloat("movement_liquid_fluidity")		* BS;
 	movement_liquid_fluidity_smooth = g_settings->getFloat("movement_liquid_fluidity_smooth") * BS;
-	movement_liquid_sink            = g_settings->getFloat("movement_liquid_sink")            * BS;
-	movement_gravity                = g_settings->getFloat("movement_gravity")                * BS;
+	movement_liquid_sink			= g_settings->getFloat("movement_liquid_sink")			* BS;
+	movement_gravity				= g_settings->getFloat("movement_gravity")				* BS;
 }
 
 #if WTF

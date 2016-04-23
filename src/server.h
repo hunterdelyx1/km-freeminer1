@@ -132,7 +132,7 @@ struct MediaInfo
 	std::string sha1_digest;
 
 	MediaInfo(const std::string &path_="",
-	          const std::string &sha1_digest_=""):
+			  const std::string &sha1_digest_=""):
 		path(path_),
 		sha1_digest(sha1_digest_)
 	{

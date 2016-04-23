@@ -32,8 +32,8 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #define BLOCK_EMERGE_ALLOW_GEN   (1 << 0)
 #define BLOCK_EMERGE_FORCE_QUEUE (1 << 1)
 
-#define EMERGE_DBG_OUT(x) do {                         \
-	if (enable_mapgen_debug_info)                      \
+#define EMERGE_DBG_OUT(x) do {						 \
+	if (enable_mapgen_debug_info)					  \
 		infostream << "EmergeThread: " x << std::endl; \
 } while (0)
 

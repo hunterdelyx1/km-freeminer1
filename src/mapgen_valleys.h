@@ -31,7 +31,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "mapgen.h"
 
 ////////////// Mapgen Valleys flags
-#define MGVALLEYS_ALT_CHILL    0x01
+#define MGVALLEYS_ALT_CHILL	0x01
 #define MGVALLEYS_HUMID_RIVERS 0x02
 
 // Feed only one variable into these.

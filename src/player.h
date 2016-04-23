@@ -107,14 +107,14 @@ class Player
 public:
 	Player(IGameDef *gamedef, const std::string & name);
 	virtual ~Player() = 0;
-    
-//==================================================================================    
-    bool m_chatOpened;
-    
-    bool isChatOpened();
+	
+//==================================================================================	
+	bool m_chatOpened;
+	
+	bool isChatOpened();
 
-    void setChatOpened(bool chatOpened);
-//==================================================================================    
+	void setChatOpened(bool chatOpened);
+//==================================================================================	
 
 	virtual void move(f32 dtime, Environment *env, f32 pos_max_d)
 	{}
@@ -398,10 +398,10 @@ public:
 
 
 	HudElement* getHud(u32 id);
-	u32         addHud(HudElement* hud);
+	u32		 addHud(HudElement* hud);
 	HudElement* removeHud(u32 id);
-	void        clearHud();
-	u32         maxHudId() {
+	void		clearHud();
+	u32		 maxHudId() {
 		return hud.size();
 	}
 

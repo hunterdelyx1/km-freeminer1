@@ -31,7 +31,7 @@ FlagDesc flagdesc_deco[] = {
 	{"place_center_z", DECO_PLACE_CENTER_Z},
 	{"force_placement", DECO_FORCE_PLACEMENT},
 	{"liquid_surface", DECO_LIQUID_SURFACE},
-	{NULL,             0}
+	{NULL,			 0}
 };
 
 
@@ -67,10 +67,10 @@ size_t DecorationManager::placeAllDecos(Mapgen *mg, u32 blockseed,
 
 Decoration::Decoration()
 {
-	mapseed    = 0;
+	mapseed	= 0;
 	fill_ratio = 0;
-	sidelen    = 1;
-	flags      = 0;
+	sidelen	= 1;
+	flags	  = 0;
 }
 
 
@@ -187,7 +187,7 @@ void Decoration::placeCutoffs(Mapgen *mg, u32 blockseed, v3s16 nmin, v3s16 nmax)
 		for (std::list<CutoffData>::iterator i = cutoffs.begin();
 			i != cutoffs.end(); ++i) {
 			CutoffData cutoff = *i;
-			v3s16 p    = cutoff.p;
+			v3s16 p	= cutoff.p;
 			s16 height = cutoff.height;
 			if (p.X < nmin.X || p.X > nmax.X ||
 				p.Z < nmin.Z || p.Z > nmax.Z)
@@ -201,7 +201,7 @@ void Decoration::placeCutoffs(Mapgen *mg, u32 blockseed, v3s16 nmin, v3s16 nmax)
 
 	// Generate the cutoffs
 	for (size_t i = 0; i != handled_cutoffs.size(); i++) {
-		v3s16 p    = handled_cutoffs[i].p;
+		v3s16 p	= handled_cutoffs[i].p;
 		s16 height = handled_cutoffs[i].height;
 
 		if (p.Y + height > nmax.Y) {

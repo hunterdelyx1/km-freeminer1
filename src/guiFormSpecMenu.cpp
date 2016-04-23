@@ -966,11 +966,11 @@ void GUIFormSpecMenu::parsePwdField(parserData* data,std::string element)
 		e->setPasswordBox(true,L'*');
 
 		irr::SEvent evt;
-		evt.EventType            = EET_KEY_INPUT_EVENT;
-		evt.KeyInput.Key         = KEY_END;
-		evt.KeyInput.Char        = 0;
-		evt.KeyInput.Control     = 0;
-		evt.KeyInput.Shift       = 0;
+		evt.EventType			= EET_KEY_INPUT_EVENT;
+		evt.KeyInput.Key		 = KEY_END;
+		evt.KeyInput.Char		= 0;
+		evt.KeyInput.Control	 = 0;
+		evt.KeyInput.Shift	   = 0;
 		evt.KeyInput.PressedDown = true;
 		e->OnEvent(evt);
 		m_fields.push_back(spec);
@@ -1030,11 +1030,11 @@ void GUIFormSpecMenu::parseSimpleField(parserData* data,
 		}
 
 		irr::SEvent evt;
-		evt.EventType            = EET_KEY_INPUT_EVENT;
-		evt.KeyInput.Key         = KEY_END;
-		evt.KeyInput.Char        = 0;
-		evt.KeyInput.Control     = 0;
-		evt.KeyInput.Shift       = 0;
+		evt.EventType			= EET_KEY_INPUT_EVENT;
+		evt.KeyInput.Key		 = KEY_END;
+		evt.KeyInput.Char		= 0;
+		evt.KeyInput.Control	 = 0;
+		evt.KeyInput.Shift	   = 0;
 		evt.KeyInput.PressedDown = true;
 		e->OnEvent(evt);
 
@@ -1126,11 +1126,11 @@ void GUIFormSpecMenu::parseTextArea(parserData* data,
 			e->setTextAlignment(gui::EGUIA_UPPERLEFT, gui::EGUIA_UPPERLEFT);
 		} else {
 			irr::SEvent evt;
-			evt.EventType            = EET_KEY_INPUT_EVENT;
-			evt.KeyInput.Key         = KEY_END;
-			evt.KeyInput.Char        = 0;
-			evt.KeyInput.Control     = 0;
-			evt.KeyInput.Shift       = 0;
+			evt.EventType			= EET_KEY_INPUT_EVENT;
+			evt.KeyInput.Key		 = KEY_END;
+			evt.KeyInput.Char		= 0;
+			evt.KeyInput.Control	 = 0;
+			evt.KeyInput.Shift	   = 0;
 			evt.KeyInput.PressedDown = true;
 			e->OnEvent(evt);
 		}
@@ -1295,7 +1295,7 @@ void GUIFormSpecMenu::parseImageButton(parserData* data,std::string element,
 		geom.X = (stof(v_geom[0]) * (float)spacing.X)-(spacing.X-imgsize.X);
 		geom.Y = (stof(v_geom[1]) * (float)spacing.Y)-(spacing.Y-imgsize.Y);
 
-		bool noclip     = false;
+		bool noclip	 = false;
 		bool drawborder = true;
 		std::string pressed_image_name = "";
 
@@ -2234,22 +2234,22 @@ void GUIFormSpecMenu::drawList(const ListDrawSpec &s, int phase,
 			// Draw tooltip
 			std::string tooltip_text = "";
 			if (hovering && !m_selected_item) {
-                std::string name = item.getDefinition(m_gamedef->idef()).description;
-                
-                if (item.inventoryLabel != "") {
-                    //if(str_starts_with(item.inventoryLabel, "--")) {
-                        //tooltip_text = item.inventoryLabel;
-                        //tooltip_text.erase(0, 2);
-                    //}
-                    //else 
-                    {
-                        tooltip_text = name + "\n" + item.inventoryLabel;
-                    }
-                }
-                else tooltip_text = name;
-                
-                // IMPORTANT PLACE
-            }
+				std::string name = item.getDefinition(m_gamedef->idef()).description;
+				
+				if (item.inventoryLabel != "") {
+					//if(str_starts_with(item.inventoryLabel, "--")) {
+						//tooltip_text = item.inventoryLabel;
+						//tooltip_text.erase(0, 2);
+					//}
+					//else 
+					{
+						tooltip_text = name + "\n" + item.inventoryLabel;
+					}
+				}
+				else tooltip_text = name;
+				
+				// IMPORTANT PLACE
+			}
 			if (tooltip_text != "") {
 				std::vector<std::string> tt_rows = str_split(tooltip_text, '\n');
 				m_tooltip_element->setBackgroundColor(m_default_tooltip_bgcolor);
@@ -2919,7 +2919,7 @@ bool GUIFormSpecMenu::preprocessEvent(const SEvent& event)
 		} else {
 			m_JavaDialogFieldName = getNameByID(hovered->getID());
 			std::string message   = _("Enter ");
-			std::string label     = wide_to_utf8(getLabelByID(hovered->getID()));
+			std::string label	 = wide_to_utf8(getLabelByID(hovered->getID()));
 			if (label == "") {
 				label = "text";
 			}
@@ -3103,11 +3103,11 @@ bool GUIFormSpecMenu::DoubleClickDetection(const SEvent event)
 		//translate doubleclick to escape
 		memset(translated, 0, sizeof(SEvent));
 		translated->EventType = irr::EET_KEY_INPUT_EVENT;
-		translated->KeyInput.Key         = KEY_ESCAPE;
-		translated->KeyInput.Control     = false;
-		translated->KeyInput.Shift       = false;
+		translated->KeyInput.Key		 = KEY_ESCAPE;
+		translated->KeyInput.Control	 = false;
+		translated->KeyInput.Shift	   = false;
 		translated->KeyInput.PressedDown = true;
-		translated->KeyInput.Char        = 0;
+		translated->KeyInput.Char		= 0;
 		OnEvent(*translated);
 
 		// no need to send the key up event as we're already deleted

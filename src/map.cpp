@@ -66,7 +66,7 @@ Map::Map(IGameDef *gamedef):
 	m_unprocessed_count(0),
 	m_inc_trending_up_start_time(0),
 	m_queue_size_timer_started(false)
-    ,
+	,
 	m_blocks_update_last(0),
 	m_blocks_save_last(0)
 {
@@ -2084,7 +2084,7 @@ u32 Map::transformLiquids(Server *m_server, unsigned int max_cycle_ms)
 		size_t dump_qty = m_unprocessed_count - liquid_loop_max;
 
 		infostream << "transformLiquids(): DUMPING " << dump_qty
-		           << " blocks from the queue" << std::endl;
+				   << " blocks from the queue" << std::endl;
 
 		while (dump_qty--)
 			transforming_liquid_pop();
@@ -2681,7 +2681,7 @@ MapBlock * ServerMap::createBlock(v3s16 p)
 		If block exists on disk, it will be loaded.
 
 		NOTE: On old save formats, this will be slow, as it generates
-		      lighting on blocks for them.
+			  lighting on blocks for them.
 	*/
 	ServerMapSector *sector;
 	try {
@@ -2803,7 +2803,7 @@ void ServerMap::prepareBlock(MapBlock *block) {
 	ServerEnvironment *senv = &((Server *)m_gamedef)->getEnv();
 
 	// Calculate weather conditions
-	//block->heat_last_update     = 0;
+	//block->heat_last_update	 = 0;
 	//block->humidity_last_update = 0;
 	v3POS p = block->getPos() *  MAP_BLOCKSIZE;
 	updateBlockHeat(senv, p, block);
@@ -2871,7 +2871,7 @@ s16 ServerMap::findGroundLevel(v2POS p2d, bool cacheBlocks)
 
 		MapNode node = getNodeNoEx(probePosition);
 		if (node.getContent() != CONTENT_IGNORE &&
-		    node.getContent() != CONTENT_AIR) {
+			node.getContent() != CONTENT_AIR) {
 			break;
 		}
 	}

@@ -2779,7 +2779,7 @@ void ServerEnvironment::deactivateFarObjects(bool force_delete)
 			} catch(InvalidPositionException &e){
 				// Handled via NULL pointer
 				// NOTE: emergeBlock's failure is usually determined by it
-				//       actually returning NULL
+				//	   actually returning NULL
 			}
 
 			if(block)

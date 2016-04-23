@@ -124,7 +124,7 @@ enum Rotation {
 #define LIQUID_STABLE_MASK   0x40 // 0b01000000
 
 // mask for param2, now as for liquid
-#define LEVELED_MASK 0x1F         // 0b00011111 // was: 0x3F
+#define LEVELED_MASK 0x1F		 // 0b00011111 // was: 0x3F
 #define LEVELED_MAX LEVELED_MASK
 
 

@@ -43,7 +43,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 FlagDesc flagdesc_mapgen_flat[] = {
 	{"lakes", MGFLAT_LAKES},
 	{"hills", MGFLAT_HILLS},
-	{NULL,    0}
+	{NULL,	0}
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -53,7 +53,7 @@ MapgenFlat::MapgenFlat(int mapgenid, MapgenParams *params, EmergeManager *emerge
 	: Mapgen(mapgenid, params, emerge)
 {
 	this->m_emerge = emerge;
-	this->bmgr     = emerge->biomemgr;
+	this->bmgr	 = emerge->biomemgr;
 
 	//// amount of elements to skip for the next index
 	//// for noise/height/biome maps (not vmanip)
@@ -61,10 +61,10 @@ MapgenFlat::MapgenFlat(int mapgenid, MapgenParams *params, EmergeManager *emerge
 	// 1-down overgeneration
 	this->zstride_1d = csize.X * (csize.Y + 1);
 
-	this->biomemap        = new u8[csize.X * csize.Z];
-	this->heightmap       = new s16[csize.X * csize.Z];
-	this->heatmap         = NULL;
-	this->humidmap        = NULL;
+	this->biomemap		= new u8[csize.X * csize.Z];
+	this->heightmap	   = new s16[csize.X * csize.Z];
+	this->heatmap		 = NULL;
+	this->humidmap		= NULL;
 
 	MapgenFlatParams *sp = (MapgenFlatParams *)params->sparams;
 	this->spflags = sp->spflags;
@@ -77,7 +77,7 @@ MapgenFlat::MapgenFlat(int mapgenid, MapgenParams *params, EmergeManager *emerge
 	this->hill_steepness = sp->hill_steepness;
 
 	//// 2D noise
-	noise_terrain      = new Noise(&sp->np_terrain,      seed, csize.X, csize.Z);
+	noise_terrain	  = new Noise(&sp->np_terrain,	  seed, csize.X, csize.Z);
 	noise_filler_depth = new Noise(&sp->np_filler_depth, seed, csize.X, csize.Z);
 
 	//// 3D noise
@@ -86,25 +86,25 @@ MapgenFlat::MapgenFlat(int mapgenid, MapgenParams *params, EmergeManager *emerge
 	noise_cave2 = new Noise(&sp->np_cave2, seed, csize.X, csize.Y + 1, csize.Z);
 
 	//// Biome noise
-	noise_heat           = new Noise(&params->np_biome_heat,           seed, csize.X, csize.Z);
-	noise_humidity       = new Noise(&params->np_biome_humidity,       seed, csize.X, csize.Z);
-	noise_heat_blend     = new Noise(&params->np_biome_heat_blend,     seed, csize.X, csize.Z);
+	noise_heat		   = new Noise(&params->np_biome_heat,		   seed, csize.X, csize.Z);
+	noise_humidity	   = new Noise(&params->np_biome_humidity,	   seed, csize.X, csize.Z);
+	noise_heat_blend	 = new Noise(&params->np_biome_heat_blend,	 seed, csize.X, csize.Z);
 	noise_humidity_blend = new Noise(&params->np_biome_humidity_blend, seed, csize.X, csize.Z);
 
 	//// Resolve nodes to be used
 	INodeDefManager *ndef = emerge->ndef;
 
-	c_stone                = ndef->getId("mapgen_stone");
-	c_water_source         = ndef->getId("mapgen_water_source");
-	c_lava_source          = ndef->getId("mapgen_lava_source");
-	c_desert_stone         = ndef->getId("mapgen_desert_stone");
-	c_ice                  = ndef->getId("mapgen_ice");
-	c_sandstone            = ndef->getId("mapgen_sandstone");
+	c_stone				= ndef->getId("mapgen_stone");
+	c_water_source		 = ndef->getId("mapgen_water_source");
+	c_lava_source		  = ndef->getId("mapgen_lava_source");
+	c_desert_stone		 = ndef->getId("mapgen_desert_stone");
+	c_ice				  = ndef->getId("mapgen_ice");
+	c_sandstone			= ndef->getId("mapgen_sandstone");
 
-	c_cobble               = ndef->getId("mapgen_cobble");
-	c_stair_cobble         = ndef->getId("mapgen_stair_cobble");
-	c_mossycobble          = ndef->getId("mapgen_mossycobble");
-	c_sandstonebrick       = ndef->getId("mapgen_sandstonebrick");
+	c_cobble			   = ndef->getId("mapgen_cobble");
+	c_stair_cobble		 = ndef->getId("mapgen_stair_cobble");
+	c_mossycobble		  = ndef->getId("mapgen_mossycobble");
+	c_sandstonebrick	   = ndef->getId("mapgen_sandstonebrick");
 	c_stair_sandstonebrick = ndef->getId("mapgen_stair_sandstonebrick");
 
 	if (c_ice == CONTENT_IGNORE)
@@ -148,10 +148,10 @@ MapgenFlatParams::MapgenFlatParams()
 	hill_threshold = 0.45;
 	hill_steepness = 64.0;
 
-	np_terrain      = NoiseParams(0, 1,   v3f(600, 600, 600), 7244,  5, 0.6, 2.0);
+	np_terrain	  = NoiseParams(0, 1,   v3f(600, 600, 600), 7244,  5, 0.6, 2.0);
 	np_filler_depth = NoiseParams(0, 1.2, v3f(150, 150, 150), 261,   3, 0.7, 2.0);
-	np_cave1        = NoiseParams(0, 12,  v3f(96,  96,  96),  52534, 4, 0.5, 2.0);
-	np_cave2        = NoiseParams(0, 12,  v3f(96,  96,  96),  10325, 4, 0.5, 2.0);
+	np_cave1		= NoiseParams(0, 12,  v3f(96,  96,  96),  52534, 4, 0.5, 2.0);
+	np_cave2		= NoiseParams(0, 12,  v3f(96,  96,  96),  10325, 4, 0.5, 2.0);
 }
 
 
@@ -159,17 +159,17 @@ void MapgenFlatParams::readParams(Settings *settings)
 {
 	settings->getFlagStrNoEx("mgflat_spflags", spflags, flagdesc_mapgen_flat);
 
-	settings->getS16NoEx("mgflat_ground_level",     ground_level);
+	settings->getS16NoEx("mgflat_ground_level",	 ground_level);
 	settings->getS16NoEx("mgflat_large_cave_depth", large_cave_depth);
 	settings->getFloatNoEx("mgflat_lake_threshold", lake_threshold);
 	settings->getFloatNoEx("mgflat_lake_steepness", lake_steepness);
 	settings->getFloatNoEx("mgflat_hill_threshold", hill_threshold);
 	settings->getFloatNoEx("mgflat_hill_steepness", hill_steepness);
 
-	settings->getNoiseParams("mgflat_np_terrain",      np_terrain);
+	settings->getNoiseParams("mgflat_np_terrain",	  np_terrain);
 	settings->getNoiseParams("mgflat_np_filler_depth", np_filler_depth);
-	settings->getNoiseParams("mgflat_np_cave1",        np_cave1);
-	settings->getNoiseParams("mgflat_np_cave2",        np_cave2);
+	settings->getNoiseParams("mgflat_np_cave1",		np_cave1);
+	settings->getNoiseParams("mgflat_np_cave2",		np_cave2);
 }
 
 
@@ -177,17 +177,17 @@ void MapgenFlatParams::writeParams(Settings *settings) const
 {
 	settings->setFlagStr("mgflat_spflags", spflags, flagdesc_mapgen_flat, U32_MAX);
 
-	settings->setS16("mgflat_ground_level",     ground_level);
+	settings->setS16("mgflat_ground_level",	 ground_level);
 	settings->setS16("mgflat_large_cave_depth", large_cave_depth);
 	settings->setFloat("mgflat_lake_threshold", lake_threshold);
 	settings->setFloat("mgflat_lake_steepness", lake_steepness);
 	settings->setFloat("mgflat_hill_threshold", hill_threshold);
 	settings->setFloat("mgflat_hill_steepness", hill_steepness);
 
-	settings->setNoiseParams("mgflat_np_terrain",      np_terrain);
+	settings->setNoiseParams("mgflat_np_terrain",	  np_terrain);
 	settings->setNoiseParams("mgflat_np_filler_depth", np_filler_depth);
-	settings->setNoiseParams("mgflat_np_cave1",        np_cave1);
-	settings->setNoiseParams("mgflat_np_cave2",        np_cave2);
+	settings->setNoiseParams("mgflat_np_cave1",		np_cave1);
+	settings->setNoiseParams("mgflat_np_cave2",		np_cave2);
 }
 
 
@@ -267,37 +267,37 @@ void MapgenFlat::makeChunk(BlockMakeData *data)
 		dp.np_rarity  = nparams_dungeon_rarity;
 		dp.np_density = nparams_dungeon_density;
 		dp.np_wetness = nparams_dungeon_wetness;
-		dp.c_water    = c_water_source;
+		dp.c_water	= c_water_source;
 		if (stone_type == STONE) {
 			dp.c_cobble = c_cobble;
 			dp.c_moss   = c_mossycobble;
 			dp.c_stair  = c_stair_cobble;
 
 			dp.diagonal_dirs = false;
-			dp.mossratio     = 3.0;
-			dp.holesize      = v3s16(1, 2, 1);
-			dp.roomsize      = v3s16(0, 0, 0);
-			dp.notifytype    = GENNOTIFY_DUNGEON;
+			dp.mossratio	 = 3.0;
+			dp.holesize	  = v3s16(1, 2, 1);
+			dp.roomsize	  = v3s16(0, 0, 0);
+			dp.notifytype	= GENNOTIFY_DUNGEON;
 		} else if (stone_type == DESERT_STONE) {
 			dp.c_cobble = c_desert_stone;
 			dp.c_moss   = c_desert_stone;
 			dp.c_stair  = c_desert_stone;
 
 			dp.diagonal_dirs = true;
-			dp.mossratio     = 0.0;
-			dp.holesize      = v3s16(2, 3, 2);
-			dp.roomsize      = v3s16(2, 5, 2);
-			dp.notifytype    = GENNOTIFY_TEMPLE;
+			dp.mossratio	 = 0.0;
+			dp.holesize	  = v3s16(2, 3, 2);
+			dp.roomsize	  = v3s16(2, 5, 2);
+			dp.notifytype	= GENNOTIFY_TEMPLE;
 		} else if (stone_type == SANDSTONE) {
 			dp.c_cobble = c_sandstonebrick;
 			dp.c_moss   = c_sandstonebrick;
 			dp.c_stair  = c_sandstonebrick;
 
 			dp.diagonal_dirs = false;
-			dp.mossratio     = 0.0;
-			dp.holesize      = v3s16(2, 2, 2);
-			dp.roomsize      = v3s16(2, 0, 2);
-			dp.notifytype    = GENNOTIFY_DUNGEON;
+			dp.mossratio	 = 0.0;
+			dp.holesize	  = v3s16(2, 2, 2);
+			dp.roomsize	  = v3s16(2, 0, 2);
+			dp.notifytype	= GENNOTIFY_DUNGEON;
 		}
 
 		DungeonGen dgen(this, &dp);

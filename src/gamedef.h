@@ -88,15 +88,15 @@ public:
 	{ return false; }
 
 	// Shorthands
-	IItemDefManager  *idef()     { return getItemDefManager(); }
-	INodeDefManager  *ndef()     { return getNodeDefManager(); }
-	ICraftDefManager *cdef()     { return getCraftDefManager(); }
-	ITextureSource   *tsrc()     { return getTextureSource(); }
-	ISoundManager    *sound()    { return getSoundManager(); }
-	IShaderSource    *shsrc()    { return getShaderSource(); }
-	MtEventManager   *event()    { return getEventManager(); }
+	IItemDefManager  *idef()	 { return getItemDefManager(); }
+	INodeDefManager  *ndef()	 { return getNodeDefManager(); }
+	ICraftDefManager *cdef()	 { return getCraftDefManager(); }
+	ITextureSource   *tsrc()	 { return getTextureSource(); }
+	ISoundManager	*sound()	{ return getSoundManager(); }
+	IShaderSource	*shsrc()	{ return getShaderSource(); }
+	MtEventManager   *event()	{ return getEventManager(); }
 	IRollbackManager *rollback() { return getRollbackManager();}
-	EmergeManager    *emerge()   { return getEmergeManager(); }
+	EmergeManager	*emerge()   { return getEmergeManager(); }
 };
 
 #endif

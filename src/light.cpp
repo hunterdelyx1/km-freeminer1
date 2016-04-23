@@ -61,8 +61,8 @@ const u8 *light_decode_table = light_LUT;
  *  @note The value for gamma will be restricted to the range 1.1 <= gamma <= 3.0.
  *
  *  @note This function is not, currently, a simple linear to gamma encoding
- *        because adjustments are made so that a gamma of 1.8 gives the same
- *        results as those hardcoded for use by the server.
+ *		because adjustments are made so that a gamma of 1.8 gives the same
+ *		results as those hardcoded for use by the server.
  */
 void set_light_table(float gamma)
 {
@@ -133,17 +133,17 @@ START_FROM_ZERO = False
 
 L = []
 if START_FROM_ZERO:
-    for i in range(1,LIGHT_MAX+1):
-        L.append(int(round(255.0 * FACTOR ** (i-1))))
-    L.append(0)
+	for i in range(1,LIGHT_MAX+1):
+		L.append(int(round(255.0 * FACTOR ** (i-1))))
+	L.append(0)
 else:
-    for i in range(1,LIGHT_MAX+1):
-        L.append(int(round(255.0 * FACTOR ** (i-1))))
-    L.append(255)
+	for i in range(1,LIGHT_MAX+1):
+		L.append(int(round(255.0 * FACTOR ** (i-1))))
+	L.append(255)
 
 L.reverse()
 for i in L:
-    stdout.write(str(i)+",\n")
+	stdout.write(str(i)+",\n")
 */
 u8 light_decode_table[LIGHT_MAX+1] = 
 {
@@ -235,7 +235,7 @@ u8 light_decode_table[LIGHT_MAX+1] =
 
 // As in minecraft, a_n+1 = a_n * 0.8
 // NOTE: This doesn't really work that well because this defines
-//       LIGHT_MAX as dimmer than LIGHT_SUN
+//	   LIGHT_MAX as dimmer than LIGHT_SUN
 // NOTE: Uh, this has had 34 left out; forget this.
 /*u8 light_decode_table[LIGHT_MAX+1] = 
 {
@@ -366,12 +366,12 @@ FACTOR = 0.75
 
 L = []
 for i in range(1,LIGHT_MAX+1):
-    L.append(int(round(255.0 * FACTOR ** (i-1))))
+	L.append(int(round(255.0 * FACTOR ** (i-1))))
 L.append(0)
 
 L.reverse()
 for i in L:
-    stdout.write(str(i)+",\n")
+	stdout.write(str(i)+",\n")
 */
 u8 light_decode_table[LIGHT_MAX+1] = 
 {

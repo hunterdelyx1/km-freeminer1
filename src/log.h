@@ -206,10 +206,10 @@ extern std::ostream infostream;
 extern std::ostream verbosestream;
 extern std::ostream dstream;
 
-#define TRACEDO(x) do {               \
+#define TRACEDO(x) do {			   \
 	if (g_logger.getTraceEnabled()) { \
-		x;                            \
-	}                                 \
+		x;							\
+	}								 \
 } while (0)
 
 #define TRACESTREAM(x) TRACEDO(verbosestream x)

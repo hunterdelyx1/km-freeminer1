@@ -124,7 +124,7 @@ TouchScreenGUI::TouchScreenGUI(IrrlichtDevice *device, IEventReceiver* receiver)
 	m_receiver(receiver)
 {
 	for (unsigned int i=0; i < after_last_element_id; i++) {
-		m_buttons[i].guibutton     =  0;
+		m_buttons[i].guibutton	 =  0;
 		m_buttons[i].repeatcounter = -1;
 		m_buttons[i].repeatdelay   = BUTTON_REPEAT_DELAY;
 	}
@@ -161,12 +161,12 @@ void TouchScreenGUI::initButton(touch_gui_button_id id, rect<s32> button_rect,
 		std::wstring caption, bool immediate_release, float repeat_delay)
 {
 
-	button_info* btn       = &m_buttons[id];
-	btn->guibutton         = m_guienv->addButton(button_rect, 0, id, caption.c_str());
+	button_info* btn	   = &m_buttons[id];
+	btn->guibutton		 = m_guienv->addButton(button_rect, 0, id, caption.c_str());
 	btn->guibutton->grab();
-	btn->repeatcounter     = -1;
-	btn->repeatdelay       = repeat_delay;
-	btn->keycode           = id2keycode(id);
+	btn->repeatcounter	 = -1;
+	btn->repeatdelay	   = repeat_delay;
+	btn->keycode		   = id2keycode(id);
 	btn->immediate_release = immediate_release;
 	btn->ids.clear();
 
@@ -193,9 +193,9 @@ void TouchScreenGUI::init(ISimpleTextureSource* tsrc)
 	//u32 control_pad_size =
 	//		MYMIN((2 * m_screensize.Y) / 3,getMaxControlPadSize(density));
 
-	u32 button_size      = getGuiButtonSize(); //control_pad_size / 3;
-	m_visible            = true;
-	m_texturesource      = tsrc;
+	u32 button_size	  = getGuiButtonSize(); //control_pad_size / 3;
+	m_visible			= true;
+	m_texturesource	  = tsrc;
 	m_control_pad_rect   = rect<s32>(0, m_screensize.Y - 3 * button_size,
 			3 * button_size, m_screensize.Y);
 	/*
@@ -353,9 +353,9 @@ bool TouchScreenGUI::isHUDButton(const SEvent &event)
 				SEvent* translated = new SEvent();
 				memset(translated,0,sizeof(SEvent));
 				translated->EventType = irr::EET_KEY_INPUT_EVENT;
-				translated->KeyInput.Key         = (irr::EKEY_CODE) (KEY_KEY_1 + iter->first);
-				translated->KeyInput.Control     = false;
-				translated->KeyInput.Shift       = false;
+				translated->KeyInput.Key		 = (irr::EKEY_CODE) (KEY_KEY_1 + iter->first);
+				translated->KeyInput.Control	 = false;
+				translated->KeyInput.Shift	   = false;
 				translated->KeyInput.PressedDown = true;
 				m_receiver->OnEvent(*translated);
 				m_hud_ids[event.TouchInput.ID]   = translated->KeyInput.Key;
@@ -374,11 +374,11 @@ bool TouchScreenGUI::isReleaseHUDButton(int eventID)
 	if (iter != m_hud_ids.end()) {
 		SEvent* translated = new SEvent();
 		memset(translated,0,sizeof(SEvent));
-		translated->EventType            = irr::EET_KEY_INPUT_EVENT;
-		translated->KeyInput.Key         = iter->second;
+		translated->EventType			= irr::EET_KEY_INPUT_EVENT;
+		translated->KeyInput.Key		 = iter->second;
 		translated->KeyInput.PressedDown = false;
-		translated->KeyInput.Control     = false;
-		translated->KeyInput.Shift       = false;
+		translated->KeyInput.Control	 = false;
+		translated->KeyInput.Shift	   = false;
 		m_receiver->OnEvent(*translated);
 		m_hud_ids.erase(iter);
 		delete translated;
@@ -393,11 +393,11 @@ void TouchScreenGUI::ButtonEvent(touch_gui_button_id button,
 	button_info* btn = &m_buttons[button];
 	SEvent* translated = new SEvent();
 	memset(translated,0,sizeof(SEvent));
-	translated->EventType            = irr::EET_KEY_INPUT_EVENT;
-	translated->KeyInput.Key         = btn->keycode;
-	translated->KeyInput.Control     = false;
-	translated->KeyInput.Shift       = false;
-	translated->KeyInput.Char        = 0;
+	translated->EventType			= irr::EET_KEY_INPUT_EVENT;
+	translated->KeyInput.Key		 = btn->keycode;
+	translated->KeyInput.Control	 = false;
+	translated->KeyInput.Shift	   = false;
+	translated->KeyInput.Char		= 0;
 
 	/* add this event */
 	if (action) {
@@ -426,7 +426,7 @@ void TouchScreenGUI::ButtonEvent(touch_gui_button_id button,
 		if (btn->ids.size() > 0)  { return; }
 
 		translated->KeyInput.PressedDown = false;
-		btn->repeatcounter               = -1;
+		btn->repeatcounter			   = -1;
 		m_receiver->OnEvent(*translated);
 	}
 	delete translated;
@@ -472,10 +472,10 @@ void TouchScreenGUI::translateEvent(const SEvent &event)
 		else {
 			/* if we don't already have a moving point make this the moving one */
 			if (m_move_id == -1) {
-				m_move_id                  = event.TouchInput.ID;
-				m_move_has_really_moved    = false;
-				m_move_downtime            = getTimeMs();
-				m_move_downlocation        = v2s32(event.TouchInput.X, event.TouchInput.Y);
+				m_move_id				  = event.TouchInput.ID;
+				m_move_has_really_moved	= false;
+				m_move_downtime			= getTimeMs();
+				m_move_downlocation		= v2s32(event.TouchInput.X, event.TouchInput.Y);
 				m_move_sent_as_mouse_event = false;
 			}
 		}
@@ -503,13 +503,13 @@ void TouchScreenGUI::translateEvent(const SEvent &event)
 			if (m_move_sent_as_mouse_event) {
 				SEvent* translated = new SEvent;
 				memset(translated,0,sizeof(SEvent));
-				translated->EventType               = EET_MOUSE_INPUT_EVENT;
-				translated->MouseInput.X            = m_move_downlocation.X;
-				translated->MouseInput.Y            = m_move_downlocation.Y;
-				translated->MouseInput.Shift        = false;
-				translated->MouseInput.Control      = false;
+				translated->EventType			   = EET_MOUSE_INPUT_EVENT;
+				translated->MouseInput.X			= m_move_downlocation.X;
+				translated->MouseInput.Y			= m_move_downlocation.Y;
+				translated->MouseInput.Shift		= false;
+				translated->MouseInput.Control	  = false;
 				translated->MouseInput.ButtonStates = 0;
-				translated->MouseInput.Event        = EMIE_LMOUSE_LEFT_UP;
+				translated->MouseInput.Event		= EMIE_LMOUSE_LEFT_UP;
 				m_receiver->OnEvent(*translated);
 				delete translated;
 			}
@@ -563,7 +563,7 @@ void TouchScreenGUI::translateEvent(const SEvent &event)
 					s32 dy = Y - m_pointerpos[event.TouchInput.ID].Y;
 
 					/* adapt to similar behaviour as pc screen */
-					double d         = mouse_sensitivity *4;
+					double d		 = mouse_sensitivity *4;
 					double old_yaw   = m_camera_yaw;
 					double old_pitch = m_camera_pitch;
 
@@ -647,11 +647,11 @@ void TouchScreenGUI::handleChangedButton(const SEvent &event)
 bool TouchScreenGUI::doubleTapDetection()
 {
 	m_key_events[0].down_time = m_key_events[1].down_time;
-	m_key_events[0].x         = m_key_events[1].x;
-	m_key_events[0].y         = m_key_events[1].y;
+	m_key_events[0].x		 = m_key_events[1].x;
+	m_key_events[0].y		 = m_key_events[1].y;
 	m_key_events[1].down_time = m_move_downtime;
-	m_key_events[1].x         = m_move_downlocation.X;
-	m_key_events[1].y         = m_move_downlocation.Y;
+	m_key_events[1].x		 = m_move_downlocation.X;
+	m_key_events[1].y		 = m_move_downlocation.Y;
 
 	u32 delta = porting::getDeltaMs(m_key_events[0].down_time,getTimeMs());
 	if (delta > 400)
@@ -667,11 +667,11 @@ bool TouchScreenGUI::doubleTapDetection()
 
 	SEvent* translated = new SEvent();
 	memset(translated,0,sizeof(SEvent));
-	translated->EventType               = EET_MOUSE_INPUT_EVENT;
-	translated->MouseInput.X            = m_key_events[0].x;
-	translated->MouseInput.Y            = m_key_events[0].y;
-	translated->MouseInput.Shift        = false;
-	translated->MouseInput.Control      = false;
+	translated->EventType			   = EET_MOUSE_INPUT_EVENT;
+	translated->MouseInput.X			= m_key_events[0].x;
+	translated->MouseInput.Y			= m_key_events[0].y;
+	translated->MouseInput.Shift		= false;
+	translated->MouseInput.Control	  = false;
 	translated->MouseInput.ButtonStates = EMBSM_RIGHT;
 
 	// update shootline
@@ -685,7 +685,7 @@ bool TouchScreenGUI::doubleTapDetection()
 	m_receiver->OnEvent(*translated);
 
 	translated->MouseInput.ButtonStates = 0;
-	translated->MouseInput.Event        = EMIE_RMOUSE_LEFT_UP;
+	translated->MouseInput.Event		= EMIE_RMOUSE_LEFT_UP;
 	verbosestream << "TouchScreenGUI::translateEvent right click release" << std::endl;
 	m_receiver->OnEvent(*translated);
 	delete translated;
@@ -719,10 +719,10 @@ void TouchScreenGUI::step(float dtime)
 
 			if (btn->repeatcounter < btn->repeatdelay) continue;
 
-			btn->repeatcounter              = 0;
+			btn->repeatcounter			  = 0;
 			SEvent translated = { };
-			translated.EventType            = irr::EET_KEY_INPUT_EVENT;
-			translated.KeyInput.Key         = btn->keycode;
+			translated.EventType			= irr::EET_KEY_INPUT_EVENT;
+			translated.KeyInput.Key		 = btn->keycode;
 			translated.KeyInput.PressedDown = false;
 			m_receiver->OnEvent(translated);
 
@@ -746,16 +746,16 @@ void TouchScreenGUI::step(float dtime)
 							v2s32(m_move_downlocation.X,m_move_downlocation.Y));
 
 			SEvent translated = { };
-			translated.EventType               = EET_MOUSE_INPUT_EVENT;
-			translated.MouseInput.X            = m_move_downlocation.X;
-			translated.MouseInput.Y            = m_move_downlocation.Y;
-			translated.MouseInput.Shift        = false;
-			translated.MouseInput.Control      = false;
+			translated.EventType			   = EET_MOUSE_INPUT_EVENT;
+			translated.MouseInput.X			= m_move_downlocation.X;
+			translated.MouseInput.Y			= m_move_downlocation.Y;
+			translated.MouseInput.Shift		= false;
+			translated.MouseInput.Control	  = false;
 			translated.MouseInput.ButtonStates = EMBSM_LEFT;
-			translated.MouseInput.Event        = EMIE_LMOUSE_PRESSED_DOWN;
+			translated.MouseInput.Event		= EMIE_LMOUSE_PRESSED_DOWN;
 			verbosestream << "TouchScreenGUI::step left click press" << std::endl;
 			m_receiver->OnEvent(translated);
-			m_move_sent_as_mouse_event         = true;
+			m_move_sent_as_mouse_event		 = true;
 		}
 	}
 }
@@ -799,10 +799,10 @@ void TouchScreenGUI::reset_pressed() {
 			continue;
 
 		{
-			btn->repeatcounter              = 0;
+			btn->repeatcounter			  = 0;
 			SEvent translated = { };
-			translated.EventType            = irr::EET_KEY_INPUT_EVENT;
-			translated.KeyInput.Key         = btn->keycode;
+			translated.EventType			= irr::EET_KEY_INPUT_EVENT;
+			translated.KeyInput.Key		 = btn->keycode;
 			translated.KeyInput.PressedDown = false;
 			m_receiver->OnEvent(translated);
 			btn->ids.clear();

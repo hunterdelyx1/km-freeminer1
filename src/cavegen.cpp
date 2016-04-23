@@ -38,22 +38,22 @@ NoiseParams nparams_caveliquids(0, 1, v3f(150.0, 150.0, 150.0), 776, 3, 0.6, 2.0
 
 CaveV5::CaveV5(Mapgen *mg, PseudoRandom *ps)
 {
-	this->mg             = mg;
-	this->vm             = mg->vm;
-	this->ndef           = mg->ndef;
-	this->water_level    = mg->water_level;
-	this->ps             = ps;
-	c_water_source       = ndef->getId("mapgen_water_source");
-	c_lava_source        = ndef->getId("mapgen_lava_source");
-	c_ice                = ndef->getId("mapgen_ice");
+	this->mg			 = mg;
+	this->vm			 = mg->vm;
+	this->ndef		   = mg->ndef;
+	this->water_level	= mg->water_level;
+	this->ps			 = ps;
+	c_water_source	   = ndef->getId("mapgen_water_source");
+	c_lava_source		= ndef->getId("mapgen_lava_source");
+	c_ice				= ndef->getId("mapgen_ice");
 	this->np_caveliquids = &nparams_caveliquids;
-	this->ystride        = mg->csize.X;
+	this->ystride		= mg->csize.X;
  
 	if (c_ice == CONTENT_IGNORE)
 		c_ice = CONTENT_AIR;
 
 	dswitchint = ps->range(1, 14);
-	flooded    = ps->range(1, 2) == 2;
+	flooded	= ps->range(1, 2) == 2;
 
 	part_max_length_rs  = ps->range(2, 4);
 	tunnel_routepoints  = ps->range(5, ps->range(15, 30));
@@ -294,20 +294,20 @@ void CaveV5::carveRoute(v3f vec, float f, bool randomize_xz)
 
 CaveV6::CaveV6(MapgenV6 *mg, PseudoRandom *ps, PseudoRandom *ps2, bool is_large_cave)
 {
-	this->mg             = mg;
-	this->vm             = mg->vm;
-	this->ndef           = mg->ndef;
-	this->water_level    = mg->water_level;
-	this->large_cave     = is_large_cave;
-	this->ps             = ps;
-	this->ps2            = ps2;
+	this->mg			 = mg;
+	this->vm			 = mg->vm;
+	this->ndef		   = mg->ndef;
+	this->water_level	= mg->water_level;
+	this->large_cave	 = is_large_cave;
+	this->ps			 = ps;
+	this->ps2			= ps2;
 	this->c_water_source = mg->c_water_source;
 	this->c_lava_source  = mg->c_lava_source;
 
 	min_tunnel_diameter = 2;
 	max_tunnel_diameter = ps->range(2, 6);
-	dswitchint          = ps->range(1, 14);
-	flooded             = true;
+	dswitchint		  = ps->range(1, 14);
+	flooded			 = true;
 
 	if (large_cave) {
 		part_max_length_rs  = ps->range(2,4);
@@ -598,18 +598,18 @@ void CaveV6::carveRoute(v3f vec, float f, bool randomize_xz, bool tunnel_above_g
 
 CaveV7::CaveV7(MapgenV7 *mg, PseudoRandom *ps)
 {
-	this->mg             = mg;
-	this->vm             = mg->vm;
-	this->ndef           = mg->ndef;
-	this->water_level    = mg->water_level;
-	this->ps             = ps;
+	this->mg			 = mg;
+	this->vm			 = mg->vm;
+	this->ndef		   = mg->ndef;
+	this->water_level	= mg->water_level;
+	this->ps			 = ps;
 	this->c_water_source = mg->c_water_source;
 	this->c_lava_source  = mg->c_lava_source;
-	this->c_ice          = mg->c_ice;
+	this->c_ice		  = mg->c_ice;
 	this->np_caveliquids = &nparams_caveliquids;
 
 	dswitchint = ps->range(1, 14);
-	flooded    = ps->range(1, 2) == 2;
+	flooded	= ps->range(1, 2) == 2;
 
 	part_max_length_rs  = ps->range(2, 4);
 	tunnel_routepoints  = ps->range(5, ps->range(15, 30));

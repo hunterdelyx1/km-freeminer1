@@ -41,7 +41,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 
 FlagDesc flagdesc_mapgen_v5[] = {
-	{NULL,         0}
+	{NULL,		 0}
 };
 
 
@@ -50,7 +50,7 @@ MapgenV5::MapgenV5(int mapgenid, MapgenParams *params, EmergeManager *emerge)
 	, Mapgen_features(mapgenid, params, emerge)
 {
 	this->m_emerge = emerge;
-	this->bmgr     = emerge->biomemgr;
+	this->bmgr	 = emerge->biomemgr;
 
 	// amount of elements to skip for the next index
 	// for noise/height/biome maps (not vmanip)
@@ -64,12 +64,12 @@ MapgenV5::MapgenV5(int mapgenid, MapgenParams *params, EmergeManager *emerge)
 	this->humidmap  = NULL;
 
 	MapgenV5Params *sp = (MapgenV5Params *)params->sparams;
-	this->spflags      = sp->spflags;
+	this->spflags	  = sp->spflags;
 
 	// Terrain noise
 	noise_filler_depth = new Noise(&sp->np_filler_depth, seed, csize.X, csize.Z);
-	noise_factor       = new Noise(&sp->np_factor,       seed, csize.X, csize.Z);
-	noise_height       = new Noise(&sp->np_height,       seed, csize.X, csize.Z);
+	noise_factor	   = new Noise(&sp->np_factor,	   seed, csize.X, csize.Z);
+	noise_height	   = new Noise(&sp->np_height,	   seed, csize.X, csize.Z);
 
 	// 3D terrain noise
 	// 1-up 1-down overgeneration
@@ -79,25 +79,25 @@ MapgenV5::MapgenV5(int mapgenid, MapgenParams *params, EmergeManager *emerge)
 	noise_cave2  = new Noise(&sp->np_cave2,  seed, csize.X, csize.Y + 1, csize.Z);
 
 	// Biome noise
-	noise_heat           = new Noise(&params->np_biome_heat,           seed, csize.X, csize.Z);
-	noise_humidity       = new Noise(&params->np_biome_humidity,       seed, csize.X, csize.Z);
-	noise_heat_blend     = new Noise(&params->np_biome_heat_blend,     seed, csize.X, csize.Z);
+	noise_heat		   = new Noise(&params->np_biome_heat,		   seed, csize.X, csize.Z);
+	noise_humidity	   = new Noise(&params->np_biome_humidity,	   seed, csize.X, csize.Z);
+	noise_heat_blend	 = new Noise(&params->np_biome_heat_blend,	 seed, csize.X, csize.Z);
 	noise_humidity_blend = new Noise(&params->np_biome_humidity_blend, seed, csize.X, csize.Z);
 
 	//// Resolve nodes to be used
 	INodeDefManager *ndef = emerge->ndef;
 
-	c_stone                = ndef->getId("mapgen_stone");
-	c_water_source         = ndef->getId("mapgen_water_source");
-	c_lava_source          = ndef->getId("mapgen_lava_source");
-	c_desert_stone         = ndef->getId("mapgen_desert_stone");
-	c_ice                  = ndef->getId("mapgen_ice");
-	c_sandstone            = ndef->getId("mapgen_sandstone");
+	c_stone				= ndef->getId("mapgen_stone");
+	c_water_source		 = ndef->getId("mapgen_water_source");
+	c_lava_source		  = ndef->getId("mapgen_lava_source");
+	c_desert_stone		 = ndef->getId("mapgen_desert_stone");
+	c_ice				  = ndef->getId("mapgen_ice");
+	c_sandstone			= ndef->getId("mapgen_sandstone");
 
-	c_cobble               = ndef->getId("mapgen_cobble");
-	c_stair_cobble         = ndef->getId("mapgen_stair_cobble");
-	c_mossycobble          = ndef->getId("mapgen_mossycobble");
-	c_sandstonebrick       = ndef->getId("mapgen_sandstonebrick");
+	c_cobble			   = ndef->getId("mapgen_cobble");
+	c_stair_cobble		 = ndef->getId("mapgen_stair_cobble");
+	c_mossycobble		  = ndef->getId("mapgen_mossycobble");
+	c_sandstonebrick	   = ndef->getId("mapgen_sandstonebrick");
 	c_stair_sandstonebrick = ndef->getId("mapgen_stair_sandstonebrick");
 
 	if (c_ice == CONTENT_IGNORE)
@@ -114,10 +114,10 @@ MapgenV5::MapgenV5(int mapgenid, MapgenParams *params, EmergeManager *emerge)
 	noise_float_islands2  = new Noise(&sp->np_float_islands2, seed, csize.X, csize.Y + y_offset * 2, csize.Z);
 	noise_float_islands3  = new Noise(&sp->np_float_islands3, seed, csize.X, csize.Z);
 
-	noise_layers          = new Noise(&sp->np_layers,         seed, csize.X, csize.Y + y_offset * 2, csize.Z);
+	noise_layers		  = new Noise(&sp->np_layers,		 seed, csize.X, csize.Y + y_offset * 2, csize.Z);
 	layers_init(emerge, sp->paramsj);
 
-	//noise_cave_indev      = new Noise(&sp->np_cave_indev,     seed, csize.X, csize.Y + y_offset * 2, csize.Z);
+	//noise_cave_indev	  = new Noise(&sp->np_cave_indev,	 seed, csize.X, csize.Y + y_offset * 2, csize.Z);
 	//===
 
 	if (c_sandstonebrick == CONTENT_IGNORE)
@@ -150,19 +150,19 @@ MapgenV5Params::MapgenV5Params()
 {
 	spflags = 0;
 
-	np_filler_depth = NoiseParams(0, 1,  v3f(150, 150, 150), 261,    4, 0.7,  2.0);
-	np_factor       = NoiseParams(0, 1,  v3f(250, 250, 250), 920381, 3, 0.45, 2.0);
-	np_height       = NoiseParams(0, 10, v3f(250, 250, 250), 84174,  4, 0.5,  2.0);
-	np_cave1        = NoiseParams(0, 12, v3f(50,  50,  50),  52534,  4, 0.5,  2.0);
-	np_cave2        = NoiseParams(0, 12, v3f(50,  50,  50),  10325,  4, 0.5,  2.0);
-	np_ground       = NoiseParams(0, 40, v3f(80,  80,  80),  983240, 4, 0.55, 2.0, NOISE_FLAG_EASED);
+	np_filler_depth = NoiseParams(0, 1,  v3f(150, 150, 150), 261,	4, 0.7,  2.0);
+	np_factor	   = NoiseParams(0, 1,  v3f(250, 250, 250), 920381, 3, 0.45, 2.0);
+	np_height	   = NoiseParams(0, 10, v3f(250, 250, 250), 84174,  4, 0.5,  2.0);
+	np_cave1		= NoiseParams(0, 12, v3f(50,  50,  50),  52534,  4, 0.5,  2.0);
+	np_cave2		= NoiseParams(0, 12, v3f(50,  50,  50),  10325,  4, 0.5,  2.0);
+	np_ground	   = NoiseParams(0, 40, v3f(80,  80,  80),  983240, 4, 0.55, 2.0, NOISE_FLAG_EASED);
 
 	//freeminer:
 	float_islands = 500;
-	np_float_islands1  = NoiseParams(0,    1,   v3f(256, 256, 256), 3683, 6, 0.6, 2.0, NOISE_FLAG_DEFAULTS, 1, 1.5);
-	np_float_islands2  = NoiseParams(0,    1,   v3f(8,   8,   8  ), 9292, 2, 0.5, 2.0, NOISE_FLAG_DEFAULTS, 1, 1.5);
-	np_float_islands3  = NoiseParams(0,    1,   v3f(256, 256, 256), 6412, 2, 0.5, 2.0, NOISE_FLAG_DEFAULTS, 1, 0.5);
-	np_layers          = NoiseParams(500,  500, v3f(100, 100, 100), 3663, 5, 0.6, 2.0, NOISE_FLAG_DEFAULTS, 1, 1.1,   0.5);
+	np_float_islands1  = NoiseParams(0,	1,   v3f(256, 256, 256), 3683, 6, 0.6, 2.0, NOISE_FLAG_DEFAULTS, 1, 1.5);
+	np_float_islands2  = NoiseParams(0,	1,   v3f(8,   8,   8  ), 9292, 2, 0.5, 2.0, NOISE_FLAG_DEFAULTS, 1, 1.5);
+	np_float_islands3  = NoiseParams(0,	1,   v3f(256, 256, 256), 6412, 2, 0.5, 2.0, NOISE_FLAG_DEFAULTS, 1, 0.5);
+	np_layers		  = NoiseParams(500,  500, v3f(100, 100, 100), 3663, 5, 0.6, 2.0, NOISE_FLAG_DEFAULTS, 1, 1.1,   0.5);
 }
 
 
@@ -175,18 +175,18 @@ void MapgenV5Params::readParams(Settings *settings)
 	settings->getFlagStrNoEx("mgv5_spflags", spflags, flagdesc_mapgen_v5);
 
 	settings->getNoiseParams("mgv5_np_filler_depth", np_filler_depth);
-	settings->getNoiseParams("mgv5_np_factor",       np_factor);
-	settings->getNoiseParams("mgv5_np_height",       np_height);
-	settings->getNoiseParams("mgv5_np_cave1",        np_cave1);
-	settings->getNoiseParams("mgv5_np_cave2",        np_cave2);
-	settings->getNoiseParams("mgv5_np_ground",       np_ground);
+	settings->getNoiseParams("mgv5_np_factor",	   np_factor);
+	settings->getNoiseParams("mgv5_np_height",	   np_height);
+	settings->getNoiseParams("mgv5_np_cave1",		np_cave1);
+	settings->getNoiseParams("mgv5_np_cave2",		np_cave2);
+	settings->getNoiseParams("mgv5_np_ground",	   np_ground);
 
 	//freeminer:
 	settings->getS16NoEx("mg_float_islands", float_islands);
 	settings->getNoiseParamsFromGroup("mg_np_float_islands1", np_float_islands1);
 	settings->getNoiseParamsFromGroup("mg_np_float_islands2", np_float_islands2);
 	settings->getNoiseParamsFromGroup("mg_np_float_islands3", np_float_islands3);
-	settings->getNoiseParamsFromGroup("mg_np_layers",         np_layers);
+	settings->getNoiseParamsFromGroup("mg_np_layers",		 np_layers);
 	paramsj = settings->getJson("mg_params", paramsj);
 }
 
@@ -196,18 +196,18 @@ void MapgenV5Params::writeParams(Settings *settings) const
 	settings->setFlagStr("mgv5_spflags", spflags, flagdesc_mapgen_v5, U32_MAX);
 
 	settings->setNoiseParams("mgv5_np_filler_depth", np_filler_depth);
-	settings->setNoiseParams("mgv5_np_factor",       np_factor);
-	settings->setNoiseParams("mgv5_np_height",       np_height);
-	settings->setNoiseParams("mgv5_np_cave1",        np_cave1);
-	settings->setNoiseParams("mgv5_np_cave2",        np_cave2);
-	settings->setNoiseParams("mgv5_np_ground",       np_ground);
+	settings->setNoiseParams("mgv5_np_factor",	   np_factor);
+	settings->setNoiseParams("mgv5_np_height",	   np_height);
+	settings->setNoiseParams("mgv5_np_cave1",		np_cave1);
+	settings->setNoiseParams("mgv5_np_cave2",		np_cave2);
+	settings->setNoiseParams("mgv5_np_ground",	   np_ground);
 
 	//freeminer:
 	settings->setS16("mg_float_islands", float_islands);
 	settings->setNoiseParams("mg_np_float_islands1", np_float_islands1);
 	settings->setNoiseParams("mg_np_float_islands2", np_float_islands2);
 	settings->setNoiseParams("mg_np_float_islands3", np_float_islands3);
-	settings->setNoiseParams("mg_np_layers",         np_layers);
+	settings->setNoiseParams("mg_np_layers",		 np_layers);
 	settings->setJson("mg_params", paramsj);
 }
 
@@ -305,37 +305,37 @@ void MapgenV5::makeChunk(BlockMakeData *data)
 		dp.np_rarity  = nparams_dungeon_rarity;
 		dp.np_density = nparams_dungeon_density;
 		dp.np_wetness = nparams_dungeon_wetness;
-		dp.c_water    = c_water_source;
+		dp.c_water	= c_water_source;
 		if (stone_type == STONE) {
 			dp.c_cobble = c_cobble;
 			dp.c_moss   = c_mossycobble;
 			dp.c_stair  = c_stair_cobble;
 
 			dp.diagonal_dirs = false;
-			dp.mossratio     = 3.0;
-			dp.holesize      = v3s16(1, 2, 1);
-			dp.roomsize      = v3s16(0, 0, 0);
-			dp.notifytype    = GENNOTIFY_DUNGEON;
+			dp.mossratio	 = 3.0;
+			dp.holesize	  = v3s16(1, 2, 1);
+			dp.roomsize	  = v3s16(0, 0, 0);
+			dp.notifytype	= GENNOTIFY_DUNGEON;
 		} else if (stone_type == DESERT_STONE) {
 			dp.c_cobble = c_desert_stone;
 			dp.c_moss   = c_desert_stone;
 			dp.c_stair  = c_desert_stone;
 
 			dp.diagonal_dirs = true;
-			dp.mossratio     = 0.0;
-			dp.holesize      = v3s16(2, 3, 2);
-			dp.roomsize      = v3s16(2, 5, 2);
-			dp.notifytype    = GENNOTIFY_TEMPLE;
+			dp.mossratio	 = 0.0;
+			dp.holesize	  = v3s16(2, 3, 2);
+			dp.roomsize	  = v3s16(2, 5, 2);
+			dp.notifytype	= GENNOTIFY_TEMPLE;
 		} else if (stone_type == SANDSTONE) {
 			dp.c_cobble = c_sandstonebrick;
 			dp.c_moss   = c_sandstonebrick;
 			dp.c_stair  = c_sandstonebrick;
 
 			dp.diagonal_dirs = false;
-			dp.mossratio     = 0.0;
-			dp.holesize      = v3s16(2, 2, 2);
-			dp.roomsize      = v3s16(2, 0, 2);
-			dp.notifytype    = GENNOTIFY_DUNGEON;
+			dp.mossratio	 = 0.0;
+			dp.holesize	  = v3s16(2, 2, 2);
+			dp.roomsize	  = v3s16(2, 0, 2);
+			dp.notifytype	= GENNOTIFY_DUNGEON;
 		}
 
 		DungeonGen dgen(this, &dp);

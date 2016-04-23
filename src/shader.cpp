@@ -791,20 +791,20 @@ ShaderInfo generate_shader(std::string name, u8 material_type, u8 drawtype,
 		infostream<<"Compiling high level shaders for "<<name<<std::endl;
 		shadermat = gpu->addHighLevelShaderMaterial(
 			vertex_program_ptr,   // Vertex shader program
-			"vertexMain",         // Vertex shader entry point
+			"vertexMain",		 // Vertex shader entry point
 			video::EVST_VS_1_1,   // Vertex shader version
-			pixel_program_ptr,    // Pixel shader program
-			"pixelMain",          // Pixel shader entry point
+			pixel_program_ptr,	// Pixel shader program
+			"pixelMain",		  // Pixel shader entry point
 			video::EPST_PS_1_2,   // Pixel shader version
 			geometry_program_ptr, // Geometry shader program
-			"geometryMain",       // Geometry shader entry point
+			"geometryMain",	   // Geometry shader entry point
 			video::EGST_GS_4_0,   // Geometry shader version
-			scene::EPT_TRIANGLES,      // Geometry shader input
+			scene::EPT_TRIANGLES,	  // Geometry shader input
 			scene::EPT_TRIANGLE_STRIP, // Geometry shader output
-			0,                         // Support maximum number of vertices
-			callback,                  // Set-constant callback
+			0,						 // Support maximum number of vertices
+			callback,				  // Set-constant callback
 			shaderinfo.base_material,  // Base material
-			1                          // Userdata passed to callback
+			1						  // Userdata passed to callback
 			);
 		if(shadermat == -1){
 			errorstream<<"generate_shader(): "
@@ -821,10 +821,10 @@ ShaderInfo generate_shader(std::string name, u8 material_type, u8 drawtype,
 		infostream<<"Compiling assembly shaders for "<<name<<std::endl;
 		shadermat = gpu->addShaderMaterial(
 			vertex_program_ptr,   // Vertex shader program
-			pixel_program_ptr,    // Pixel shader program
-			callback,             // Set-constant callback
+			pixel_program_ptr,	// Pixel shader program
+			callback,			 // Set-constant callback
 			shaderinfo.base_material,  // Base material
-			0                     // Userdata passed to callback
+			0					 // Userdata passed to callback
 			);
 
 		if(shadermat == -1){

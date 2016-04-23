@@ -75,20 +75,20 @@ struct ValueSpec {
 struct SettingsEntry {
 	SettingsEntry()
 	{
-		group    = NULL;
+		group	= NULL;
 		is_group = false;
 	}
 
 	SettingsEntry(const std::string &value_)
 	{
-		value    = value_;
-		group    = NULL;
+		value	= value_;
+		group	= NULL;
 		is_group = false;
 	}
 
 	SettingsEntry(Settings *group_)
 	{
-		group    = group_;
+		group	= group_;
 		is_group = true;
 	}
 

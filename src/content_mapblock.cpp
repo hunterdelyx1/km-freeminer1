@@ -36,17 +36,17 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 
 // Create a cuboid.
 //  collector - the MeshCollector for the resulting polygons
-//  box       - the position and size of the box
-//  tiles     - the tiles (materials) to use (for all 6 faces)
+//  box	   - the position and size of the box
+//  tiles	 - the tiles (materials) to use (for all 6 faces)
 //  tilecount - number of entries in tiles, 1<=tilecount<=6
-//  c         - vertex colour - used for all
-//  txc       - texture coordinates - this is a list of texture coordinates
-//              for the opposite corners of each face - therefore, there
-//              should be (2+2)*6=24 values in the list. Alternatively, pass
-//              NULL to use the entire texture for each face. The order of
-//              the faces in the list is up-down-right-left-back-front
-//              (compatible with ContentFeatures). If you specified 0,0,1,1
-//              for each face, that would be the same as passing NULL.
+//  c		 - vertex colour - used for all
+//  txc	   - texture coordinates - this is a list of texture coordinates
+//			  for the opposite corners of each face - therefore, there
+//			  should be (2+2)*6=24 values in the list. Alternatively, pass
+//			  NULL to use the entire texture for each face. The order of
+//			  the faces in the list is up-down-right-left-back-front
+//			  (compatible with ContentFeatures). If you specified 0,0,1,1
+//			  for each face, that would be the same as passing NULL.
 void makeCuboid(MeshCollector *collector, const aabb3f &box,
 	TileSpec *tiles, int tilecount, video::SColor &c, const f32* txc)
 {
@@ -352,12 +352,12 @@ class neighborRail {
 	switch (adjacencies) {
 	case 1: //straight
 		tileindex = 5; //diagonal rail end
-		       if(is_corner_z_all[0] && neighbor_z_all[0].force_end) {
+			   if(is_corner_z_all[0] && neighbor_z_all[0].force_end) {
 			//angle = 0;
-		    if(neighbor_z_all[0].is_rail_x_all[1]) {
-		    	angle -= 90;
-		    	diagonalflip = true;
-		    }
+			if(neighbor_z_all[0].is_rail_x_all[1]) {
+				angle -= 90;
+				diagonalflip = true;
+			}
 		} else if(is_corner_x_all[0] && neighbor_x_all[0].force_end) {
 			angle = -90;
 			if(neighbor_x_all[0].is_rail_z_all[0]) {
@@ -799,7 +799,7 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 
 					// Check node above neighbor.
 					// NOTE: This doesn't get executed if neighbor
-					//       doesn't exist
+					//	   doesn't exist
 					p2.Y += 1;
 					n2 = data->m_vmanip.getNodeNoEx(blockpos_nodes + p2);
 					if(n2.getContent() == c_source ||
@@ -1012,7 +1012,7 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 					s32 j = corner_resolve[i];
 					vertices[i].Pos.Y += corner_levels[j];
 					if (neighbor_levels[neighbor_dirs[0]] > corner_levels[j] + 0.25 ||
-					    neighbor_levels[neighbor_dirs[0]] < corner_levels[j] - 0.25)
+						neighbor_levels[neighbor_dirs[0]] < corner_levels[j] - 0.25)
 						current_tile = &tile_liquid;
 					vertices[i].Pos += intToFloat(p, BS);
 				}
@@ -1078,7 +1078,7 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 				u16 indices[] = {0,1,2,2,3,0};
 				// Add to mesh collector
 				collector.append(tile_liquid, vertices, 4, indices, 6);
-                        }
+						}
 		break;}
 		case NDT_GLASSLIKE:
 		{
@@ -1306,7 +1306,7 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 				tz2 = (box.MaxEdge.Z / BS) + 0.5;
 				f32 txc1[24] = {
 					tx1,   1-tz2,   tx2, 1-tz1,
-					tx1,     tz1,   tx2,   tz2,
+					tx1,	 tz1,   tx2,   tz2,
 					tz1,   1-ty2,   tz2, 1-ty1,
 					1-tz2, 1-ty2, 1-tz1, 1-ty1,
 					1-tx2, 1-ty2, 1-tx1, 1-ty1,
@@ -1330,7 +1330,7 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 				tz2 = (box.MaxEdge.Z / BS) + 0.5;
 				f32 txc2[24] = {
 					tx1,   1-tz2,   tx2, 1-tz1,
-					tx1,     tz1,   tx2,   tz2,
+					tx1,	 tz1,   tx2,   tz2,
 					tz1,   1-ty2,   tz2, 1-ty1,
 					1-tz2, 1-ty2, 1-tz1, 1-ty1,
 					1-tx2, 1-ty2, 1-tx1, 1-ty1,
@@ -1363,7 +1363,7 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 				tz2 = (box.MaxEdge.Z / BS) + 0.5;
 				f32 txc3[24] = {
 					tx1,   1-tz2,   tx2, 1-tz1,
-					tx1,     tz1,   tx2,   tz2,
+					tx1,	 tz1,   tx2,   tz2,
 					tz1,   1-ty2,   tz2, 1-ty1,
 					1-tz2, 1-ty2, 1-tz1, 1-ty1,
 					1-tx2, 1-ty2, 1-tx1, 1-ty1,
@@ -1604,8 +1604,8 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 			for (int j = 0; j < 6; j++) {
 
 				video::S3DVertex vertices[4] = {
-					video::S3DVertex(-s, -BS / 2,         0, 0, 0, 0, c, 0, 1),
-					video::S3DVertex( s, -BS / 2,         0, 0, 0, 0, c, 1, 1),
+					video::S3DVertex(-s, -BS / 2,		 0, 0, 0, 0, c, 0, 1),
+					video::S3DVertex( s, -BS / 2,		 0, 0, 0, 0, c, 1, 1),
 					video::S3DVertex( s, -BS / 2 + s * 2, 0, 0, 0, 0, c, 1, 0),
 					video::S3DVertex(-s, -BS / 2 + s * 2, 0, 0, 0, 0, c, 0, 0),
 				};

@@ -179,7 +179,7 @@ void CircuitElement::serializeState(std::ostream& out) const {
 }
 
 void CircuitElement::deSerialize(std::istream& in,
-                                 std::map <u32, std::list <CircuitElementVirtual>::iterator>& id_to_virtual_pointer) {
+								 std::map <u32, std::list <CircuitElementVirtual>::iterator>& id_to_virtual_pointer) {
 	u32 current_element_id;
 	in.read(reinterpret_cast<char*>(&m_pos), sizeof(m_pos));
 	for(int i = 0; i < 6; ++i) {
@@ -223,16 +223,16 @@ void CircuitElement::getNeighbors(std::vector <std::list <CircuitElementVirtual>
 }
 
 void CircuitElement::findConnectedWithFace(std::vector <std::pair <std::list<CircuitElement>::iterator, u8> >& connected,
-        Map* map, INodeDefManager* ndef, v3POS pos, u8 face,
-        std::map<v3POS, std::list<CircuitElement>::iterator>& pos_to_iterator,
-        bool connected_faces[6]) {
+		Map* map, INodeDefManager* ndef, v3POS pos, u8 face,
+		std::map<v3POS, std::list<CircuitElement>::iterator>& pos_to_iterator,
+		bool connected_faces[6]) {
 	static v3POS directions[6] = {v3POS(0, 1, 0),
-	                              v3POS(0, -1, 0),
-	                              v3POS(1, 0, 0),
-	                              v3POS(-1, 0, 0),
-	                              v3POS(0, 0, 1),
-	                              v3POS(0, 0, -1),
-	                             };
+								  v3POS(0, -1, 0),
+								  v3POS(1, 0, 0),
+								  v3POS(-1, 0, 0),
+								  v3POS(0, 0, 1),
+								  v3POS(0, 0, -1),
+								 };
 	// First - wire pos, second - acceptable faces
 	std::queue <std::pair <v3POS, u8> > q;
 	v3POS current_pos, next_pos;
@@ -280,9 +280,9 @@ void CircuitElement::findConnectedWithFace(std::vector <std::pair <std::list<Cir
 
 					auto next_used_iterator = used.find(next_pos);
 					bool is_part_of_circuit = node_features.is_wire_connector || node_features.is_circuit_element ||
-					                          (node_features.is_wire && (next_node.getContent() == current_node.getContent()));
+											  (node_features.is_wire && (next_node.getContent() == current_node.getContent()));
 					bool not_used = (next_used_iterator == used.end()) ||
-					                !(next_used_iterator->second & next_real_face);
+									!(next_used_iterator->second & next_real_face);
 
 					if(is_part_of_circuit && not_used) {
 						if(node_features.is_circuit_element) {
@@ -318,7 +318,7 @@ u32 CircuitElement::getId() const {
 }
 
 void CircuitElement::connectFace(int id, std::list <CircuitElementVirtualContainer>::iterator it,
-                                 std::list <CircuitElementVirtual>::iterator pt) {
+								 std::list <CircuitElementVirtual>::iterator pt) {
 	m_faces[id].list_iterator = it;
 	m_faces[id].list_pointer  = pt;
 	m_faces[id].is_connected  = true;
@@ -349,7 +349,7 @@ void CircuitElement::setDelay(u8 delay) {
 }
 
 void CircuitElement::swap(const MapNode& n_old, const ContentFeatures& n_old_features,
-                          const MapNode& n_new, const ContentFeatures& n_new_features) {
+						  const MapNode& n_new, const ContentFeatures& n_new_features) {
 	CircuitElementContainer tmp_faces[6];
 	for(int i = 0; i < 6; ++i) {
 		u8 shift = FACE_TO_SHIFT(rotateFace(n_old, n_old_features, SHIFT_TO_FACE(i)));

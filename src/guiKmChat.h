@@ -55,7 +55,7 @@ public:
 	bool isOpenInhibited() const;
 	// This doesn't close immediately but initiates an animation.
 	void close();
-    
+	
 	// Set whether to close the console after the user presses enter.
 	void setCloseOnEnter(bool close) { m_close_on_enter = close; }
 
@@ -86,15 +86,15 @@ private:
 	void reformatChat();
 	void recalculateKmChatPosition();
 
-    void setFont(int font_size);
-    void setRows(int rows);
-    
+	void setFont(int font_size);
+	void setRows(int rows);
+	
 	// These methods are called by draw
 	void animate(u32 msec);
-    
-    void drawMessageText();
-    void drawNewMessageText();
-    
+	
+	void drawMessageText();
+	void drawNewMessageText();
+	
 	void drawPrompt();
 
 private:
@@ -112,16 +112,16 @@ private:
 	bool m_open;
 	// should it close after you press enter?
 	bool m_close_on_enter;
-    
+	
 	// current console height [rows]
 	s32 m_rows;
-    
+	
 	// current console height [pixels]
 	s32 m_height;
-    
+	
 	// current console width [pixels]
 	s32 m_width;
-    
+	
 	// desired height [pixels]
 	f32 m_desired_height;
 	// desired height [screen height fraction]

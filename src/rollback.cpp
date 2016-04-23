@@ -57,27 +57,27 @@ public:
 };
 
 struct ActionRow {
-	int          id;
-	int          actor;
-	time_t       timestamp;
-	int          type;
+	int		  id;
+	int		  actor;
+	time_t	   timestamp;
+	int		  type;
 	std::string  location, list;
-	int          index, add;
+	int		  index, add;
 	ItemStackRow stack;
-	int          nodeMeta;
-	int          x, y, z;
-	int          oldNode;
-	int          oldParam1, oldParam2;
+	int		  nodeMeta;
+	int		  x, y, z;
+	int		  oldNode;
+	int		  oldParam1, oldParam2;
 	std::string  oldMeta;
-	int          newNode;
-	int          newParam1, newParam2;
+	int		  newNode;
+	int		  newParam1, newParam2;
 	std::string  newMeta;
-	int          guessed;
+	int		  guessed;
 };
 
 
 struct Entity {
-	int         id;
+	int		 id;
 	std::string name;
 };
 
@@ -376,16 +376,16 @@ void RollbackManager::initDatabase()
 
 	while (sqlite3_step(stmt_knownActor_select) == SQLITE_ROW) {
 		registerNewActor(
-		        sqlite3_column_int(stmt_knownActor_select, 0),
-		        reinterpret_cast<const char *>(sqlite3_column_text(stmt_knownActor_select, 1))
+				sqlite3_column_int(stmt_knownActor_select, 0),
+				reinterpret_cast<const char *>(sqlite3_column_text(stmt_knownActor_select, 1))
 		);
 	}
 	SQLOK(sqlite3_reset(stmt_knownActor_select));
 
 	while (sqlite3_step(stmt_knownNode_select) == SQLITE_ROW) {
 		registerNewNode(
-		        sqlite3_column_int(stmt_knownNode_select, 0),
-		        reinterpret_cast<const char *>(sqlite3_column_text(stmt_knownNode_select, 1))
+				sqlite3_column_int(stmt_knownNode_select, 0),
+				reinterpret_cast<const char *>(sqlite3_column_text(stmt_knownNode_select, 1))
 		);
 	}
 	SQLOK(sqlite3_reset(stmt_knownNode_select));
@@ -492,19 +492,19 @@ const std::list<ActionRow> RollbackManager::actionRowsFromSelect(sqlite3_stmt* s
 	while (sqlite3_step(stmt) == SQLITE_ROW) {
 		ActionRow row;
 
-		row.actor     = sqlite3_column_int  (stmt, 0);
+		row.actor	 = sqlite3_column_int  (stmt, 0);
 		row.timestamp = sqlite3_column_int64(stmt, 1);
-		row.type      = sqlite3_column_int  (stmt, 2);
+		row.type	  = sqlite3_column_int  (stmt, 2);
 
 		if (row.type == RollbackAction::TYPE_MODIFY_INVENTORY_STACK) {
 			text = sqlite3_column_text (stmt, 3);
 			size = sqlite3_column_bytes(stmt, 3);
-			row.list        = std::string(reinterpret_cast<const char*>(text), size);
-			row.index       = sqlite3_column_int(stmt, 4);
-			row.add         = sqlite3_column_int(stmt, 5);
-			row.stack.id    = sqlite3_column_int(stmt, 6);
+			row.list		= std::string(reinterpret_cast<const char*>(text), size);
+			row.index	   = sqlite3_column_int(stmt, 4);
+			row.add		 = sqlite3_column_int(stmt, 5);
+			row.stack.id	= sqlite3_column_int(stmt, 6);
 			row.stack.count = sqlite3_column_int(stmt, 7);
-			row.nodeMeta    = sqlite3_column_int(stmt, 8);
+			row.nodeMeta	= sqlite3_column_int(stmt, 8);
 		}
 
 		if (row.type == RollbackAction::TYPE_SET_NODE || row.nodeMeta) {
@@ -554,22 +554,22 @@ ActionRow RollbackManager::actionRowFromRollbackAction(const RollbackAction & ac
 {
 	ActionRow row;
 
-	row.id        = 0;
-	row.actor     = getActorId(action.actor);
+	row.id		= 0;
+	row.actor	 = getActorId(action.actor);
 	row.timestamp = action.unix_time;
-	row.type      = action.type;
+	row.type	  = action.type;
 
 	if (row.type == RollbackAction::TYPE_MODIFY_INVENTORY_STACK) {
 		row.location = action.inventory_location;
-		row.list     = action.inventory_list;
-		row.index    = action.inventory_index;
-		row.add      = action.inventory_add;
-		row.stack    = action.inventory_stack;
+		row.list	 = action.inventory_list;
+		row.index	= action.inventory_index;
+		row.add	  = action.inventory_add;
+		row.stack	= action.inventory_stack;
 		row.stack.id = getNodeId(row.stack.name);
 	} else {
-		row.x         = action.p.X;
-		row.y         = action.p.Y;
-		row.z         = action.p.Z;
+		row.x		 = action.p.X;
+		row.y		 = action.p.Y;
+		row.z		 = action.p.Z;
 		row.oldNode   = getNodeId(action.n_old.name);
 		row.oldParam1 = action.n_old.param1;
 		row.oldParam2 = action.n_old.param2;
@@ -593,24 +593,24 @@ const std::list<RollbackAction> RollbackManager::rollbackActionsFromActionRows(
 	for (std::list<ActionRow>::const_iterator it = rows.begin();
 			it != rows.end(); ++it) {
 		RollbackAction action;
-		action.actor     = (it->actor) ? getActorName(it->actor) : "";
+		action.actor	 = (it->actor) ? getActorName(it->actor) : "";
 		action.unix_time = it->timestamp;
-		action.type      = static_cast<RollbackAction::Type>(it->type);
+		action.type	  = static_cast<RollbackAction::Type>(it->type);
 
 		switch (action.type) {
 		case RollbackAction::TYPE_MODIFY_INVENTORY_STACK:
 			action.inventory_location = it->location.c_str();
-			action.inventory_list     = it->list;
-			action.inventory_index    = it->index;
-			action.inventory_add      = it->add;
-			action.inventory_stack    = it->stack;
+			action.inventory_list	 = it->list;
+			action.inventory_index	= it->index;
+			action.inventory_add	  = it->add;
+			action.inventory_stack	= it->stack;
 			if (action.inventory_stack.name.empty()) {
 				action.inventory_stack.name = getNodeName(it->stack.id);
 			}
 			break;
 
 		case RollbackAction::TYPE_SET_NODE:
-			action.p            = v3s16(it->x, it->y, it->z);
+			action.p			= v3s16(it->x, it->y, it->z);
 			action.n_old.name   = getNodeName(it->oldNode);
 			action.n_old.param1 = it->oldParam1;
 			action.n_old.param2 = it->oldParam2;
@@ -742,12 +742,12 @@ void RollbackManager::migrate(const std::string & file_path)
 			row.type = RollbackAction::TYPE_MODIFY_INVENTORY_STACK;
 			row.location = trim(deSerializeJsonString(fh));
 			std::getline(fh, bit, ' ');
-			row.list     = trim(deSerializeJsonString(fh));
+			row.list	 = trim(deSerializeJsonString(fh));
 			std::getline(fh, bit, ' ');
 			std::getline(fh, bit, ' ');
-			row.index    = atoi(trim(bit).c_str());
+			row.index	= atoi(trim(bit).c_str());
 			std::getline(fh, bit, ' ');
-			row.add      = (int)(trim(bit) == "add");
+			row.add	  = (int)(trim(bit) == "add");
 			row.stack.deSerialize(deSerializeJsonString(fh));
 			row.stack.id = getNodeId(row.stack.name);
 			std::getline(fh, bit);
@@ -755,11 +755,11 @@ void RollbackManager::migrate(const std::string & file_path)
 			row.type = RollbackAction::TYPE_SET_NODE;
 			std::getline(fh, bit, '(');
 			std::getline(fh, bit, ',');
-			row.x       = atoi(trim(bit).c_str());
+			row.x	   = atoi(trim(bit).c_str());
 			std::getline(fh, bit, ',');
-			row.y       = atoi(trim(bit).c_str());
+			row.y	   = atoi(trim(bit).c_str());
 			std::getline(fh, bit, ')');
-			row.z       = atoi(trim(bit).c_str());
+			row.z	   = atoi(trim(bit).c_str());
 			std::getline(fh, bit, ' ');
 			row.oldNode = getNodeId(trim(deSerializeJsonString(fh)));
 			std::getline(fh, bit, ' ');
@@ -794,13 +794,13 @@ void RollbackManager::migrate(const std::string & file_path)
 			t = time(0);
 			std::cout
 				<< " Done: " << static_cast<int>((static_cast<float>(fh.tellg()) / static_cast<float>(file_size)) * 100) << "%"
-				<< " Speed: " << i / (t - start) << "/second     \r" << std::flush;
+				<< " Speed: " << i / (t - start) << "/second	 \r" << std::flush;
 			sqlite3_exec(db, "BEGIN", NULL, NULL, NULL);
 		}
 	} while (fh.good());
 
 	std::cout
-		<< " Done: 100%                                   " << std::endl
+		<< " Done: 100%								   " << std::endl
 		<< "Now you can delete the old rollback.txt file." << std::endl;
 #endif
 }
@@ -813,7 +813,7 @@ float RollbackManager::getSuspectNearness(bool is_guess, v3s16 suspect_p,
 {
 	// Suspect cannot cause things in the past
 	if (action_t < suspect_t) {
-		return 0;        // 0 = cannot be
+		return 0;		// 0 = cannot be
 	}
 	// Start from 100
 	int f = 100;
@@ -891,8 +891,8 @@ std::string RollbackManager::getSuspect(v3s16 p, float nearness_shortcut,
 	RollbackAction likely_suspect;
 	float likely_suspect_nearness = 0;
 	for (std::list<RollbackAction>::const_reverse_iterator
-	     i = action_latest_buffer.rbegin();
-	     i != action_latest_buffer.rend(); ++i) {
+		 i = action_latest_buffer.rbegin();
+		 i != action_latest_buffer.rend(); ++i) {
 		if (i->unix_time < first_time) {
 			break;
 		}
@@ -905,7 +905,7 @@ std::string RollbackManager::getSuspect(v3s16 p, float nearness_shortcut,
 			continue;
 		}
 		float f = getSuspectNearness(i->actor_is_guess, suspect_p,
-					     i->unix_time, p, cur_time);
+						 i->unix_time, p, cur_time);
 		if (f >= min_nearness && f > likely_suspect_nearness) {
 			likely_suspect_nearness = f;
 			likely_suspect = *i;

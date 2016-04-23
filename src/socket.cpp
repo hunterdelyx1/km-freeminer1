@@ -63,7 +63,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 // Set to true to enable verbose debug output
-bool socket_enable_debug_output = false;        // yuck
+bool socket_enable_debug_output = false;		// yuck
 
 static bool g_sockets_initialized = false;
 
@@ -127,12 +127,12 @@ bool Address::operator==(const Address &address)
 	else if(m_addr_family == AF_INET)
 	{
 		return m_address.ipv4.sin_addr.s_addr ==
-		       address.m_address.ipv4.sin_addr.s_addr;
+			   address.m_address.ipv4.sin_addr.s_addr;
 	}
 	else if(m_addr_family == AF_INET6)
 	{
 		return memcmp(m_address.ipv6.sin6_addr.s6_addr,
-		              address.m_address.ipv6.sin6_addr.s6_addr, 16) == 0;
+					  address.m_address.ipv6.sin6_addr.s6_addr, 16) == 0;
 	}
 	else
 		return false;
@@ -160,7 +160,7 @@ void Address::Resolve(const char *name)
 	// Setup hints
 	hints.ai_socktype = 0;
 	hints.ai_protocol = 0;
-	hints.ai_flags    = 0;
+	hints.ai_flags	= 0;
 	if(g_settings->getBool("enable_ipv6"))
 	{
 		// AF_UNSPEC allows both IPv6 and IPv4 addresses to be returned
@@ -270,7 +270,7 @@ bool Address::isZero() const
 	} else if (m_addr_family == AF_INET6) {
 		static const char zero[16] = {0};
 		return memcmp(m_address.ipv6.sin6_addr.s6_addr,
-		              zero, 16) == 0;
+					  zero, 16) == 0;
 	}
 	return false;
 }
@@ -336,9 +336,9 @@ bool UDPSocket::init(bool ipv6, bool noExceptions)
 
 	if (socket_enable_debug_output) {
 		dstream << "UDPSocket(" << (int) m_handle
-		        << ")::UDPSocket(): ipv6 = "
-		        << (ipv6 ? "true" : "false")
-		        << std::endl;
+				<< ")::UDPSocket(): ipv6 = "
+				<< (ipv6 ? "true" : "false")
+				<< std::endl;
 	}
 
 	if (m_handle <= 0) {
@@ -363,7 +363,7 @@ UDPSocket::~UDPSocket()
 {
 	if (socket_enable_debug_output) {
 		dstream << "UDPSocket( " << (int) m_handle << ")::~UDPSocket()"
-		        << std::endl;
+				<< std::endl;
 	}
 
 #ifdef _WIN32
@@ -377,8 +377,8 @@ void UDPSocket::Bind(Address addr)
 {
 	if(socket_enable_debug_output) {
 		dstream << "UDPSocket(" << (int) m_handle << ")::Bind(): "
-		        << addr.serializeString() << ":"
-		        << addr.getPort() << std::endl;
+				<< addr.serializeString() << ":"
+				<< addr.getPort() << std::endl;
 	}
 
 	if (addr.getFamily() != m_addr_family) {
@@ -391,28 +391,28 @@ void UDPSocket::Bind(Address addr)
 		struct sockaddr_in6 address;
 		memset(&address, 0, sizeof(address));
 
-		address             = addr.getAddress6();
+		address			 = addr.getAddress6();
 		address.sin6_family = AF_INET6;
 		address.sin6_port   = htons(addr.getPort());
 
 		if(bind(m_handle, (const struct sockaddr *) &address,
 				sizeof(struct sockaddr_in6)) < 0) {
 			dstream << (int) m_handle << ": Bind failed: "
-			        << strerror(errno) << std::endl;
+					<< strerror(errno) << std::endl;
 			throw SocketException("Failed to bind socket");
 		}
 	} else {
 		struct sockaddr_in address;
 		memset(&address, 0, sizeof(address));
 
-		address                 = addr.getAddress();
-		address.sin_family      = AF_INET;
-		address.sin_port        = htons(addr.getPort());
+		address				 = addr.getAddress();
+		address.sin_family	  = AF_INET;
+		address.sin_port		= htons(addr.getPort());
 
 		if (bind(m_handle, (const struct sockaddr *) &address,
 				sizeof(struct sockaddr_in)) < 0) {
 			dstream << (int)m_handle << ": Bind failed: "
-			        << strerror(errno) << std::endl;
+					<< strerror(errno) << std::endl;
 			throw SocketException("Failed to bind socket");
 		}
 	}
@@ -582,12 +582,12 @@ bool UDPSocket::WaitData(int timeout_ms)
 		return false;
 	} else if (result < 0) {
 		dstream << (int) m_handle << ": Select failed: "
-		        << strerror(errno) << std::endl;
+				<< strerror(errno) << std::endl;
 
 #ifdef _WIN32
 		int e = WSAGetLastError();
 		dstream << (int) m_handle << ": WSAGetLastError()="
-		        << e << std::endl;
+				<< e << std::endl;
 		if (e == 10004 /* WSAEINTR */ || e == 10009 /* WSAEBADF */) {
 			infostream << "Ignoring WSAEINTR/WSAEBADF." << std::endl;
 			return false;

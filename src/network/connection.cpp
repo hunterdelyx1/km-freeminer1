@@ -45,7 +45,7 @@ namespace con
 {
 
 /******************************************************************************/
-/* defines used for debugging and profiling                                   */
+/* defines used for debugging and profiling								   */
 /******************************************************************************/
 #ifdef NDEBUG
 #define LOG(a) a
@@ -54,10 +54,10 @@ namespace con
 #else
 /* this mutex is used to achieve log message consistency */
 Mutex log_message_mutex;
-#define LOG(a)                                                                 \
-	{                                                                          \
-	MutexAutoLock loglock(log_message_mutex);                                 \
-	a;                                                                         \
+#define LOG(a)																 \
+	{																		  \
+	MutexAutoLock loglock(log_message_mutex);								 \
+	a;																		 \
 	}
 #define PROFILE(a) a
 //#define DEBUG_CONNECTION_KBPS
@@ -821,16 +821,16 @@ void Channel::UpdateTimers(float dtime,bool legacy_peer)
 	{
 		{
 			MutexAutoLock internal(m_internal_mutex);
-			cur_kbps                 =
+			cur_kbps				 =
 					(((float) current_bytes_transfered)/bpm_counter)/1024.0;
 			current_bytes_transfered = 0;
-			cur_kbps_lost            =
+			cur_kbps_lost			=
 					(((float) current_bytes_lost)/bpm_counter)/1024.0;
-			current_bytes_lost       = 0;
-			cur_incoming_kbps        =
+			current_bytes_lost	   = 0;
+			cur_incoming_kbps		=
 					(((float) current_bytes_received)/bpm_counter)/1024.0;
 			current_bytes_received   = 0;
-			bpm_counter              = 0;
+			bpm_counter			  = 0;
 		}
 
 		if (cur_kbps > max_kbps)
@@ -847,11 +847,11 @@ void Channel::UpdateTimers(float dtime,bool legacy_peer)
 			max_incoming_kbps = cur_incoming_kbps;
 		}
 
-		rate_samples       = MYMIN(rate_samples+1,10);
+		rate_samples	   = MYMIN(rate_samples+1,10);
 		float old_fraction = ((float) (rate_samples-1) )/( (float) rate_samples);
-		avg_kbps           = avg_kbps * old_fraction +
+		avg_kbps		   = avg_kbps * old_fraction +
 				cur_kbps * (1.0 - old_fraction);
-		avg_kbps_lost      = avg_kbps_lost * old_fraction +
+		avg_kbps_lost	  = avg_kbps_lost * old_fraction +
 				cur_kbps_lost * (1.0 - old_fraction);
 		avg_incoming_kbps  = avg_incoming_kbps * old_fraction +
 				cur_incoming_kbps * (1.0 - old_fraction);
@@ -1207,9 +1207,9 @@ bool UDPPeer::processReliableSendCommand(
 				<< c.data.getSize() << " bytes"
 				<< std::endl << "\t\tinitial_sequence_number: "
 				<< initial_sequence_number
-				<< std::endl << "\t\tgot at most            : "
+				<< std::endl << "\t\tgot at most			: "
 				<< packets_available << " packets"
-				<< std::endl << "\t\tpackets queued         : "
+				<< std::endl << "\t\tpackets queued		 : "
 				<< channels[c.channelnum].outgoing_reliables_sent.size()
 				<< std::endl);
 		return false;
@@ -1272,7 +1272,7 @@ SharedBuffer<u8> UDPPeer::addSpiltPacket(u8 channel,
 }
 
 /******************************************************************************/
-/* Connection Threads                                                         */
+/* Connection Threads														 */
 /******************************************************************************/
 
 ConnectionSendThread::ConnectionSendThread(unsigned int max_packet_size,
@@ -1303,7 +1303,7 @@ void * ConnectionSendThread::run()
 	porting::setThreadName("ConnectionSend");
 	porting::setThreadPriority(90);
 
-	/* if stop is requested don't stop immediately but try to send all        */
+	/* if stop is requested don't stop immediately but try to send all		*/
 	/* packets first */
 	while(!stopRequested() || packetsQueued()) {
 		EXCEPTION_HANDLER_BEGIN;
@@ -2187,8 +2187,8 @@ void ConnectionReceiveThread::receive()
 				continue;
 			}
 
-			u16 peer_id          = readPeerId(*packetdata);
-			u8 channelnum        = readChannel(*packetdata);
+			u16 peer_id		  = readPeerId(*packetdata);
+			u8 channelnum		= readChannel(*packetdata);
 
 			if (channelnum > CHANNEL_COUNT-1) {
 				LOG(derr_con<<m_connection->getDesc()
@@ -2578,11 +2578,11 @@ SharedBuffer<u8> ConnectionReceiveThread::processPacket(Channel *channel,
 		}
 		else {
 			is_future_packet = seqnum_higher(seqnum, channel->readNextIncomingSeqNum());
-			is_old_packet    = seqnum_higher(channel->readNextIncomingSeqNum(), seqnum);
+			is_old_packet	= seqnum_higher(channel->readNextIncomingSeqNum(), seqnum);
 
 
-			/* packet is not within receive window, don't send ack.           *
-			 * if this was a valid packet it's gonna be retransmitted         */
+			/* packet is not within receive window, don't send ack.		   *
+			 * if this was a valid packet it's gonna be retransmitted		 */
 			if (is_future_packet)
 			{
 				throw ProcessedSilentlyException("Received packet newer then expected, not sending ack");

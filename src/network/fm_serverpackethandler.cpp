@@ -46,7 +46,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 
 void Server::handleCommand_Deprecated(NetworkPacket* pkt) {
 	infostream << "Server: " << toServerCommandTable[pkt->getCommand()].name
-	           << " not supported anymore" << std::endl;
+			   << " not supported anymore" << std::endl;
 }
 
 void Server::handleCommand_Init(NetworkPacket* pkt) {
@@ -73,25 +73,25 @@ void Server::handleCommand_Init_Legacy(NetworkPacket* pkt) {
 		 * things like that.
 		 */
 		infostream << "Server::ProcessData(): Canceling: peer "
-		           << pkt->getPeerId() << " not found : " << e.what() << std::endl;
+				   << pkt->getPeerId() << " not found : " << e.what() << std::endl;
 		return;
 	}
 
 	// If net_proto_version is set, this client has already been handled
 	if(client->getState() > CS_Created) {
 		verbosestream << "Server: Ignoring multiple TOSERVER_INITs from "
-		              << addr_s << " (peer_id=" << peer_id << ")" << std::endl;
+					  << addr_s << " (peer_id=" << peer_id << ")" << std::endl;
 		return;
 	}
 
 	verbosestream << "Server: Got TOSERVER_INIT from " << addr_s << " (peer_id="
-	              << peer_id << ")" << std::endl;
+				  << peer_id << ")" << std::endl;
 
 	// Do not allow multiple players in simple singleplayer mode.
 	// This isn't a perfect way to do it, but will suffice for now
 	if(m_simple_singleplayer_mode && m_clients.getClientIDs().size() > 1) {
 		infostream << "Server: Not allowing another client (" << addr_s
-		           << ") to connect in simple singleplayer mode" << std::endl;
+				   << ") to connect in simple singleplayer mode" << std::endl;
 		DenyAccess(peer_id, "Running in simple singleplayer mode.");
 		return;
 	}
@@ -109,14 +109,14 @@ void Server::handleCommand_Init_Legacy(NetworkPacket* pkt) {
 
 	if (deployed == SER_FMT_VER_INVALID) {
 		actionstream << "Server: A mismatched client tried to connect from "
-		             << addr_s << std::endl;
+					 << addr_s << std::endl;
 		infostream << "Server: Cannot negotiate serialization version with "
-		           << addr_s << std::endl;
+				   << addr_s << std::endl;
 		DenyAccess(peer_id, std::string(
-		               "Your client's version is not supported.\n"
-		               "Server version is ")
-		           + (g_version_string) + "."
-		          );
+					   "Your client's version is not supported.\n"
+					   "Server version is ")
+				   + (g_version_string) + "."
+				  );
 		return;
 	}
 
@@ -138,7 +138,7 @@ void Server::handleCommand_Init_Legacy(NetworkPacket* pkt) {
 
 	// Figure out a working version if it is possible at all
 	if(max_net_proto_version >= SERVER_PROTOCOL_VERSION_MIN ||
-	        min_net_proto_version <= SERVER_PROTOCOL_VERSION_MAX) {
+			min_net_proto_version <= SERVER_PROTOCOL_VERSION_MAX) {
 		// If maximum is larger than our maximum, go with our maximum
 		if(max_net_proto_version > SERVER_PROTOCOL_VERSION_MAX)
 			net_proto_version = SERVER_PROTOCOL_VERSION_MAX;
@@ -148,46 +148,46 @@ void Server::handleCommand_Init_Legacy(NetworkPacket* pkt) {
 	}
 
 	verbosestream << "Server: " << addr_s << ": Protocol version: min: "
-	              << min_net_proto_version << ", max: " << max_net_proto_version
-	              << ", chosen: " << net_proto_version << std::endl;
+				  << min_net_proto_version << ", max: " << max_net_proto_version
+				  << ", chosen: " << net_proto_version << std::endl;
 
 	client->net_proto_version = net_proto_version;
 
 	if(net_proto_version < SERVER_PROTOCOL_VERSION_MIN ||
-	        net_proto_version > SERVER_PROTOCOL_VERSION_MAX) {
+			net_proto_version > SERVER_PROTOCOL_VERSION_MAX) {
 		actionstream << "Server: A mismatched client tried to connect from "
-		             << addr_s << std::endl;
+					 << addr_s << std::endl;
 		DenyAccess(peer_id, std::string(
-		               "Your client's version is not supported.\n"
-		               "Server version is ")
-		           + (g_version_string) + ",\n"
-		           + "server's PROTOCOL_VERSION is "
-		           + itos(SERVER_PROTOCOL_VERSION_MIN)
-		           + "..."
-		           + itos(SERVER_PROTOCOL_VERSION_MAX)
-		           + ", client's PROTOCOL_VERSION is "
-		           + itos(min_net_proto_version)
-		           + "..."
-		           + itos(max_net_proto_version)
-		          );
+					   "Your client's version is not supported.\n"
+					   "Server version is ")
+				   + (g_version_string) + ",\n"
+				   + "server's PROTOCOL_VERSION is "
+				   + itos(SERVER_PROTOCOL_VERSION_MIN)
+				   + "..."
+				   + itos(SERVER_PROTOCOL_VERSION_MAX)
+				   + ", client's PROTOCOL_VERSION is "
+				   + itos(min_net_proto_version)
+				   + "..."
+				   + itos(max_net_proto_version)
+				  );
 		return;
 	}
 
 	if(g_settings->getBool("strict_protocol_version_checking")) {
 		if(net_proto_version != LATEST_PROTOCOL_VERSION) {
 			actionstream << "Server: A mismatched (strict) client tried to "
-			             << "connect from " << addr_s << std::endl;
+						 << "connect from " << addr_s << std::endl;
 			DenyAccess(peer_id, std::string(
-			               "Your client's version is not supported.\n"
-			               "Server version is ")
-			           + (g_version_string) + ",\n"
-			           + "server's PROTOCOL_VERSION (strict) is "
-			           + itos(LATEST_PROTOCOL_VERSION)
-			           + ", client's PROTOCOL_VERSION is "
-			           + itos(min_net_proto_version)
-			           + "..."
-			           + itos(max_net_proto_version)
-			          );
+						   "Your client's version is not supported.\n"
+						   "Server version is ")
+					   + (g_version_string) + ",\n"
+					   + "server's PROTOCOL_VERSION (strict) is "
+					   + itos(LATEST_PROTOCOL_VERSION)
+					   + ", client's PROTOCOL_VERSION is "
+					   + itos(min_net_proto_version)
+					   + "..."
+					   + itos(max_net_proto_version)
+					  );
 			return;
 		}
 	}
@@ -202,21 +202,21 @@ void Server::handleCommand_Init_Legacy(NetworkPacket* pkt) {
 
 	if(playername.empty()) {
 		actionstream << "Server: Player with an empty name "
-		             << "tried to connect from " << addr_s << std::endl;
+					 << "tried to connect from " << addr_s << std::endl;
 		DenyAccess(peer_id, "Empty name");
 		return;
 	}
 
 	if(!g_settings->getBool("enable_any_name") && string_allowed(playername, PLAYERNAME_ALLOWED_CHARS) == false) {
 		actionstream << "Server: Player with an invalid name [" << playername
-		             << "] tried to connect from " << addr_s << std::endl;
+					 << "] tried to connect from " << addr_s << std::endl;
 		DenyAccess(peer_id, "Name contains unallowed characters");
 		return;
 	}
 
 	if(!isSingleplayer() && playername == "singleplayer") {
 		actionstream << "Server: Player with the name \"singleplayer\" "
-		             << "tried to connect from " << addr_s << std::endl;
+					 << "tried to connect from " << addr_s << std::endl;
 		DenyAccess(peer_id, "Name is not allowed");
 		return;
 	}
@@ -225,16 +225,16 @@ void Server::handleCommand_Init_Legacy(NetworkPacket* pkt) {
 		std::string reason;
 		if(m_script->on_prejoinplayer(playername, addr_s, &reason)) {
 			actionstream << "Server: Player with the name \"" << playername << "\" "
-			             << "tried to connect from " << addr_s << " "
-			             << "but it was disallowed for the following reason: "
-			             << reason << std::endl;
+						 << "tried to connect from " << addr_s << " "
+						 << "but it was disallowed for the following reason: "
+						 << reason << std::endl;
 			DenyAccess(peer_id, reason);
 			return;
 		}
 	}
 
 	infostream << "Server: New connection: \"" << playername << "\" from "
-	           << addr_s << " (peer_id=" << peer_id << ")" << std::endl;
+			   << addr_s << " (peer_id=" << peer_id << ")" << std::endl;
 
 	// Get password
 	std::string given_password;
@@ -242,7 +242,7 @@ void Server::handleCommand_Init_Legacy(NetworkPacket* pkt) {
 
 	if(!base64_is_valid(given_password.c_str())) {
 		actionstream << "Server: " << playername
-		             << " supplied invalid password hash" << std::endl;
+					 << " supplied invalid password hash" << std::endl;
 		DenyAccess(peer_id, "Invalid password hash");
 		return;
 	}
@@ -250,14 +250,14 @@ void Server::handleCommand_Init_Legacy(NetworkPacket* pkt) {
 	// Enforce user limit.
 	// Don't enforce for users that have some admin right
 	if(m_clients.getClientIDs(CS_Created).size() >= g_settings->getU16("max_users") &&
-	        !checkPriv(playername, "server") &&
-	        !checkPriv(playername, "ban") &&
-	        !checkPriv(playername, "privs") &&
-	        !checkPriv(playername, "password") &&
-	        playername != g_settings->get("name")) {
+			!checkPriv(playername, "server") &&
+			!checkPriv(playername, "ban") &&
+			!checkPriv(playername, "privs") &&
+			!checkPriv(playername, "password") &&
+			playername != g_settings->get("name")) {
 		actionstream << "Server: " << playername << " tried to join, but there"
-		             << " are already max_users="
-		             << g_settings->getU16("max_users") << " players." << std::endl;
+					 << " are already max_users="
+					 << g_settings->getU16("max_users") << " players." << std::endl;
 		DenyAccess(peer_id, "Too many users.");
 		return;
 	}
@@ -268,17 +268,17 @@ void Server::handleCommand_Init_Legacy(NetworkPacket* pkt) {
 	// If no authentication info exists for user, create it
 	if(!has_auth) {
 		if(!isSingleplayer() &&
-		        g_settings->getBool("disallow_empty_password") &&
-		        given_password == "") {
+				g_settings->getBool("disallow_empty_password") &&
+				given_password == "") {
 			actionstream << "Server: " << playername
-			             << " supplied empty password" << std::endl;
+						 << " supplied empty password" << std::endl;
 			DenyAccess(peer_id, "Empty passwords are "
-			           "disallowed. Set a password and try again.");
+					   "disallowed. Set a password and try again.");
 			return;
 		}
 		std::string raw_default_password = g_settings->get("default_password");
 		std::string initial_password =
-		    translate_password(playername, raw_default_password);
+			translate_password(playername, raw_default_password);
 
 		// If default_password is empty, allow any initial password
 		if (raw_default_password.length() == 0)
@@ -291,21 +291,21 @@ void Server::handleCommand_Init_Legacy(NetworkPacket* pkt) {
 
 	if(!has_auth) {
 		actionstream << "Server: " << playername << " cannot be authenticated"
-		             << " (auth handler does not work?)" << std::endl;
+					 << " (auth handler does not work?)" << std::endl;
 		DenyAccess(peer_id, "Not allowed to login");
 		return;
 	}
 
 	if(given_password != checkpwd) {
 		actionstream << "Server: " << playername << " supplied wrong password"
-		             << " at " << addr_s
-		             << std::endl;
+					 << " at " << addr_s
+					 << std::endl;
 		DenyAccess(peer_id, "Wrong password");
 		return;
 	}
 
 	RemotePlayer *player =
-	    static_cast<RemotePlayer*>(m_env->getPlayer(playername.c_str()));
+		static_cast<RemotePlayer*>(m_env->getPlayer(playername.c_str()));
 
 	if (player && player->peer_id != 0) {
 
@@ -318,8 +318,8 @@ void Server::handleCommand_Init_Legacy(NetworkPacket* pkt) {
 		} else {
 			errorstream << "Server: " << playername << ": Failed to emerge player" << " (player allocated to an another client)" << std::endl;
 			DenyAccess(peer_id, "Another client is connected with this "
-			           "name. If your client closed unexpectedly, try again in "
-			           "a minute.");
+					   "name. If your client closed unexpectedly, try again in "
+					   "a minute.");
 		}
 	}
 
@@ -358,7 +358,7 @@ void Server::handleCommand_Init2(NetworkPacket* pkt) {
 	//auto & packet = *(pkt->packet);
 
 	verbosestream << "Server: Got TOSERVER_INIT2 from "
-	              << peer_id << std::endl;
+				  << peer_id << std::endl;
 
 	m_clients.event(peer_id, CSE_GotInit2);
 	u16 protocol_version = m_clients.getProtocolVersion(peer_id);
@@ -371,8 +371,8 @@ void Server::handleCommand_Init2(NetworkPacket* pkt) {
 
 		if (playersao == NULL) {
 			errorstream
-			        << "TOSERVER_INIT2 stage 2 client init failed for peer "
-			        << peer_id << std::endl;
+					<< "TOSERVER_INIT2 stage 2 client init failed for peer "
+					<< peer_id << std::endl;
 			return;
 		}
 	}
@@ -383,7 +383,7 @@ void Server::handleCommand_Init2(NetworkPacket* pkt) {
 	*/
 
 	infostream << "Server: Sending content to "
-	           << getPlayerName(peer_id) << std::endl;
+			   << getPlayerName(peer_id) << std::endl;
 
 	// Send player movement settings
 	SendMovement(peer_id);
@@ -417,7 +417,7 @@ void Server::handleCommand_Init2(NetworkPacket* pkt) {
 	// Warnings about protocol version can be issued here
 	if(getClient(peer_id)->net_proto_version < LATEST_PROTOCOL_VERSION) {
 		SendChatMessage(peer_id, "# Server: WARNING: YOUR CLIENT'S "
-		                "VERSION MAY NOT BE FULLY COMPATIBLE WITH THIS SERVER!");
+						"VERSION MAY NOT BE FULLY COMPATIBLE WITH THIS SERVER!");
 	}
 }
 
@@ -445,8 +445,8 @@ void Server::handleCommand_ClientReady(NetworkPacket* pkt) {
 
 	if (peer_proto_ver <= 22) {
 		infostream << "Client sent message not expected by a "
-		           << "client using protocol version <= 22,"
-		           << "disconnecting peer_id: " << peer_id << std::endl;
+				   << "client using protocol version <= 22,"
+				   << "disconnecting peer_id: " << peer_id << std::endl;
 		m_con.DisconnectPeer(peer_id);
 		return;
 	}
@@ -456,8 +456,8 @@ void Server::handleCommand_ClientReady(NetworkPacket* pkt) {
 	// If failed, cancel
 	if (playersao == NULL) {
 		errorstream
-		        << "TOSERVER_CLIENT_READY stage 2 client init failed for peer_id: "
-		        << peer_id << std::endl;
+				<< "TOSERVER_CLIENT_READY stage 2 client init failed for peer_id: "
+				<< peer_id << std::endl;
 		m_con.DisconnectPeer(peer_id);
 		return;
 	}
@@ -466,12 +466,12 @@ void Server::handleCommand_ClientReady(NetworkPacket* pkt) {
 	packet.convert_safe(TOSERVER_CLIENT_READY_VERSION_TWEAK, version_tweak);
 	if (version_tweak) {} //no warn todo remove
 	m_clients.setClientVersion(
-	    peer_id,
-	    packet[TOSERVER_CLIENT_READY_VERSION_MAJOR].as<int>(),
-	    packet[TOSERVER_CLIENT_READY_VERSION_MINOR].as<int>(),
-	    version_patch,
-	    //version_tweak,
-	    packet[TOSERVER_CLIENT_READY_VERSION_STRING].as<std::string>()
+		peer_id,
+		packet[TOSERVER_CLIENT_READY_VERSION_MAJOR].as<int>(),
+		packet[TOSERVER_CLIENT_READY_VERSION_MINOR].as<int>(),
+		version_patch,
+		//version_tweak,
+		packet[TOSERVER_CLIENT_READY_VERSION_STRING].as<std::string>()
 	);
 	m_clients.event(peer_id, CSE_SetClientReady);
 	m_script->on_joinplayer(playersao);
@@ -577,14 +577,14 @@ void Server::handleCommand_InventoryAction(NetworkPacket* pkt) {
 	InventoryAction *a = InventoryAction::deSerialize(is);
 	if(a == NULL) {
 		infostream << "TOSERVER_INVENTORY_ACTION: "
-		           << "InventoryAction::deSerialize() returned NULL"
-		           << std::endl;
+				   << "InventoryAction::deSerialize() returned NULL"
+				   << std::endl;
 		return;
 	}
 
 	// If something goes wrong, this player is to blame
 	RollbackScopeActor rollback_scope(m_rollback,
-	                                  std::string("player:") + player->getName());
+									  std::string("player:") + player->getName());
 
 	/*
 		Note: Always set inventory not sent, to repair cases
@@ -604,21 +604,21 @@ void Server::handleCommand_InventoryAction(NetworkPacket* pkt) {
 		setInventoryModified(ma->to_inv, false);
 
 		bool from_inv_is_current_player =
-		    (ma->from_inv.type == InventoryLocation::PLAYER) &&
-		    (ma->from_inv.name == player->getName());
+			(ma->from_inv.type == InventoryLocation::PLAYER) &&
+			(ma->from_inv.name == player->getName());
 
 		bool to_inv_is_current_player =
-		    (ma->to_inv.type == InventoryLocation::PLAYER) &&
-		    (ma->to_inv.name == player->getName());
+			(ma->to_inv.type == InventoryLocation::PLAYER) &&
+			(ma->to_inv.name == player->getName());
 
 		/*
 			Disable moving items out of craftpreview
 		*/
 		if(ma->from_list == "craftpreview") {
 			infostream << "Ignoring IMoveAction from "
-			           << (ma->from_inv.dump()) << ":" << ma->from_list
-			           << " to " << (ma->to_inv.dump()) << ":" << ma->to_list
-			           << " because src is " << ma->from_list << std::endl;
+					   << (ma->from_inv.dump()) << ":" << ma->from_list
+					   << " to " << (ma->to_inv.dump()) << ":" << ma->to_list
+					   << " because src is " << ma->from_list << std::endl;
 			delete a;
 			return;
 		}
@@ -628,9 +628,9 @@ void Server::handleCommand_InventoryAction(NetworkPacket* pkt) {
 		*/
 		if(ma->to_list == "craftpreview" || ma->to_list == "craftresult") {
 			infostream << "Ignoring IMoveAction from "
-			           << (ma->from_inv.dump()) << ":" << ma->from_list
-			           << " to " << (ma->to_inv.dump()) << ":" << ma->to_list
-			           << " because dst is " << ma->to_list << std::endl;
+					   << (ma->from_inv.dump()) << ":" << ma->from_list
+					   << " to " << (ma->to_inv.dump()) << ":" << ma->to_list
+					   << " because dst is " << ma->to_list << std::endl;
 			delete a;
 			return;
 		}
@@ -638,10 +638,10 @@ void Server::handleCommand_InventoryAction(NetworkPacket* pkt) {
 		// Disallow moving items in elsewhere than player's inventory
 		// if not allowed to interact
 		if(!checkPriv(player->getName(), "interact") &&
-		        (!from_inv_is_current_player ||
-		         !to_inv_is_current_player)) {
+				(!from_inv_is_current_player ||
+				 !to_inv_is_current_player)) {
 			infostream << "Cannot move outside of player's inventory: "
-			           << "No interact privilege" << std::endl;
+					   << "No interact privilege" << std::endl;
 			delete a;
 			return;
 		}
@@ -661,8 +661,8 @@ void Server::handleCommand_InventoryAction(NetworkPacket* pkt) {
 		*/
 		if(da->from_list == "craftpreview") {
 			infostream << "Ignoring IDropAction from "
-			           << (da->from_inv.dump()) << ":" << da->from_list
-			           << " because src is " << da->from_list << std::endl;
+					   << (da->from_inv.dump()) << ":" << da->from_list
+					   << " because src is " << da->from_list << std::endl;
 			delete a;
 			return;
 		}
@@ -691,7 +691,7 @@ void Server::handleCommand_InventoryAction(NetworkPacket* pkt) {
 		// Disallow crafting if not allowed to interact
 		if(!checkPriv(player->getName(), "interact")) {
 			infostream << "Cannot craft: "
-			           << "No interact privilege" << std::endl;
+					   << "No interact privilege" << std::endl;
 			delete a;
 			return;
 		}
@@ -725,7 +725,7 @@ void Server::handleCommand_ChatMessage(NetworkPacket* pkt) {
 
 	// If something goes wrong, this player is to blame
 	RollbackScopeActor rollback_scope(m_rollback,
-	                                  std::string("player:") + player->getName());
+									  std::string("player:") + player->getName());
 
 	// Get player name of this client
 	std::string name = player->getName();
@@ -794,8 +794,8 @@ void Server::handleCommand_Damage(NetworkPacket* pkt) {
 
 	if(g_settings->getBool("enable_damage")) {
 		actionstream << player->getName() << " damaged by "
-		             << (int)damage << " hp at " << PP(player->getPosition() / BS)
-		             << std::endl;
+					 << (int)damage << " hp at " << PP(player->getPosition() / BS)
+					 << std::endl;
 
 		playersao->setHP(playersao->getHP() - damage);
 
@@ -850,7 +850,7 @@ void Server::handleCommand_Password(NetworkPacket* pkt) {
 	}
 
 	infostream << "Server: Client requests a password change from "
-	           << "'" << oldpwd << "' to '" << newpwd << "'" << std::endl;
+			   << "'" << oldpwd << "' to '" << newpwd << "'" << std::endl;
 
 	std::string playername = player->getName();
 
@@ -870,7 +870,7 @@ void Server::handleCommand_Password(NetworkPacket* pkt) {
 		SendChatMessage(peer_id, "Password change successful.");
 	} else {
 		actionstream << player->getName() << " tries to change password but "
-		             << "it fails" << std::endl;
+					 << "it fails" << std::endl;
 		SendChatMessage(peer_id, "Password change failed or inavailable.");
 	}
 
@@ -912,7 +912,7 @@ void Server::handleCommand_Respawn(NetworkPacket* pkt) {
 	RespawnPlayer(peer_id);
 
 	actionstream << player->getName() << " respawns at "
-	             << PP(player->getPosition() / BS) << std::endl;
+				 << PP(player->getPosition() / BS) << std::endl;
 
 	// ActiveObject is added to environment in AsyncRunStep after
 	// the previous addition has been successfully removed
@@ -948,7 +948,7 @@ void Server::handleCommand_Interact(NetworkPacket* pkt) {
 
 	if(player->hp == 0) {
 		verbosestream << "TOSERVER_INTERACT: " << player->getName()
-		              << " tried to interact, but is dead!" << std::endl;
+					  << " tried to interact, but is dead!" << std::endl;
 		return;
 	}
 
@@ -969,7 +969,7 @@ void Server::handleCommand_Interact(NetworkPacket* pkt) {
 		pointed_object = m_env->getActiveObject(pointed.object_id);
 		if(pointed_object == NULL) {
 			verbosestream << "TOSERVER_INTERACT: "
-			              "pointed object is NULL" << std::endl;
+						  "pointed object is NULL" << std::endl;
 			return;
 		}
 
@@ -991,15 +991,15 @@ void Server::handleCommand_Interact(NetworkPacket* pkt) {
 	*/
 	static const bool enable_anticheat = !g_settings->getBool("disable_anticheat");
 	if ((action == 0 || action == 2 || action == 3) &&
-	        (enable_anticheat && !isSingleplayer())) {
+			(enable_anticheat && !isSingleplayer())) {
 		float d = player_pos.getDistanceFrom(pointed_pos_under);
 		float max_d = BS * 14; // Just some large enough value
 		if(d > max_d) {
 			actionstream << "Player " << player->getName()
-			             << " tried to access " << pointed.dump()
-			             << " from too far: "
-			             << "d=" << d << ", max_d=" << max_d
-			             << ". ignoring." << std::endl;
+						 << " tried to access " << pointed.dump()
+						 << " from too far: "
+						 << "d=" << d << ", max_d=" << max_d
+						 << ". ignoring." << std::endl;
 			// Re-send block to revert change on client-side
 			RemoteClient *client = getClient(peer_id);
 			v3s16 blockpos = getNodeBlockPos(floatToInt(pointed_pos_under, BS));
@@ -1016,8 +1016,8 @@ void Server::handleCommand_Interact(NetworkPacket* pkt) {
 	*/
 	if(!checkPriv(player->getName(), "interact")) {
 		actionstream << player->getName() << " attempted to interact with "
-		             << pointed.dump() << " without 'interact' privilege"
-		             << std::endl;
+					 << pointed.dump() << " without 'interact' privilege"
+					 << std::endl;
 		// Re-send block to revert change on client-side
 		RemoteClient *client = getClient(peer_id);
 		// Digging completed -> under
@@ -1038,7 +1038,7 @@ void Server::handleCommand_Interact(NetworkPacket* pkt) {
 		If something goes wrong, this player is to blame
 	*/
 	RollbackScopeActor rollback_scope(m_rollback,
-	                                  std::string("player:") + player->getName());
+									  std::string("player:") + player->getName());
 
 	/*
 		0: start digging or punch object
@@ -1053,8 +1053,8 @@ void Server::handleCommand_Interact(NetworkPacket* pkt) {
 
 			if (!n) {
 				infostream << "Server: Not punching: Node not found."
-				           << " Adding block to emerge queue."
-				           << std::endl;
+						   << " Adding block to emerge queue."
+						   << std::endl;
 				m_emerge->enqueueBlockEmerge(peer_id, getNodeBlockPos(p_above), false);
 			}
 
@@ -1068,27 +1068,27 @@ void Server::handleCommand_Interact(NetworkPacket* pkt) {
 				return;
 
 			actionstream << player->getName() << " punches object "
-			             << pointed.object_id << ": "
-			             << pointed_object->getDescription() << std::endl;
+						 << pointed.object_id << ": "
+						 << pointed_object->getDescription() << std::endl;
 
 			ItemStack punchitem = playersao->getWieldedItem();
 			ToolCapabilities toolcap =
-			    punchitem.getToolCapabilities(m_itemdef);
+				punchitem.getToolCapabilities(m_itemdef);
 			v3f dir = (pointed_object->getBasePosition() -
-			           (player->getPosition() + player->getEyeOffset())
-			          ).normalize();
+					   (player->getPosition() + player->getEyeOffset())
+					  ).normalize();
 			float time_from_last_punch =
-			    playersao->resetTimeFromLastPunch();
+				playersao->resetTimeFromLastPunch();
 
 			s16 src_original_hp = pointed_object->getHP();
 			s16 dst_origin_hp = playersao->getHP();
 
 			pointed_object->punch(dir, &toolcap, playersao,
-			                      time_from_last_punch);
+								  time_from_last_punch);
 
 			// If the object is a player and its HP changed
 			if (src_original_hp != pointed_object->getHP() &&
-			        pointed_object->getType() == ACTIVEOBJECT_TYPE_PLAYER) {
+					pointed_object->getType() == ACTIVEOBJECT_TYPE_PLAYER) {
 				SendPlayerHPOrDie(((PlayerSAO*)pointed_object));
 			}
 
@@ -1117,8 +1117,8 @@ void Server::handleCommand_Interact(NetworkPacket* pkt) {
 			MapNode n = m_env->getMap().getNode(p_under);
 			if (!n) {
 				infostream << "Server: Not finishing digging: Node not found."
-				           << " Adding block to emerge queue."
-				           << std::endl;
+						   << " Adding block to emerge queue."
+						   << std::endl;
 				m_emerge->enqueueBlockEmerge(peer_id, getNodeBlockPos(p_above), false);
 			}
 
@@ -1131,9 +1131,9 @@ void Server::handleCommand_Interact(NetworkPacket* pkt) {
 				// If player didn't start digging this, ignore dig
 				if(nocheat_p != p_under) {
 					infostream << "Server: NoCheat: " << player->getName()
-					           << " started digging "
-					           << PP(nocheat_p) << " and completed digging "
-					           << PP(p_under) << "; not digging." << std::endl;
+							   << " started digging "
+							   << PP(nocheat_p) << " and completed digging "
+							   << PP(p_under) << "; not digging." << std::endl;
 					is_valid_dig = false;
 					// Call callbacks
 					m_script->on_cheat(playersao, "finished_unknown_dig");
@@ -1144,10 +1144,10 @@ void Server::handleCommand_Interact(NetworkPacket* pkt) {
 				if(mlist != NULL)
 					playeritem = mlist->getItem(playersao->getWieldIndex());
 				ToolCapabilities playeritem_toolcap =
-				    playeritem.getToolCapabilities(m_itemdef);
+					playeritem.getToolCapabilities(m_itemdef);
 				// Get diggability and expected digging time
 				DigParams params = getDigParams(m_nodedef->get(n).groups,
-				                                &playeritem_toolcap);
+												&playeritem_toolcap);
 				// If can't dig, try hand
 				if(!params.diggable) {
 					const ItemDefinition &hand = m_itemdef->get("");
@@ -1158,9 +1158,9 @@ void Server::handleCommand_Interact(NetworkPacket* pkt) {
 				// If can't dig, ignore dig
 				if(!params.diggable) {
 					infostream << "Server: NoCheat: " << player->getName()
-					           << " completed digging " << PP(p_under)
-					           << ", which is not diggable with tool. not digging."
-					           << std::endl;
+							   << " completed digging " << PP(p_under)
+							   << ", which is not diggable with tool. not digging."
+							   << std::endl;
 					is_valid_dig = false;
 					// Call callbacks
 					m_script->on_cheat(playersao, "dug_unbreakable");
@@ -1184,8 +1184,8 @@ void Server::handleCommand_Interact(NetworkPacket* pkt) {
 				// Dig not possible
 				else {
 					infostream << "Server: NoCheat: " << player->getName()
-					           << " completed digging " << PP(p_under)
-					           << "too fast; not digging." << std::endl;
+							   << " completed digging " << PP(p_under)
+							   << "too fast; not digging." << std::endl;
 					is_valid_dig = false;
 					// Call callbacks
 					m_script->on_cheat(playersao, "dug_too_fast");
@@ -1221,7 +1221,7 @@ void Server::handleCommand_Interact(NetworkPacket* pkt) {
 
 		// Reset build time counter
 		if(pointed.type == POINTEDTHING_NODE &&
-		        item.getDefinition(m_itemdef).type == ITEM_NODE)
+				item.getDefinition(m_itemdef).type == ITEM_NODE)
 			getClient(peer_id)->m_time_from_building = 0.0;
 
 		if(pointed.type == POINTEDTHING_OBJECT) {
@@ -1240,7 +1240,7 @@ void Server::handleCommand_Interact(NetworkPacket* pkt) {
 			// Do stuff
 			pointed_object->rightClick(playersao);
 		} else if(m_script->item_OnPlace(
-		              item, playersao, pointed)) {
+					  item, playersao, pointed)) {
 			// Placement was handled in lua
 
 			// Apply returned ItemStack
@@ -1278,10 +1278,10 @@ void Server::handleCommand_Interact(NetworkPacket* pkt) {
 		ItemStack item = playersao->getWieldedItem();
 
 		actionstream << player->getName() << " uses " << item.name
-		             << ", pointing at " << pointed.dump() << std::endl;
+					 << ", pointing at " << pointed.dump() << std::endl;
 
 		if(m_script->item_OnUse(
-		            item, playersao, pointed)) {
+					item, playersao, pointed)) {
 			// Apply returned ItemStack
 			if (playersao->setWieldedItem(item)) {
 				SendInventory(playersao);
@@ -1300,10 +1300,10 @@ void Server::handleCommand_Interact(NetworkPacket* pkt) {
 		ItemStack item = playersao->getWieldedItem();
 
 		actionstream << player->getName() << " activates "
-		             << item.name << std::endl;
+					 << item.name << std::endl;
 
 		if (m_script->item_OnSecondaryUse(
-		            item, playersao)) {
+					item, playersao)) {
 			if( playersao->setWieldedItem(item)) {
 				SendInventory(playersao);
 			}
@@ -1316,7 +1316,7 @@ void Server::handleCommand_Interact(NetworkPacket* pkt) {
 	*/
 	else {
 		infostream << "WARNING: Server: Invalid action "
-		           << action << std::endl;
+				   << action << std::endl;
 	}
 
 }
@@ -1339,7 +1339,7 @@ void Server::handleCommand_RemovedSounds(NetworkPacket* pkt) {
 	packet[TOSERVER_REMOVED_SOUNDS_IDS].convert(removed_ids);
 	for (auto & id : removed_ids) {
 		std::map<s32, ServerPlayingSound>::iterator i =
-		    m_playing_sounds.find(id);
+			m_playing_sounds.find(id);
 		if(i == m_playing_sounds.end())
 			continue;
 		ServerPlayingSound &psound = i->second;
@@ -1374,7 +1374,7 @@ void Server::handleCommand_NodeMetaFields(NetworkPacket* pkt) {
 	} else {
 	// If something goes wrong, this player is to blame
 	RollbackScopeActor rollback_scope(m_rollback,
-	                                  std::string("player:") + player->getName());
+									  std::string("player:") + player->getName());
 
 	// Check the target node for rollback data; leave others unnoticed
 	RollbackNode rn_old(&m_env->getMap(), p, this);

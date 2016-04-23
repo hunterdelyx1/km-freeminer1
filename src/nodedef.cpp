@@ -209,11 +209,11 @@ void NodeBox::msgpack_pack(msgpack::packer<msgpack::sbuffer> &pk) const
 		PACK(NODEBOX_S_WALL_BOTTOM, wall_bottom);
 		PACK(NODEBOX_S_WALL_SIDE, wall_side);
 	} else if (type == NODEBOX_CONNECTED) {
-		PACK(NODEBOX_S_CONNECTED_TOP, connect_top);       // 2
+		PACK(NODEBOX_S_CONNECTED_TOP, connect_top);	   // 2
 		PACK(NODEBOX_S_CONNECTED_BOTTOM, connect_bottom); // 3
 		PACK(NODEBOX_S_CONNECTED_FRONT, connect_front);   // 4
-		PACK(NODEBOX_S_CONNECTED_LEFT, connect_left);     // 5
-		PACK(NODEBOX_S_CONNECTED_BACK, connect_back);     // 6
+		PACK(NODEBOX_S_CONNECTED_LEFT, connect_left);	 // 5
+		PACK(NODEBOX_S_CONNECTED_BACK, connect_back);	 // 6
 		PACK(NODEBOX_S_CONNECTED_RIGHT, connect_right);   // 7
 	} else if (type != NODEBOX_REGULAR && type != NODEBOX_FIXED && type != NODEBOX_LEVELED){
 		warningstream<< "Unknown nodebox type = "<< (int)type << std::endl;
@@ -239,11 +239,11 @@ void NodeBox::msgpack_unpack(msgpack::object o)
 		packet[NODEBOX_S_WALL_SIDE].convert(wall_side);
 	} else if(type == NODEBOX_CONNECTED) {
 		if (packet.count(NODEBOX_S_CONNECTED_TOP) && packet.count(NODEBOX_S_CONNECTED_RIGHT)) { //lite check
-			packet[NODEBOX_S_CONNECTED_TOP].convert(connect_top);       // 2
+			packet[NODEBOX_S_CONNECTED_TOP].convert(connect_top);	   // 2
 			packet[NODEBOX_S_CONNECTED_BOTTOM].convert(connect_bottom); // 3
 			packet[NODEBOX_S_CONNECTED_FRONT].convert(connect_front);   // 4
-			packet[NODEBOX_S_CONNECTED_LEFT].convert(connect_left);     // 5
-			packet[NODEBOX_S_CONNECTED_BACK].convert(connect_back);     // 6
+			packet[NODEBOX_S_CONNECTED_LEFT].convert(connect_left);	 // 5
+			packet[NODEBOX_S_CONNECTED_BACK].convert(connect_back);	 // 6
 			packet[NODEBOX_S_CONNECTED_RIGHT].convert(connect_right);   // 7
 		}
 	}
@@ -377,7 +377,7 @@ void ContentFeatures::reset()
 		Actual data
 
 		NOTE: Most of this is always overridden by the default values given
-		      in builtin.lua
+			  in builtin.lua
 	*/
 	name = "";
 	groups.clear();
@@ -862,16 +862,16 @@ void CNodeDefManager::clear()
 	// Set CONTENT_AIR
 	{
 		ContentFeatures f;
-		f.name                = "air";
-		f.drawtype            = NDT_AIRLIKE;
-		f.param_type          = CPT_LIGHT;
-		f.light_propagates    = true;
+		f.name				= "air";
+		f.drawtype			= NDT_AIRLIKE;
+		f.param_type		  = CPT_LIGHT;
+		f.light_propagates	= true;
 		f.sunlight_propagates = true;
-		f.walkable            = false;
-		f.pointable           = false;
-		f.diggable            = false;
-		f.buildable_to        = true;
-		f.floodable           = true;
+		f.walkable			= false;
+		f.pointable		   = false;
+		f.diggable			= false;
+		f.buildable_to		= true;
+		f.floodable		   = true;
 		f.is_ground_content   = true;
 #ifndef SERVER
 		f.minimap_color = video::SColor(0,0,0,0);
@@ -885,15 +885,15 @@ void CNodeDefManager::clear()
 	// Set CONTENT_IGNORE
 	{
 		ContentFeatures f;
-		f.name                = "ignore";
-		f.drawtype            = NDT_AIRLIKE;
-		f.param_type          = CPT_NONE;
-		f.light_propagates    = false;
+		f.name				= "ignore";
+		f.drawtype			= NDT_AIRLIKE;
+		f.param_type		  = CPT_NONE;
+		f.light_propagates	= false;
 		f.sunlight_propagates = false;
-		f.walkable            = false;
-		f.pointable           = false;
-		f.diggable            = false;
-		f.buildable_to        = true; // A way to remove accidental CONTENT_IGNOREs
+		f.walkable			= false;
+		f.pointable		   = false;
+		f.diggable			= false;
+		f.buildable_to		= true; // A way to remove accidental CONTENT_IGNOREs
 		f.is_ground_content   = true;
 #ifndef SERVER
 		f.minimap_color = video::SColor(0,0,0,0);
@@ -1182,14 +1182,14 @@ void CNodeDefManager::updateTextures(IGameDef *gamedef,
 	scene::ISceneManager* smgr = !gamedef ? nullptr : gamedef->getSceneManager();
 	scene::IMeshManipulator* meshmanip = !smgr ? nullptr : smgr->getMeshManipulator();
 
-	bool connected_glass           = g_settings->getBool("connected_glass");
-	bool opaque_water              = g_settings->getBool("opaque_water");
-	bool enable_shaders            = g_settings->getBool("enable_shaders");
-	bool enable_bumpmapping        = g_settings->getBool("enable_bumpmapping");
+	bool connected_glass		   = g_settings->getBool("connected_glass");
+	bool opaque_water			  = g_settings->getBool("opaque_water");
+	bool enable_shaders			= g_settings->getBool("enable_shaders");
+	bool enable_bumpmapping		= g_settings->getBool("enable_bumpmapping");
 	bool enable_parallax_occlusion = g_settings->getBool("enable_parallax_occlusion");
-	bool enable_mesh_cache         = g_settings->getBool("enable_mesh_cache");
-	bool enable_minimap            = g_settings->getBool("enable_minimap");
-	std::string leaves_style       = g_settings->get("leaves_style");
+	bool enable_mesh_cache		 = g_settings->getBool("enable_mesh_cache");
+	bool enable_minimap			= g_settings->getBool("enable_minimap");
+	std::string leaves_style	   = g_settings->get("leaves_style");
 
 	bool use_normal_texture = enable_shaders &&
 		(enable_bumpmapping || enable_parallax_occlusion);
@@ -1403,9 +1403,9 @@ void CNodeDefManager::fillTileAttribs(ITextureSource *tsrc, TileSpec *tile,
 		TileDef *tiledef, u32 shader_id, bool use_normal_texture,
 		bool backface_culling, u8 alpha, u8 material_type)
 {
-	tile->shader_id     = shader_id;
-	tile->texture       = tsrc->getTextureForMesh(tiledef->name, &tile->texture_id);
-	tile->alpha         = alpha;
+	tile->shader_id	 = shader_id;
+	tile->texture	   = tsrc->getTextureForMesh(tiledef->name, &tile->texture_id);
+	tile->alpha		 = alpha;
 	tile->material_type = material_type;
 
 	// Normal texture and shader flags texture
@@ -1832,10 +1832,10 @@ bool CNodeDefManager::nodeboxConnects(MapNode from, MapNode to, u8 connect_face)
 
 NodeResolver::NodeResolver()
 {
-	m_ndef            = NULL;
+	m_ndef			= NULL;
 	m_nodenames_idx   = 0;
 	m_nnlistsizes_idx = 0;
-	m_resolve_done    = false;
+	m_resolve_done	= false;
 
 	m_nodenames.reserve(16);
 	m_nnlistsizes.reserve(4);

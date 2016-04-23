@@ -24,12 +24,12 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "debug.h"
 #include "client.h"
 #include "map.h"
-#include "clientmap.h"     // MapDrawControl
+#include "clientmap.h"	 // MapDrawControl
 #include "player.h"
 #include <cmath>
 #include "settings.h"
 #include "wieldmesh.h"
-#include "noise.h"         // easeCurve
+#include "noise.h"		 // easeCurve
 #include "gamedef.h"
 #include "sound.h"
 #include "event.h"
@@ -101,22 +101,22 @@ Camera::Camera(scene::ISceneManager* smgr, MapDrawControl& draw_control,
 	m_wieldnode->drop(); // m_wieldmgr grabbed it
 
 	/* TODO: Add a callback function so these can be updated when a setting
-	 *       changes.  At this point in time it doesn't matter (e.g. /set
-	 *       is documented to change server settings only)
+	 *	   changes.  At this point in time it doesn't matter (e.g. /set
+	 *	   is documented to change server settings only)
 	 *
 	 * TODO: Local caching of settings is not optimal and should at some stage
-	 *       be updated to use a global settings object for getting thse values
-	 *       (as opposed to the this local caching). This can be addressed in
-	 *       a later release.
+	 *	   be updated to use a global settings object for getting thse values
+	 *	   (as opposed to the this local caching). This can be addressed in
+	 *	   a later release.
 	 */
 
-	m_cache_movement_fov        = g_settings->getBool("movement_fov");
+	m_cache_movement_fov		= g_settings->getBool("movement_fov");
 
 	m_cache_fall_bobbing_amount = g_settings->getFloat("fall_bobbing_amount");
 	m_cache_view_bobbing_amount = g_settings->getFloat("view_bobbing_amount");
-	m_cache_wanted_fps          = g_settings->getFloat("wanted_fps");
-	m_cache_fov                 = g_settings->getFloat("fov");
-	m_cache_view_bobbing        = g_settings->getBool("view_bobbing");
+	m_cache_wanted_fps		  = g_settings->getFloat("wanted_fps");
+	m_cache_fov				 = g_settings->getFloat("fov");
+	m_cache_view_bobbing		= g_settings->getBool("view_bobbing");
 	m_nametags.clear();
 }
 
@@ -661,7 +661,7 @@ void Camera::updateViewingRange()
 	// A low value can cause oscillation in very nonlinear time/range curves.
 	// A high value here results in slow changing range (0.0025)
 	// SUGG: This could be dynamically adjusted so that when
-	//       the camera is turning, this is lower
+	//	   the camera is turning, this is lower
 	//f32 min_time_per_range = 0.0010; // Up to 0.4.7
 	f32 min_time_per_range = 0.0005;
 	if(m_time_per_range < min_time_per_range)

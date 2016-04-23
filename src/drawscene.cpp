@@ -580,7 +580,7 @@ static std::wstring text_old;
 void draw_load_screen(const std::wstring &text, IrrlichtDevice* device,
 		gui::IGUIEnvironment* guienv, float dtime, int percent, bool clouds )
 {
-	video::IVideoDriver* driver    = device->getVideoDriver();
+	video::IVideoDriver* driver	= device->getVideoDriver();
 
 	if (device->getVideoDriver()->getDriverType() == video::EDT_NULL) {
 		if (text != text_old) {
@@ -590,7 +590,7 @@ void draw_load_screen(const std::wstring &text, IrrlichtDevice* device,
 		return;
 	}
 
-	v2u32 screensize               = porting::getWindowSize();
+	v2u32 screensize			   = porting::getWindowSize();
 
 	v2s32 textsize(g_fontengine->getTextWidth(text), g_fontengine->getLineHeight());
 	v2s32 center(screensize.X / 2, screensize.Y / 2);

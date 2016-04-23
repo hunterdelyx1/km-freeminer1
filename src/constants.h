@@ -28,11 +28,11 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 
 	Cross-platform compatibility crap should go in porting.h.
 
-    Some things here are legacy crap.
+	Some things here are legacy crap.
 */
 
 /*
-    Connection
+	Connection
 */
 
 #define PEER_ID_INEXISTENT 0
@@ -52,7 +52,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #define RESEND_TIMEOUT_FACTOR 8
 
 /*
-    Server
+	Server
 */
 
 // This many blocks are sent when player is building
@@ -61,7 +61,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #define BLOCK_SEND_DISABLE_LIMITS_MAX_D 1
 
 /*
-    Map-related things
+	Map-related things
 */
 
 // The absolute working limit is (2^15 - viewing_range).
@@ -86,7 +86,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 //#define MAP_BLOCKSIZE 32
 
 /*
-    Old stuff that shouldn't be hardcoded
+	Old stuff that shouldn't be hardcoded
 */
 
 // Size of player's main inventory
@@ -107,7 +107,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #define SCREENSHOT_MAX_SERIAL_TRIES 1000
 
 /*
-    GUI related things
+	GUI related things
 */
 
 // TODO: implement dpi-based scaling for windows and remove this hack
@@ -118,6 +118,6 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #else
 	#define TTF_DEFAULT_FONT_SIZE	(17)
 #endif
-#define DEFAULT_FONT_SIZE       (10)
+#define DEFAULT_FONT_SIZE	   (10)
 
 #endif

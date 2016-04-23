@@ -55,15 +55,15 @@ public:
 	{ return 10; }
 	bool getSimpleCatchUp() { return true; }
 	virtual void trigger(ServerEnvironment *env, v3POS p, MapNode n,
-	                     u32 active_object_count, u32 active_object_count_wider, MapNode neighbor, bool activate) {
+						 u32 active_object_count, u32 active_object_count_wider, MapNode neighbor, bool activate) {
 		ServerMap *map = &env->getServerMap();
 		if (map->transforming_liquid_size() > map->m_liquid_step_flow)
 			return;
 		if (   map->getNodeTry(p - v3POS(0,  1, 0 )).getContent() != CONTENT_AIR  // below
-		        && map->getNodeTry(p - v3POS(1,  0, 0 )).getContent() != CONTENT_AIR  // right
-		        && map->getNodeTry(p - v3POS(-1, 0, 0 )).getContent() != CONTENT_AIR  // left
-		        && map->getNodeTry(p - v3POS(0,  0, 1 )).getContent() != CONTENT_AIR  // back
-		        && map->getNodeTry(p - v3POS(0,  0, -1)).getContent() != CONTENT_AIR  // front
+				&& map->getNodeTry(p - v3POS(1,  0, 0 )).getContent() != CONTENT_AIR  // right
+				&& map->getNodeTry(p - v3POS(-1, 0, 0 )).getContent() != CONTENT_AIR  // left
+				&& map->getNodeTry(p - v3POS(0,  0, 1 )).getContent() != CONTENT_AIR  // back
+				&& map->getNodeTry(p - v3POS(0,  0, -1)).getContent() != CONTENT_AIR  // front
 		   )
 			return;
 		map->transforming_liquid_add(p);
@@ -92,7 +92,7 @@ public:
 	{ return 10; }
 	bool getSimpleCatchUp() { return true; }
 	virtual void trigger(ServerEnvironment *env, v3POS p, MapNode n,
-	                     u32 active_object_count, u32 active_object_count_wider, MapNode neighbor, bool activate) {
+						 u32 active_object_count, u32 active_object_count_wider, MapNode neighbor, bool activate) {
 		ServerMap *map = &env->getServerMap();
 		INodeDefManager *ndef = env->getGameDef()->ndef();
 
@@ -104,7 +104,7 @@ public:
 		bool top_liquid = ndef->get(n).liquid_type > LIQUID_NONE && p.Y > water_level;
 		int freeze = ((ItemGroupList) ndef->get(n).groups)["freeze"];
 		if (heat <= freeze - 1 && ((!top_liquid && (activate || (heat <= freeze - 50))) || heat <= freeze - 50 ||
-		                           (myrand_range(freeze - 50, heat) <= (freeze + (top_liquid ? -42 : c == CONTENT_AIR ? -10 : -40))))) {
+								   (myrand_range(freeze - 50, heat) <= (freeze + (top_liquid ? -42 : c == CONTENT_AIR ? -10 : -40))))) {
 			content_t c_self = n.getContent();
 			// making freeze not annoying, do not freeze random blocks in center of ocean
 			// todo: any block not water (dont freeze _source near _flowing)
@@ -163,14 +163,14 @@ public:
 	{ return 10; }
 	bool getSimpleCatchUp() { return true; }
 	virtual void trigger(ServerEnvironment *env, v3POS p, MapNode n,
-	                     u32 active_object_count, u32 active_object_count_wider, MapNode neighbor, bool activate) {
+						 u32 active_object_count, u32 active_object_count_wider, MapNode neighbor, bool activate) {
 		ServerMap *map = &env->getServerMap();
 		INodeDefManager *ndef = env->getGameDef()->ndef();
 		float heat = map->updateBlockHeat(env, p);
 		content_t c = map->getNodeTry(p - v3POS(0,  -1, 0 )).getContent(); // top
 		int melt = ((ItemGroupList) ndef->get(n).groups)["melt"];
 		if (heat >= melt + 1 && (activate || heat >= melt + 40 ||
-		                         ((myrand_range(heat, melt + 40)) >= (c == CONTENT_AIR ? melt + 10 : melt + 20)))) {
+								 ((myrand_range(heat, melt + 40)) >= (c == CONTENT_AIR ? melt + 10 : melt + 20)))) {
 			if (ndef->get(n.getContent()).liquid_type == LIQUID_FLOWING || ndef->get(n.getContent()).liquid_type == LIQUID_SOURCE) {
 				c = map->getNodeTry(p - v3POS(0,  1, 0 )).getContent(); // below
 				if (c == CONTENT_AIR || c == CONTENT_IGNORE)
@@ -205,7 +205,7 @@ public:
 	{ return 5; }
 	bool getSimpleCatchUp() { return true; }
 	virtual void trigger(ServerEnvironment *env, v3POS p, MapNode n,
-	                     u32 active_object_count, u32 active_object_count_wider, MapNode neighbor, bool activate) {
+						 u32 active_object_count, u32 active_object_count_wider, MapNode neighbor, bool activate) {
 		ServerMap *map = &env->getServerMap();
 		INodeDefManager *ndef = env->getGameDef()->ndef();
 		int hot = ((ItemGroupList) ndef->get(neighbor).groups)["hot"];
@@ -239,7 +239,7 @@ public:
 	{ return 4; }
 	bool getSimpleCatchUp() { return true; }
 	virtual void trigger(ServerEnvironment *env, v3POS p, MapNode n,
-	                     u32 active_object_count, u32 active_object_count_wider, MapNode neighbor, bool activate) {
+						 u32 active_object_count, u32 active_object_count_wider, MapNode neighbor, bool activate) {
 		ServerMap *map = &env->getServerMap();
 		INodeDefManager *ndef = env->getGameDef()->ndef();
 		int cold = ((ItemGroupList) ndef->get(neighbor).groups)["cold"];

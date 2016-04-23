@@ -80,7 +80,7 @@ const char *inet_ntop(int af, const void *src, char *dst, socklen_t size) {
 	}
 	/* cannot direclty use &size because of strict aliasing rules */
 	return (WSAAddressToString((struct sockaddr *)&ss, sizeof(ss), NULL, dst, &s) == 0) ?
-	       dst : NULL;
+		   dst : NULL;
 }
 #endif
 
@@ -89,7 +89,7 @@ const char *inet_ntop(int af, const void *src, char *dst, socklen_t size) {
 */
 
 Connection::Connection(u32 protocol_id, u32 max_packet_size, float timeout,
-                       bool ipv6, PeerHandler *peerhandler):
+					   bool ipv6, PeerHandler *peerhandler):
 	thread_pool("Connection", 90),
 	m_protocol_id(protocol_id),
 	m_max_packet_size(max_packet_size),
@@ -144,7 +144,7 @@ void Connection::processCommand(ConnectionCommand &c) {
 		return;
 	case CONNCMD_SERVE:
 		dout_con << getDesc() << " processing CONNCMD_SERVE port="
-		         << c.address.getPort() << std::endl;
+				 << c.address.getPort() << std::endl;
 		serve(c.address);
 		return;
 	case CONNCMD_CONNECT:
@@ -348,7 +348,7 @@ void Connection::connect(Address addr) {
 
 		/* Either the 5 seconds are up or a disconnect event was */
 		/* received. Reset the peer in the event the 5 seconds   */
-		/* had run out without any significant event.            */
+		/* had run out without any significant event.			*/
 		enet_peer_reset(peer);
 	}
 }
@@ -357,7 +357,7 @@ void Connection::disconnect() {
 	//MutexAutoLock peerlock(m_peers_mutex);
 	auto lock = m_peers.lock_unique_rec();
 	for (auto i = m_peers.begin();
-	        i != m_peers.end(); ++i)
+			i != m_peers.end(); ++i)
 		enet_peer_disconnect(i->second, 0);
 	m_peers.clear();
 	m_peers_address.clear();
@@ -369,7 +369,7 @@ void Connection::sendToAll(u8 channelnum, SharedBuffer<u8> data, bool reliable) 
 }
 
 void Connection::send(u16 peer_id, u8 channelnum,
-                      SharedBuffer<u8> data, bool reliable) {
+					  SharedBuffer<u8> data, bool reliable) {
 	{
 		//MutexAutoLock peerlock(m_peers_mutex);
 		if (m_peers.find(peer_id) == m_peers.end())
@@ -488,7 +488,7 @@ u32 Connection::Receive(NetworkPacket* pkt, int timeout) {
 		ConnectionEvent e = waitEvent(timeout);
 		if(e.type != CONNEVENT_NONE)
 			dout_con << getDesc() << ": Receive: got event: "
-			         << e.describe() << std::endl;
+					 << e.describe() << std::endl;
 		switch(e.type) {
 		case CONNEVENT_NONE:
 			//throw NoIncomingDataException("No incoming data");
@@ -511,7 +511,7 @@ u32 Connection::Receive(NetworkPacket* pkt, int timeout) {
 		}
 		case CONNEVENT_BIND_FAILED:
 			throw ConnectionBindFailed("Failed to bind socket "
-			                           "(port already in use?)");
+									   "(port already in use?)");
 		case CONNEVENT_CONNECT_FAILED:
 			throw ConnectionException("Failed to connect");
 		}
@@ -529,7 +529,7 @@ void Connection::SendToAll(u8 channelnum, SharedBuffer<u8> data, bool reliable) 
 }
 
 void Connection::Send(u16 peer_id, u8 channelnum,
-                      SharedBuffer<u8> data, bool reliable) {
+					  SharedBuffer<u8> data, bool reliable) {
 	assert(channelnum < CHANNEL_COUNT);
 
 	ConnectionCommand c;

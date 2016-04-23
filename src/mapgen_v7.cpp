@@ -49,8 +49,8 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 
 FlagDesc flagdesc_mapgen_v7[] = {
 	{"mountains", MGV7_MOUNTAINS},
-	{"ridges",    MGV7_RIDGES},
-	{NULL,        0}
+	{"ridges",	MGV7_RIDGES},
+	{NULL,		0}
 };
 
 
@@ -62,7 +62,7 @@ MapgenV7::MapgenV7(int mapgenid, MapgenParams *params, EmergeManager *emerge)
 	, Mapgen_features(mapgenid, params, emerge)
 {
 	this->m_emerge = emerge;
-	this->bmgr     = emerge->biomemgr;
+	this->bmgr	 = emerge->biomemgr;
 
 	//// amount of elements to skip for the next index
 	//// for noise/height/biome maps (not vmanip)
@@ -72,52 +72,52 @@ MapgenV7::MapgenV7(int mapgenid, MapgenParams *params, EmergeManager *emerge)
 	// 1-down overgeneration
 	this->zstride_1d = csize.X * (csize.Y + 1);
 
-	this->biomemap        = new u8[csize.X * csize.Z];
-	this->heightmap       = new s16[csize.X * csize.Z];
-	this->heatmap         = NULL;
-	this->humidmap        = NULL;
+	this->biomemap		= new u8[csize.X * csize.Z];
+	this->heightmap	   = new s16[csize.X * csize.Z];
+	this->heatmap		 = NULL;
+	this->humidmap		= NULL;
 	this->ridge_heightmap = new s16[csize.X * csize.Z];
 
 	MapgenV7Params *sp = (MapgenV7Params *)params->sparams;
 	this->spflags = sp->spflags;
 
 	//// Terrain noise
-	noise_terrain_base    = new Noise(&sp->np_terrain_base,    seed, csize.X, csize.Z);
-	noise_terrain_alt     = new Noise(&sp->np_terrain_alt,     seed, csize.X, csize.Z);
+	noise_terrain_base	= new Noise(&sp->np_terrain_base,	seed, csize.X, csize.Z);
+	noise_terrain_alt	 = new Noise(&sp->np_terrain_alt,	 seed, csize.X, csize.Z);
 	noise_terrain_persist = new Noise(&sp->np_terrain_persist, seed, csize.X, csize.Z);
 	noise_height_select   = new Noise(&sp->np_height_select,   seed, csize.X, csize.Z);
-	noise_filler_depth    = new Noise(&sp->np_filler_depth,    seed, csize.X, csize.Z);
-	noise_mount_height    = new Noise(&sp->np_mount_height,    seed, csize.X, csize.Z);
-	noise_ridge_uwater    = new Noise(&sp->np_ridge_uwater,    seed, csize.X, csize.Z);
+	noise_filler_depth	= new Noise(&sp->np_filler_depth,	seed, csize.X, csize.Z);
+	noise_mount_height	= new Noise(&sp->np_mount_height,	seed, csize.X, csize.Z);
+	noise_ridge_uwater	= new Noise(&sp->np_ridge_uwater,	seed, csize.X, csize.Z);
 
 	//// 3d terrain noise
 	// 1-up 1-down overgeneration
 	noise_mountain = new Noise(&sp->np_mountain, seed, csize.X, csize.Y + 2, csize.Z);
-	noise_ridge    = new Noise(&sp->np_ridge,    seed, csize.X, csize.Y + 2, csize.Z);
+	noise_ridge	= new Noise(&sp->np_ridge,	seed, csize.X, csize.Y + 2, csize.Z);
 	// 1-down overgeneraion
-	noise_cave1    = new Noise(&sp->np_cave1,    seed, csize.X, csize.Y + 1, csize.Z);
-	noise_cave2    = new Noise(&sp->np_cave2,    seed, csize.X, csize.Y + 1, csize.Z);
+	noise_cave1	= new Noise(&sp->np_cave1,	seed, csize.X, csize.Y + 1, csize.Z);
+	noise_cave2	= new Noise(&sp->np_cave2,	seed, csize.X, csize.Y + 1, csize.Z);
 
 	//// Biome noise
-	noise_heat           = new Noise(&params->np_biome_heat,           seed, csize.X, csize.Z);
-	noise_humidity       = new Noise(&params->np_biome_humidity,       seed, csize.X, csize.Z);
-	noise_heat_blend     = new Noise(&params->np_biome_heat_blend,     seed, csize.X, csize.Z);
+	noise_heat		   = new Noise(&params->np_biome_heat,		   seed, csize.X, csize.Z);
+	noise_humidity	   = new Noise(&params->np_biome_humidity,	   seed, csize.X, csize.Z);
+	noise_heat_blend	 = new Noise(&params->np_biome_heat_blend,	 seed, csize.X, csize.Z);
 	noise_humidity_blend = new Noise(&params->np_biome_humidity_blend, seed, csize.X, csize.Z);
 
 	//// Resolve nodes to be used
 	INodeDefManager *ndef = emerge->ndef;
 
-	c_stone                = ndef->getId("mapgen_stone");
-	c_water_source         = ndef->getId("mapgen_water_source");
-	c_lava_source          = ndef->getId("mapgen_lava_source");
-	c_desert_stone         = ndef->getId("mapgen_desert_stone");
-	c_ice                  = ndef->getId("mapgen_ice");
-	c_sandstone            = ndef->getId("mapgen_sandstone");
+	c_stone				= ndef->getId("mapgen_stone");
+	c_water_source		 = ndef->getId("mapgen_water_source");
+	c_lava_source		  = ndef->getId("mapgen_lava_source");
+	c_desert_stone		 = ndef->getId("mapgen_desert_stone");
+	c_ice				  = ndef->getId("mapgen_ice");
+	c_sandstone			= ndef->getId("mapgen_sandstone");
 
-	c_cobble               = ndef->getId("mapgen_cobble");
-	c_stair_cobble         = ndef->getId("mapgen_stair_cobble");
-	c_mossycobble          = ndef->getId("mapgen_mossycobble");
-	c_sandstonebrick       = ndef->getId("mapgen_sandstonebrick");
+	c_cobble			   = ndef->getId("mapgen_cobble");
+	c_stair_cobble		 = ndef->getId("mapgen_stair_cobble");
+	c_mossycobble		  = ndef->getId("mapgen_mossycobble");
+	c_sandstonebrick	   = ndef->getId("mapgen_sandstonebrick");
 	c_stair_sandstonebrick = ndef->getId("mapgen_stair_sandstonebrick");
 
 	if (c_ice == CONTENT_IGNORE)
@@ -131,9 +131,9 @@ MapgenV7::MapgenV7(int mapgenid, MapgenParams *params, EmergeManager *emerge)
 	noise_float_islands2  = new Noise(&sp->np_float_islands2, seed, csize.X, csize.Y + y_offset * 2, csize.Z);
 	noise_float_islands3  = new Noise(&sp->np_float_islands3, seed, csize.X, csize.Z);
 
-	noise_layers          = new Noise(&sp->np_layers,         seed, csize.X, csize.Y + y_offset * 2, csize.Z);
+	noise_layers		  = new Noise(&sp->np_layers,		 seed, csize.X, csize.Y + y_offset * 2, csize.Z);
 	layers_init(emerge, sp->paramsj);
-	//noise_cave_indev      = new Noise(&sp->np_cave_indev,     seed, csize.X, csize.Y + y_offset * 2, csize.Z);
+	//noise_cave_indev	  = new Noise(&sp->np_cave_indev,	 seed, csize.X, csize.Y + y_offset * 2, csize.Z);
 
 
 	if (c_mossycobble == CONTENT_IGNORE)
@@ -178,23 +178,23 @@ MapgenV7Params::MapgenV7Params()
 
 //freeminer:
 	float_islands = 500;
-	np_float_islands1  = NoiseParams(0,    1,   v3f(256, 256, 256), 3683,  6, 0.6, 2.0, NOISE_FLAG_DEFAULTS, 1,   1.5);
-	np_float_islands2  = NoiseParams(0,    1,   v3f(8,   8,   8  ), 9292,  2, 0.5, 2.0, NOISE_FLAG_DEFAULTS, 1,   1.5);
-	np_float_islands3  = NoiseParams(0,    1,   v3f(256, 256, 256), 6412,  2, 0.5, 2.0, NOISE_FLAG_DEFAULTS, 1,   0.5);
-	np_layers          = NoiseParams(500,  500, v3f(100, 100,  100), 3663, 5, 0.6, 2.0, NOISE_FLAG_DEFAULTS, 1,   1.1,   0.5);
+	np_float_islands1  = NoiseParams(0,	1,   v3f(256, 256, 256), 3683,  6, 0.6, 2.0, NOISE_FLAG_DEFAULTS, 1,   1.5);
+	np_float_islands2  = NoiseParams(0,	1,   v3f(8,   8,   8  ), 9292,  2, 0.5, 2.0, NOISE_FLAG_DEFAULTS, 1,   1.5);
+	np_float_islands3  = NoiseParams(0,	1,   v3f(256, 256, 256), 6412,  2, 0.5, 2.0, NOISE_FLAG_DEFAULTS, 1,   0.5);
+	np_layers		  = NoiseParams(500,  500, v3f(100, 100,  100), 3663, 5, 0.6, 2.0, NOISE_FLAG_DEFAULTS, 1,   1.1,   0.5);
 //----------
 
-	np_terrain_base    = NoiseParams(4,    70,  v3f(600,  600,  600),  82341, 5, 0.6,  2.0);
-	np_terrain_alt     = NoiseParams(4,    25,  v3f(600,  600,  600),  5934,  5, 0.6,  2.0);
+	np_terrain_base	= NoiseParams(4,	70,  v3f(600,  600,  600),  82341, 5, 0.6,  2.0);
+	np_terrain_alt	 = NoiseParams(4,	25,  v3f(600,  600,  600),  5934,  5, 0.6,  2.0);
 	np_terrain_persist = NoiseParams(0.6,  0.1, v3f(2000, 2000, 2000), 539,   3, 0.6,  2.0);
 	np_height_select   = NoiseParams(-8,   16,  v3f(500,  500,  500),  4213,  6, 0.7,  2.0);
-	np_filler_depth    = NoiseParams(0,    1.2, v3f(150,  150,  150),  261,   3, 0.7,  2.0);
-	np_mount_height    = NoiseParams(256,  112, v3f(1000, 1000, 1000), 72449, 3, 0.6,  2.0);
-	np_ridge_uwater    = NoiseParams(0,    1,   v3f(1000, 1000, 1000), 85039, 5, 0.6,  2.0);
-	np_mountain        = NoiseParams(-0.6, 1,   v3f(250,  350,  250),  5333,  5, 0.63, 2.0);
-	np_ridge           = NoiseParams(0,    1,   v3f(100,  100,  100),  6467,  4, 0.75, 2.0);
-	np_cave1           = NoiseParams(0,    12,  v3f(96,   96,   96),   52534, 4, 0.5,  2.0);
-	np_cave2           = NoiseParams(0,    12,  v3f(96,   96,   96),   10325, 4, 0.5,  2.0);
+	np_filler_depth	= NoiseParams(0,	1.2, v3f(150,  150,  150),  261,   3, 0.7,  2.0);
+	np_mount_height	= NoiseParams(256,  112, v3f(1000, 1000, 1000), 72449, 3, 0.6,  2.0);
+	np_ridge_uwater	= NoiseParams(0,	1,   v3f(1000, 1000, 1000), 85039, 5, 0.6,  2.0);
+	np_mountain		= NoiseParams(-0.6, 1,   v3f(250,  350,  250),  5333,  5, 0.63, 2.0);
+	np_ridge		   = NoiseParams(0,	1,   v3f(100,  100,  100),  6467,  4, 0.75, 2.0);
+	np_cave1		   = NoiseParams(0,	12,  v3f(96,   96,   96),   52534, 4, 0.5,  2.0);
+	np_cave2		   = NoiseParams(0,	12,  v3f(96,   96,   96),   10325, 4, 0.5,  2.0);
 }
 
 
@@ -202,27 +202,27 @@ void MapgenV7Params::readParams(Settings *settings)
 {
 	settings->getFlagStrNoEx("mgv7_spflags", spflags, flagdesc_mapgen_v7);
 
-	settings->getNoiseParams("mgv7_np_terrain_base",    np_terrain_base);
-	settings->getNoiseParams("mgv7_np_terrain_alt",     np_terrain_alt);
+	settings->getNoiseParams("mgv7_np_terrain_base",	np_terrain_base);
+	settings->getNoiseParams("mgv7_np_terrain_alt",	 np_terrain_alt);
 	settings->getNoiseParams("mgv7_np_terrain_persist", np_terrain_persist);
 	settings->getNoiseParams("mgv7_np_height_select",   np_height_select);
-	settings->getNoiseParams("mgv7_np_filler_depth",    np_filler_depth);
-	settings->getNoiseParams("mgv7_np_mount_height",    np_mount_height);
-	settings->getNoiseParams("mgv7_np_ridge_uwater",    np_ridge_uwater);
-	settings->getNoiseParams("mgv7_np_mountain",        np_mountain);
-	settings->getNoiseParams("mgv7_np_ridge",           np_ridge);
+	settings->getNoiseParams("mgv7_np_filler_depth",	np_filler_depth);
+	settings->getNoiseParams("mgv7_np_mount_height",	np_mount_height);
+	settings->getNoiseParams("mgv7_np_ridge_uwater",	np_ridge_uwater);
+	settings->getNoiseParams("mgv7_np_mountain",		np_mountain);
+	settings->getNoiseParams("mgv7_np_ridge",		   np_ridge);
 
 //freeminer:
 	settings->getS16NoEx("mg_float_islands", float_islands);
 	settings->getNoiseParamsFromGroup("mg_np_float_islands1", np_float_islands1);
 	settings->getNoiseParamsFromGroup("mg_np_float_islands2", np_float_islands2);
 	settings->getNoiseParamsFromGroup("mg_np_float_islands3", np_float_islands3);
-	settings->getNoiseParamsFromGroup("mg_np_layers",         np_layers);
+	settings->getNoiseParamsFromGroup("mg_np_layers",		 np_layers);
 	paramsj = settings->getJson("mg_params", paramsj);
 //----------
 
-	settings->getNoiseParams("mgv7_np_cave1",           np_cave1);
-	settings->getNoiseParams("mgv7_np_cave2",           np_cave2);
+	settings->getNoiseParams("mgv7_np_cave1",		   np_cave1);
+	settings->getNoiseParams("mgv7_np_cave2",		   np_cave2);
 }
 
 
@@ -230,27 +230,27 @@ void MapgenV7Params::writeParams(Settings *settings) const
 {
 	settings->setFlagStr("mgv7_spflags", spflags, flagdesc_mapgen_v7, U32_MAX);
 
-	settings->setNoiseParams("mgv7_np_terrain_base",    np_terrain_base);
-	settings->setNoiseParams("mgv7_np_terrain_alt",     np_terrain_alt);
+	settings->setNoiseParams("mgv7_np_terrain_base",	np_terrain_base);
+	settings->setNoiseParams("mgv7_np_terrain_alt",	 np_terrain_alt);
 	settings->setNoiseParams("mgv7_np_terrain_persist", np_terrain_persist);
 	settings->setNoiseParams("mgv7_np_height_select",   np_height_select);
-	settings->setNoiseParams("mgv7_np_filler_depth",    np_filler_depth);
-	settings->setNoiseParams("mgv7_np_mount_height",    np_mount_height);
-	settings->setNoiseParams("mgv7_np_ridge_uwater",    np_ridge_uwater);
-	settings->setNoiseParams("mgv7_np_mountain",        np_mountain);
-	settings->setNoiseParams("mgv7_np_ridge",           np_ridge);
+	settings->setNoiseParams("mgv7_np_filler_depth",	np_filler_depth);
+	settings->setNoiseParams("mgv7_np_mount_height",	np_mount_height);
+	settings->setNoiseParams("mgv7_np_ridge_uwater",	np_ridge_uwater);
+	settings->setNoiseParams("mgv7_np_mountain",		np_mountain);
+	settings->setNoiseParams("mgv7_np_ridge",		   np_ridge);
 
 //freeminer:
 	settings->setS16("mg_float_islands", float_islands);
 	settings->setNoiseParams("mg_np_float_islands1", np_float_islands1);
 	settings->setNoiseParams("mg_np_float_islands2", np_float_islands2);
 	settings->setNoiseParams("mg_np_float_islands3", np_float_islands3);
-	settings->setNoiseParams("mg_np_layers",         np_layers);
+	settings->setNoiseParams("mg_np_layers",		 np_layers);
 	settings->setJson("mg_params", paramsj);
 //----------
 
-	settings->setNoiseParams("mgv7_np_cave1",           np_cave1);
-	settings->setNoiseParams("mgv7_np_cave2",           np_cave2);
+	settings->setNoiseParams("mgv7_np_cave1",		   np_cave1);
+	settings->setNoiseParams("mgv7_np_cave2",		   np_cave2);
 }
 
 
@@ -348,37 +348,37 @@ void MapgenV7::makeChunk(BlockMakeData *data)
 		dp.np_rarity  = nparams_dungeon_rarity;
 		dp.np_density = nparams_dungeon_density;
 		dp.np_wetness = nparams_dungeon_wetness;
-		dp.c_water    = c_water_source;
+		dp.c_water	= c_water_source;
 		if (stone_type == STONE) {
 			dp.c_cobble = c_cobble;
 			dp.c_moss   = c_mossycobble;
 			dp.c_stair  = c_stair_cobble;
 
 			dp.diagonal_dirs = false;
-			dp.mossratio     = 3.0;
-			dp.holesize      = v3s16(1, 2, 1);
-			dp.roomsize      = v3s16(0, 0, 0);
-			dp.notifytype    = GENNOTIFY_DUNGEON;
+			dp.mossratio	 = 3.0;
+			dp.holesize	  = v3s16(1, 2, 1);
+			dp.roomsize	  = v3s16(0, 0, 0);
+			dp.notifytype	= GENNOTIFY_DUNGEON;
 		} else if (stone_type == DESERT_STONE) {
 			dp.c_cobble = c_desert_stone;
 			dp.c_moss   = c_desert_stone;
 			dp.c_stair  = c_desert_stone;
 
 			dp.diagonal_dirs = true;
-			dp.mossratio     = 0.0;
-			dp.holesize      = v3s16(2, 3, 2);
-			dp.roomsize      = v3s16(2, 5, 2);
-			dp.notifytype    = GENNOTIFY_TEMPLE;
+			dp.mossratio	 = 0.0;
+			dp.holesize	  = v3s16(2, 3, 2);
+			dp.roomsize	  = v3s16(2, 5, 2);
+			dp.notifytype	= GENNOTIFY_TEMPLE;
 		} else if (stone_type == SANDSTONE) {
 			dp.c_cobble = c_sandstonebrick;
 			dp.c_moss   = c_sandstonebrick;
 			dp.c_stair  = c_sandstonebrick;
 
 			dp.diagonal_dirs = false;
-			dp.mossratio     = 0.0;
-			dp.holesize      = v3s16(2, 2, 2);
-			dp.roomsize      = v3s16(2, 0, 2);
-			dp.notifytype    = GENNOTIFY_DUNGEON;
+			dp.mossratio	 = 0.0;
+			dp.holesize	  = v3s16(2, 2, 2);
+			dp.roomsize	  = v3s16(2, 0, 2);
+			dp.notifytype	= GENNOTIFY_DUNGEON;
 		}
 
 		DungeonGen dgen(this, &dp);
@@ -492,7 +492,7 @@ float MapgenV7::baseTerrainLevelAtPoint(s16 x, s16 z)
 
 float MapgenV7::baseTerrainLevelFromMap(int index)
 {
-	float hselect     = rangelim(noise_height_select->result[index], 0.0, 1.0);
+	float hselect	 = rangelim(noise_height_select->result[index], 0.0, 1.0);
 	float height_base = noise_terrain_base->result[index];
 	float height_alt  = noise_terrain_alt->result[index];
 
@@ -538,7 +538,7 @@ int MapgenV7::generateTerrain()
 	for (s16 z = node_min.Z; z <= node_max.Z; z++)
 	for (s16 x = node_min.X; x <= node_max.X; x++, index2d++) {
 		s16 surface_y = baseTerrainLevelFromMap(index2d);
-		heightmap[index2d]       = surface_y;  // Create base terrain heightmap
+		heightmap[index2d]	   = surface_y;  // Create base terrain heightmap
 		ridge_heightmap[index2d] = surface_y;
 
 		if (surface_y > stone_surface_max_y)

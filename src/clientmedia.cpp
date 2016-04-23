@@ -617,7 +617,7 @@ std::string ClientMediaDownloader::serializeRequiredHashSet()
 	std::ostringstream os(std::ios::binary);
 
 	writeU32(os, MTHASHSET_FILE_SIGNATURE); // signature
-	writeU16(os, 1);                        // version
+	writeU16(os, 1);						// version
 
 	// Write list of hashes of files that have not been
 	// received (found in cache) yet

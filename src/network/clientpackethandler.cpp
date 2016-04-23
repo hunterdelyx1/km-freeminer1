@@ -369,7 +369,7 @@ void Client::handleCommand_TimeOfDay(NetworkPacket* pkt)
 
 	*pkt >> time_of_day;
 
-	time_of_day      = time_of_day % 24000;
+	time_of_day	  = time_of_day % 24000;
 	float time_speed = 0;
 
 	if (pkt->getSize() >= 2 + 4) {
@@ -385,8 +385,8 @@ void Client::handleCommand_TimeOfDay(NetworkPacket* pkt)
 		else
 			tod_diff_f = time_of_day_f - m_last_time_of_day_f;
 
-		m_last_time_of_day_f       = time_of_day_f;
-		float time_diff            = m_time_of_day_update_timer;
+		m_last_time_of_day_f	   = time_of_day_f;
+		float time_diff			= m_time_of_day_update_timer;
 		m_time_of_day_update_timer = 0;
 
 		if (m_time_of_day_set) {
@@ -510,17 +510,17 @@ void Client::handleCommand_Movement(NetworkPacket* pkt)
 		>> lf >> lfs >> ls >> g;
 
 	player->movement_acceleration_default   = mad * BS;
-	player->movement_acceleration_air       = maa * BS;
-	player->movement_acceleration_fast      = maf * BS;
-	player->movement_speed_walk             = msw * BS;
-	player->movement_speed_crouch           = mscr * BS;
-	player->movement_speed_fast             = msf * BS;
-	player->movement_speed_climb            = mscl * BS;
-	player->movement_speed_jump             = msj * BS;
-	player->movement_liquid_fluidity        = lf * BS;
+	player->movement_acceleration_air	   = maa * BS;
+	player->movement_acceleration_fast	  = maf * BS;
+	player->movement_speed_walk			 = msw * BS;
+	player->movement_speed_crouch		   = mscr * BS;
+	player->movement_speed_fast			 = msf * BS;
+	player->movement_speed_climb			= mscl * BS;
+	player->movement_speed_jump			 = msj * BS;
+	player->movement_liquid_fluidity		= lf * BS;
 	player->movement_liquid_fluidity_smooth = lfs * BS;
-	player->movement_liquid_sink            = ls * BS;
-	player->movement_gravity                = g * BS;
+	player->movement_liquid_sink			= ls * BS;
+	player->movement_gravity				= g * BS;
 }
 
 void Client::handleCommand_HP(NetworkPacket* pkt)
@@ -604,7 +604,7 @@ void Client::handleCommand_DeathScreen(NetworkPacket* pkt)
 	*pkt >> camera_point_target;
 
 	ClientEvent event;
-	event.type                                = CE_DEATHSCREEN;
+	event.type								= CE_DEATHSCREEN;
 	event.deathscreen.set_camera_point_target = set_camera_point_target;
 	event.deathscreen.camera_point_target_x   = camera_point_target.X;
 	event.deathscreen.camera_point_target_y   = camera_point_target.Y;
@@ -902,28 +902,28 @@ void Client::handleCommand_SpawnParticle(NetworkPacket* pkt)
 	std::string datastring(pkt->getString(0), pkt->getSize());
 	std::istringstream is(datastring, std::ios_base::binary);
 
-	v3f pos                 = readV3F1000(is);
-	v3f vel                 = readV3F1000(is);
-	v3f acc                 = readV3F1000(is);
-	float expirationtime    = readF1000(is);
-	float size              = readF1000(is);
+	v3f pos				 = readV3F1000(is);
+	v3f vel				 = readV3F1000(is);
+	v3f acc				 = readV3F1000(is);
+	float expirationtime	= readF1000(is);
+	float size			  = readF1000(is);
 	bool collisiondetection = readU8(is);
-	std::string texture     = deSerializeLongString(is);
-	bool vertical           = false;
+	std::string texture	 = deSerializeLongString(is);
+	bool vertical		   = false;
 	try {
 		vertical = readU8(is);
 	} catch (...) {}
 
 	ClientEvent event;
-	event.type                              = CE_SPAWN_PARTICLE;
-	event.spawn_particle.pos                = new v3f (pos);
-	event.spawn_particle.vel                = new v3f (vel);
-	event.spawn_particle.acc                = new v3f (acc);
-	event.spawn_particle.expirationtime     = expirationtime;
-	event.spawn_particle.size               = size;
+	event.type							  = CE_SPAWN_PARTICLE;
+	event.spawn_particle.pos				= new v3f (pos);
+	event.spawn_particle.vel				= new v3f (vel);
+	event.spawn_particle.acc				= new v3f (acc);
+	event.spawn_particle.expirationtime	 = expirationtime;
+	event.spawn_particle.size			   = size;
 	event.spawn_particle.collisiondetection = collisiondetection;
-	event.spawn_particle.vertical           = vertical;
-	event.spawn_particle.texture            = new std::string(texture);
+	event.spawn_particle.vertical		   = vertical;
+	event.spawn_particle.texture			= new std::string(texture);
 
 	m_client_event_queue.push(event);
 }
@@ -959,23 +959,23 @@ void Client::handleCommand_AddParticleSpawner(NetworkPacket* pkt)
 	} catch (...) {}
 
 	ClientEvent event;
-	event.type                                   = CE_ADD_PARTICLESPAWNER;
-	event.add_particlespawner.amount             = amount;
-	event.add_particlespawner.spawntime          = spawntime;
-	event.add_particlespawner.minpos             = new v3f (minpos);
-	event.add_particlespawner.maxpos             = new v3f (maxpos);
-	event.add_particlespawner.minvel             = new v3f (minvel);
-	event.add_particlespawner.maxvel             = new v3f (maxvel);
-	event.add_particlespawner.minacc             = new v3f (minacc);
-	event.add_particlespawner.maxacc             = new v3f (maxacc);
-	event.add_particlespawner.minexptime         = minexptime;
-	event.add_particlespawner.maxexptime         = maxexptime;
-	event.add_particlespawner.minsize            = minsize;
-	event.add_particlespawner.maxsize            = maxsize;
+	event.type								   = CE_ADD_PARTICLESPAWNER;
+	event.add_particlespawner.amount			 = amount;
+	event.add_particlespawner.spawntime		  = spawntime;
+	event.add_particlespawner.minpos			 = new v3f (minpos);
+	event.add_particlespawner.maxpos			 = new v3f (maxpos);
+	event.add_particlespawner.minvel			 = new v3f (minvel);
+	event.add_particlespawner.maxvel			 = new v3f (maxvel);
+	event.add_particlespawner.minacc			 = new v3f (minacc);
+	event.add_particlespawner.maxacc			 = new v3f (maxacc);
+	event.add_particlespawner.minexptime		 = minexptime;
+	event.add_particlespawner.maxexptime		 = maxexptime;
+	event.add_particlespawner.minsize			= minsize;
+	event.add_particlespawner.maxsize			= maxsize;
 	event.add_particlespawner.collisiondetection = collisiondetection;
-	event.add_particlespawner.vertical           = vertical;
-	event.add_particlespawner.texture            = new std::string(texture);
-	event.add_particlespawner.id                 = id;
+	event.add_particlespawner.vertical		   = vertical;
+	event.add_particlespawner.texture			= new std::string(texture);
+	event.add_particlespawner.id				 = id;
 
 	m_client_event_queue.push(event);
 }
@@ -996,7 +996,7 @@ void Client::handleCommand_DeleteParticleSpawner(NetworkPacket* pkt)
 
 
 	ClientEvent event;
-	event.type                      = CE_DELETE_PARTICLESPAWNER;
+	event.type					  = CE_DELETE_PARTICLESPAWNER;
 	event.delete_particlespawner.id =
 			(pkt->getCommand() == TOCLIENT_DELETE_PARTICLESPAWNER_LEGACY ? (u32) legacy_id : id);
 
@@ -1034,20 +1034,20 @@ void Client::handleCommand_HudAdd(NetworkPacket* pkt)
 	} catch(SerializationError &e) {};
 
 	ClientEvent event;
-	event.type             = CE_HUDADD;
-	event.hudadd.id        = id;
-	event.hudadd.type      = type;
-	event.hudadd.pos       = new v2f(pos);
-	event.hudadd.name      = new std::string(name);
-	event.hudadd.scale     = new v2f(scale);
-	event.hudadd.text      = new std::string(text);
-	event.hudadd.number    = number;
-	event.hudadd.item      = item;
-	event.hudadd.dir       = dir;
-	event.hudadd.align     = new v2f(align);
-	event.hudadd.offset    = new v2f(offset);
+	event.type			 = CE_HUDADD;
+	event.hudadd.id		= id;
+	event.hudadd.type	  = type;
+	event.hudadd.pos	   = new v2f(pos);
+	event.hudadd.name	  = new std::string(name);
+	event.hudadd.scale	 = new v2f(scale);
+	event.hudadd.text	  = new std::string(text);
+	event.hudadd.number	= number;
+	event.hudadd.item	  = item;
+	event.hudadd.dir	   = dir;
+	event.hudadd.align	 = new v2f(align);
+	event.hudadd.offset	= new v2f(offset);
 	event.hudadd.world_pos = new v3f(world_pos);
-	event.hudadd.size      = new v2s32(size);
+	event.hudadd.size	  = new v2s32(size);
 	m_client_event_queue.push(event);
 }
 
@@ -1058,7 +1058,7 @@ void Client::handleCommand_HudRemove(NetworkPacket* pkt)
 	*pkt >> id;
 
 	ClientEvent event;
-	event.type     = CE_HUDRM;
+	event.type	 = CE_HUDRM;
 	event.hudrm.id = id;
 	m_client_event_queue.push(event);
 }
@@ -1088,13 +1088,13 @@ void Client::handleCommand_HudChange(NetworkPacket* pkt)
 		*pkt >> intdata;
 
 	ClientEvent event;
-	event.type              = CE_HUDCHANGE;
-	event.hudchange.id      = id;
-	event.hudchange.stat    = (HudElementStat)stat;
+	event.type			  = CE_HUDCHANGE;
+	event.hudchange.id	  = id;
+	event.hudchange.stat	= (HudElementStat)stat;
 	event.hudchange.v2fdata = new v2f(v2fdata);
 	event.hudchange.v3fdata = new v3f(v3fdata);
 	event.hudchange.sdata   = new std::string(sdata);
-	event.hudchange.data    = intdata;
+	event.hudchange.data	= intdata;
 	event.hudchange.v2s32data = new v2s32(v2s32data);
 	m_client_event_queue.push(event);
 }
@@ -1153,18 +1153,18 @@ void Client::handleCommand_HudSetSky(NetworkPacket* pkt)
 	std::string datastring(pkt->getString(0), pkt->getSize());
 	std::istringstream is(datastring, std::ios_base::binary);
 
-	video::SColor *bgcolor           = new video::SColor(readARGB8(is));
-	std::string *type                = new std::string(deSerializeString(is));
-	u16 count                        = readU16(is);
+	video::SColor *bgcolor		   = new video::SColor(readARGB8(is));
+	std::string *type				= new std::string(deSerializeString(is));
+	u16 count						= readU16(is);
 	std::vector<std::string> *params = new std::vector<std::string>;
 
 	for (size_t i = 0; i < count; i++)
 		params->push_back(deSerializeString(is));
 
 	ClientEvent event;
-	event.type            = CE_SET_SKY;
+	event.type			= CE_SET_SKY;
 	event.set_sky.bgcolor = bgcolor;
-	event.set_sky.type    = type;
+	event.set_sky.type	= type;
 	event.set_sky.params  = params;
 	m_client_event_queue.push(event);
 }
@@ -1179,9 +1179,9 @@ void Client::handleCommand_OverrideDayNightRatio(NetworkPacket* pkt)
 	float day_night_ratio_f = (float)day_night_ratio_u / 65536;
 
 	ClientEvent event;
-	event.type                                 = CE_OVERRIDE_DAY_NIGHT_RATIO;
+	event.type								 = CE_OVERRIDE_DAY_NIGHT_RATIO;
 	event.override_day_night_ratio.do_override = do_override;
-	event.override_day_night_ratio.ratio_f     = day_night_ratio_f;
+	event.override_day_night_ratio.ratio_f	 = day_night_ratio_f;
 	m_client_event_queue.push(event);
 }
 

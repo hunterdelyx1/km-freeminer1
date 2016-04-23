@@ -47,16 +47,16 @@ Hud::Hud(video::IVideoDriver *driver, scene::ISceneManager* smgr,
 		gui::IGUIEnvironment* guienv, IGameDef *gamedef, LocalPlayer *player,
 		Inventory *inventory)
 {
-	this->driver      = driver;
-	this->smgr        = smgr;
-	this->guienv      = guienv;
-	this->gamedef     = gamedef;
-	this->player      = player;
+	this->driver	  = driver;
+	this->smgr		= smgr;
+	this->guienv	  = guienv;
+	this->gamedef	 = gamedef;
+	this->player	  = player;
 	this->inventory   = inventory;
 
-	m_hud_scaling      = g_settings->getFloat("hud_scaling");
-	m_screensize       = v2u32(0, 0);
-	m_displaycenter    = v2s32(0, 0);
+	m_hud_scaling	  = g_settings->getFloat("hud_scaling");
+	m_screensize	   = v2u32(0, 0);
+	m_displaycenter	= v2s32(0, 0);
 	m_hotbar_imagesize = floor(HOTBAR_IMAGE_SIZE * porting::getDisplayDensity() + 0.5);
 	m_hotbar_imagesize *= m_hud_scaling;
 	m_padding = m_hotbar_imagesize / 12;
@@ -334,13 +334,13 @@ void Hud::drawLuaElements(const v3s16 &camera_offset)
 				const video::SColor colors[] = {color, color, color, color};
 				core::dimension2di imgsize(texture->getOriginalSize());
 				v2s32 dstsize(imgsize.Width * e->scale.X,
-				              imgsize.Height * e->scale.Y);
+							  imgsize.Height * e->scale.Y);
 				if (e->scale.X < 0)
 					dstsize.X = m_screensize.X * (e->scale.X * -0.01);
 				if (e->scale.Y < 0)
 					dstsize.Y = m_screensize.Y * (e->scale.Y * -0.01);
 				v2s32 offset((e->align.X - 1.0) * dstsize.X / 2,
-				             (e->align.Y - 1.0) * dstsize.Y / 2);
+							 (e->align.Y - 1.0) * dstsize.Y / 2);
 				core::rect<s32> rect(0, 0, dstsize.X, dstsize.Y);
 				rect += pos + offset + v2s32(e->offset.X, e->offset.Y);
 				draw2DImageFilterScaled(driver, texture, rect,
@@ -355,7 +355,7 @@ void Hud::drawLuaElements(const v3s16 &camera_offset)
 				std::wstring text = utf8_to_wide(e->text);
 				core::dimension2d<u32> textsize = font->getDimension(text.c_str());
 				v2s32 offset((e->align.X - 1.0) * (textsize.Width / 2),
-				             (e->align.Y - 1.0) * (textsize.Height / 2));
+							 (e->align.Y - 1.0) * (textsize.Height / 2));
 				v2s32 offs(e->offset.X, e->offset.Y);
 				font->draw(text.c_str(), size + pos + offset + offs, color);
 				break; }

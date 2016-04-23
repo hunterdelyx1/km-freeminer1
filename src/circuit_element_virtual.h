@@ -40,7 +40,7 @@ public:
 
 	void serialize(std::ostream& out);
 	void deSerialize(std::istream& is, std::list <CircuitElementVirtual>::iterator current_element_it,
-	                 std::map <u32, std::list<CircuitElement>::iterator>& id_to_pointer);
+					 std::map <u32, std::list<CircuitElement>::iterator>& id_to_pointer);
 
 	void setId(u32 id);
 

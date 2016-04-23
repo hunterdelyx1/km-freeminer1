@@ -169,7 +169,7 @@ void Server::SendChatMessage(u16 peer_id, const std::string &message)
 }
 
 void Server::SendShowFormspecMessage(u16 peer_id, const std::string &formspec,
-                                     const std::string &formname)
+									 const std::string &formname)
 {
 	DSTACK(FUNCTION_NAME);
 

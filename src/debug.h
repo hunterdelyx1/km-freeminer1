@@ -121,7 +121,7 @@ private:
 	DebugStacker __debug_stacker(msg);
 
 #define DSTACKF(...) \
-	char __buf[DEBUG_STACK_TEXT_SIZE];                   \
+	char __buf[DEBUG_STACK_TEXT_SIZE];				   \
 	snprintf(__buf, DEBUG_STACK_TEXT_SIZE, __VA_ARGS__); \
 	DebugStacker __debug_stacker(__buf);
 
@@ -131,11 +131,11 @@ private:
 
 #if CATCH_UNHANDLED_EXCEPTIONS == 1
 	#define BEGIN_DEBUG_EXCEPTION_HANDLER try {
-	#define END_DEBUG_EXCEPTION_HANDLER                        \
-		} catch (std::exception &e) {                          \
+	#define END_DEBUG_EXCEPTION_HANDLER						\
+		} catch (std::exception &e) {						  \
 			errorstream << "An unhandled exception occurred: " \
-				<< e.what() << std::endl;                      \
-			FATAL_ERROR(e.what());                             \
+				<< e.what() << std::endl;					  \
+			FATAL_ERROR(e.what());							 \
 		}
 #else
 	// Dummy ones
@@ -152,7 +152,7 @@ private:
 #else
 	#define EXCEPTION_HANDLER_BEGIN try {
 	#define EXCEPTION_HANDLER_END } catch (std::exception &e) { errorstream << m_name << ": An unhandled exception occurred: " << e.what() << std::endl; } \
-									catch (...)               { errorstream << m_name << ": Ooops..." << std::endl; }
+									catch (...)			   { errorstream << m_name << ": Ooops..." << std::endl; }
 #endif
 
 #endif // DEBUG_HEADER

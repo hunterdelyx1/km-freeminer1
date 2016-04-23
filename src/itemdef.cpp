@@ -487,7 +487,7 @@ public:
 		// Add the four builtin items:
 		//   "" is the hand
 		//   "unknown" is returned whenever an undefined item
-		//     is accessed (is also the unknown node)
+		//	 is accessed (is also the unknown node)
 		//   "air" is the air node
 		//   "ignore" is the ignore node
 

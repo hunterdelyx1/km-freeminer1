@@ -44,14 +44,14 @@ BiomeManager::BiomeManager(IGameDef *gamedef) :
 	// Create default biome to be used in case none exist
 	Biome *b = new Biome;
 
-	b->name            = "Default";
-	b->flags           = 0;
-	b->depth_top       = 0;
-	b->depth_filler    = -MAX_MAP_GENERATION_LIMIT;
+	b->name			= "Default";
+	b->flags		   = 0;
+	b->depth_top	   = 0;
+	b->depth_filler	= -MAX_MAP_GENERATION_LIMIT;
 	b->depth_water_top = 0;
-	b->y_min           = -MAX_MAP_GENERATION_LIMIT;
-	b->y_max           = MAX_MAP_GENERATION_LIMIT;
-	b->heat_point      = 0.0;
+	b->y_min		   = -MAX_MAP_GENERATION_LIMIT;
+	b->y_max		   = MAX_MAP_GENERATION_LIMIT;
+	b->heat_point	  = 0.0;
 	b->humidity_point  = 0.0;
 
 	b->m_nodenames.push_back("mapgen_stone");
@@ -115,7 +115,7 @@ Biome *BiomeManager::getBiome(float heat, float humidity, s16 y)
 		float heat_point = (b->heat_point - 50) * (( mapgen_params->np_biome_heat.offset + mapgen_params->np_biome_heat.scale ) / 100)
 			 + mapgen_params->np_biome_heat.offset;
 
-		float d_heat     = heat     - heat_point;
+		float d_heat	 = heat	 - heat_point;
 
 		float d_humidity = humidity - b->humidity_point;
 		float dist = (d_heat * d_heat) +
@@ -203,16 +203,16 @@ void BiomeManager::clear()
 
 void Biome::resolveNodeNames()
 {
-	getIdFromNrBacklog(&c_top,         "mapgen_stone",              CONTENT_AIR);
-	getIdFromNrBacklog(&c_filler,      "mapgen_stone",              CONTENT_AIR);
-	getIdFromNrBacklog(&c_stone,       "mapgen_stone",              CONTENT_AIR);
-	getIdFromNrBacklog(&c_water_top,   "mapgen_water_source",       CONTENT_AIR);
-	getIdFromNrBacklog(&c_water,       "mapgen_water_source",       CONTENT_AIR);
+	getIdFromNrBacklog(&c_top,		 "mapgen_stone",			  CONTENT_AIR);
+	getIdFromNrBacklog(&c_filler,	  "mapgen_stone",			  CONTENT_AIR);
+	getIdFromNrBacklog(&c_stone,	   "mapgen_stone",			  CONTENT_AIR);
+	getIdFromNrBacklog(&c_water_top,   "mapgen_water_source",	   CONTENT_AIR);
+	getIdFromNrBacklog(&c_water,	   "mapgen_water_source",	   CONTENT_AIR);
 	getIdFromNrBacklog(&c_river_water, "mapgen_river_water_source", CONTENT_AIR);
 
 	//freeminer:
-	getIdFromNrBacklog(&c_ice,         "mapgen_ice",                c_water);
-	getIdFromNrBacklog(&c_top_cold,    "mapgen_dirt_with_snow",     c_top);
+	getIdFromNrBacklog(&c_ice,		 "mapgen_ice",				c_water);
+	getIdFromNrBacklog(&c_top_cold,	"mapgen_dirt_with_snow",	 c_top);
 
-	getIdFromNrBacklog(&c_dust,        "ignore",                    CONTENT_IGNORE);
+	getIdFromNrBacklog(&c_dust,		"ignore",					CONTENT_IGNORE);
 }

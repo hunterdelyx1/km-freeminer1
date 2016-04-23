@@ -45,24 +45,24 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "log_types.h"
 
 FlagDesc flagdesc_mapgen[] = {
-	{"trees",       MG_TREES},
-	{"caves",       MG_CAVES},
-	{"dungeons",    MG_DUNGEONS},
-	{"flat",        MG_FLAT},
-	{"light",       MG_LIGHT},
+	{"trees",	   MG_TREES},
+	{"caves",	   MG_CAVES},
+	{"dungeons",	MG_DUNGEONS},
+	{"flat",		MG_FLAT},
+	{"light",	   MG_LIGHT},
 	{"decorations", MG_DECORATIONS},
-	{NULL,       0}
+	{NULL,	   0}
 };
 
 FlagDesc flagdesc_gennotify[] = {
-	{"dungeon",          1 << GENNOTIFY_DUNGEON},
-	{"temple",           1 << GENNOTIFY_TEMPLE},
-	{"cave_begin",       1 << GENNOTIFY_CAVE_BEGIN},
-	{"cave_end",         1 << GENNOTIFY_CAVE_END},
+	{"dungeon",		  1 << GENNOTIFY_DUNGEON},
+	{"temple",		   1 << GENNOTIFY_TEMPLE},
+	{"cave_begin",	   1 << GENNOTIFY_CAVE_BEGIN},
+	{"cave_end",		 1 << GENNOTIFY_CAVE_END},
 	{"large_cave_begin", 1 << GENNOTIFY_LARGECAVE_BEGIN},
 	{"large_cave_end",   1 << GENNOTIFY_LARGECAVE_END},
-	{"decoration",       1 << GENNOTIFY_DECORATION},
-	{NULL,               0}
+	{"decoration",	   1 << GENNOTIFY_DECORATION},
+	{NULL,			   0}
 };
 
 
@@ -73,15 +73,15 @@ FlagDesc flagdesc_gennotify[] = {
 Mapgen::Mapgen()
 {
 	generating  = false;
-	id          = -1;
-	seed        = 0;
+	id		  = -1;
+	seed		= 0;
 	water_level = 0;
-	flags       = 0;
+	flags	   = 0;
 
 	liquid_pressure = 0;
 
-	vm        = NULL;
-	ndef      = NULL;
+	vm		= NULL;
+	ndef	  = NULL;
 	heightmap = NULL;
 	biomemap  = NULL;
 	heatmap   = NULL;
@@ -94,16 +94,16 @@ Mapgen::Mapgen(int mapgenid, MapgenParams *params, EmergeManager *emerge) :
 {
 	this->m_emerge = emerge;
 	generating  = false;
-	id          = mapgenid;
-	seed        = (int)params->seed;
+	id		  = mapgenid;
+	seed		= (int)params->seed;
 	water_level = params->water_level;
-	flags       = params->flags;
-	csize       = v3s16(1, 1, 1) * (params->chunksize * MAP_BLOCKSIZE);
+	flags	   = params->flags;
+	csize	   = v3s16(1, 1, 1) * (params->chunksize * MAP_BLOCKSIZE);
 
 	liquid_pressure = params->liquid_pressure;
 
-	vm        = NULL;
-	ndef      = NULL;
+	vm		= NULL;
+	ndef	  = NULL;
 	heightmap = NULL;
 	biomemap  = NULL;
 	heatmap   = NULL;
@@ -120,7 +120,7 @@ u32 Mapgen::getBlockSeed(v3s16 p, int seed)
 {
 	return (u32)seed   +
 		p.Z * 38134234 +
-		p.Y * 42123    +
+		p.Y * 42123	+
 		p.X * 23;
 }
 
@@ -336,16 +336,16 @@ void Mapgen::propagateSunlight(v3s16 nmin, v3s16 nmax, bool propagate_shadow)
 					propagate_shadow) {
 				u32 ii = 0;
 				if (
-				(x < a.MaxEdge.X && (ii = vm->m_area.index(x + 1, a.MaxEdge.Y + 1, z    )) &&
+				(x < a.MaxEdge.X && (ii = vm->m_area.index(x + 1, a.MaxEdge.Y + 1, z	)) &&
 				(vm->m_data[ii].getContent() != CONTENT_IGNORE) &&
 				((vm->m_data[ii].param1 & 0x0F) == LIGHT_SUN))||
-				(x > a.MinEdge.X && (ii = vm->m_area.index(x - 1, a.MaxEdge.Y + 1, z    )) &&
+				(x > a.MinEdge.X && (ii = vm->m_area.index(x - 1, a.MaxEdge.Y + 1, z	)) &&
 				(vm->m_data[ii].getContent() != CONTENT_IGNORE) &&
 				((vm->m_data[ii].param1 & 0x0F) == LIGHT_SUN))||
-				(z > a.MinEdge.Z && (ii = vm->m_area.index(x    , a.MaxEdge.Y + 1, z - 1)) &&
+				(z > a.MinEdge.Z && (ii = vm->m_area.index(x	, a.MaxEdge.Y + 1, z - 1)) &&
 				(vm->m_data[ii].getContent() != CONTENT_IGNORE) &&
 				((vm->m_data[ii].param1 & 0x0F) == LIGHT_SUN))||
-				(z < a.MaxEdge.Z && (ii = vm->m_area.index(x    , a.MaxEdge.Y + 1, z + 1)) &&
+				(z < a.MaxEdge.Z && (ii = vm->m_area.index(x	, a.MaxEdge.Y + 1, z + 1)) &&
 				(vm->m_data[ii].getContent() != CONTENT_IGNORE) &&
 				((vm->m_data[ii].param1 & 0x0F) == LIGHT_SUN))
 				) {
@@ -394,12 +394,12 @@ void Mapgen::spreadLight(v3s16 nmin, v3s16 nmax)
 				u8 light = n.param1;
 				if (light) {
 					unordered_map_v3POS<u8> skip;
-					lightSpread(a, v3s16(x,     y,     z + 1), light, skip);
-					lightSpread(a, v3s16(x,     y + 1, z    ), light, skip);
-					lightSpread(a, v3s16(x + 1, y,     z    ), light, skip);
-					lightSpread(a, v3s16(x,     y,     z - 1), light, skip);
-					lightSpread(a, v3s16(x,     y - 1, z    ), light, skip);
-					lightSpread(a, v3s16(x - 1, y,     z    ), light, skip);
+					lightSpread(a, v3s16(x,	 y,	 z + 1), light, skip);
+					lightSpread(a, v3s16(x,	 y + 1, z	), light, skip);
+					lightSpread(a, v3s16(x + 1, y,	 z	), light, skip);
+					lightSpread(a, v3s16(x,	 y,	 z - 1), light, skip);
+					lightSpread(a, v3s16(x,	 y - 1, z	), light, skip);
+					lightSpread(a, v3s16(x - 1, y,	 z	), light, skip);
 				}
 			}
 		}

@@ -35,7 +35,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 	For map data (blocks, nodes, sectors).
 
 	NOTE: The goal is to increment this so that saved maps will be
-	      loadable by any version. Other compatibility is not
+		  loadable by any version. Other compatibility is not
 		  maintained.
 
 	0: original networked test with 1-byte nodes

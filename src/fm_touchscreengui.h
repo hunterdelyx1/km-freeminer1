@@ -82,36 +82,36 @@ public:
 	void show();
 
 private:
-	IrrlichtDevice*         m_device;
-	IGUIEnvironment*        m_guienv;
-	IEventReceiver*         m_receiver;
+	IrrlichtDevice*		 m_device;
+	IGUIEnvironment*		m_guienv;
+	IEventReceiver*		 m_receiver;
 	ISimpleTextureSource*   m_texturesource;
-	v2u32                   m_screensize;
+	v2u32				   m_screensize;
 	std::map<int,rect<s32> > m_hud_rects;
 	std::map<int,irr::EKEY_CODE> m_hud_ids;
-	bool                    m_visible; // is the gui visible
+	bool					m_visible; // is the gui visible
 
 	/* value in degree */
-	double                  m_camera_yaw;
-	double                  m_camera_pitch;
+	double				  m_camera_yaw;
+	double				  m_camera_pitch;
 
-	line3d<f32>             m_shootline;
+	line3d<f32>			 m_shootline;
 
-	rect<s32>               m_control_pad_rect;
+	rect<s32>			   m_control_pad_rect;
 
-	int                     m_move_id;
-	bool                    m_move_has_really_moved;
-	u32                     m_move_downtime;
-	bool                    m_move_sent_as_mouse_event;
-	v2s32                   m_move_downlocation;
+	int					 m_move_id;
+	bool					m_move_has_really_moved;
+	u32					 m_move_downtime;
+	bool					m_move_sent_as_mouse_event;
+	v2s32				   m_move_downlocation;
 
 	struct button_info {
-		float            repeatcounter;
-		float            repeatdelay;
+		float			repeatcounter;
+		float			repeatdelay;
 		irr::EKEY_CODE   keycode;
 		std::vector<int> ids;
-		IGUIButton*      guibutton;
-		bool             immediate_release;
+		IGUIButton*	  guibutton;
+		bool			 immediate_release;
 	};
 
 	button_info m_buttons[after_last_element_id];

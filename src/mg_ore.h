@@ -30,10 +30,10 @@ class MMVManip;
 
 /////////////////// Ore generation flags
 
-#define OREFLAG_ABSHEIGHT     0x01
+#define OREFLAG_ABSHEIGHT	 0x01
 #define OREFLAG_PUFF_CLIFFS   0x02
 #define OREFLAG_PUFF_ADDITIVE 0x04
-#define OREFLAG_USE_NOISE     0x08
+#define OREFLAG_USE_NOISE	 0x08
 
 #define ORE_RANGE_ACTUAL 1
 #define ORE_RANGE_MIRROR 2
@@ -52,17 +52,17 @@ class Ore : public ObjDef, public NodeResolver {
 public:
 	static const bool NEEDS_NOISE = false;
 
-	content_t c_ore;                  // the node to place
+	content_t c_ore;				  // the node to place
 	std::vector<content_t> c_wherein; // the nodes to be placed in
 	u32 clust_scarcity; // ore cluster has a 1-in-clust_scarcity chance of appearing at a node
 	s16 clust_num_ores; // how many ore nodes are in a chunk
-	s16 clust_size;     // how large (in nodes) a chunk of ore is
+	s16 clust_size;	 // how large (in nodes) a chunk of ore is
 	s16 y_min;
 	s16 y_max;
 	u8 ore_param2;		// to set node-specific attributes
-	u32 flags;          // attributes for this ore
-	float nthresh;      // threshold for noise at which an ore is placed
-	NoiseParams np;     // noise for distribution of clusters (NULL for uniform scattering)
+	u32 flags;		  // attributes for this ore
+	float nthresh;	  // threshold for noise at which an ore is placed
+	NoiseParams np;	 // noise for distribution of clusters (NULL for uniform scattering)
 	Noise *noise;
 	std::set<u8> biomes;
 

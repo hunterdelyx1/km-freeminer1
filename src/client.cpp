@@ -1280,7 +1280,7 @@ void Client::sendChatMessage(const std::string &message)
 }
 
 void Client::sendChangePassword(const std::string &oldpassword,
-        const std::string &newpassword)
+		const std::string &newpassword)
 {
 	Player *player = m_env.getLocalPlayer();
 	if (player == NULL)
@@ -1357,17 +1357,17 @@ void Client::sendPlayerPos()
 		return;
 
 	// Save bandwidth by only updating position when something changed
-	if(myplayer->last_position        == myplayer->getPosition() &&
-			myplayer->last_speed      == myplayer->getSpeed()    &&
-			myplayer->last_pitch      == myplayer->getPitch()    &&
-			myplayer->last_yaw        == myplayer->getYaw()      &&
+	if(myplayer->last_position		== myplayer->getPosition() &&
+			myplayer->last_speed	  == myplayer->getSpeed()	&&
+			myplayer->last_pitch	  == myplayer->getPitch()	&&
+			myplayer->last_yaw		== myplayer->getYaw()	  &&
 			myplayer->last_keyPressed == myplayer->keyPressed)
 		return;
 
 	myplayer->last_position   = myplayer->getPosition();
-	myplayer->last_speed      = myplayer->getSpeed();
-	myplayer->last_pitch      = myplayer->getPitch();
-	myplayer->last_yaw        = myplayer->getYaw();
+	myplayer->last_speed	  = myplayer->getSpeed();
+	myplayer->last_pitch	  = myplayer->getPitch();
+	myplayer->last_yaw		= myplayer->getYaw();
 	myplayer->last_keyPressed = myplayer->keyPressed;
 
 	u16 our_peer_id;
@@ -1382,10 +1382,10 @@ void Client::sendPlayerPos()
 
 	assert(myplayer->peer_id == our_peer_id);
 
-	v3f pf         = myplayer->getPosition();
-	v3f sf         = myplayer->getSpeed();
-	s32 pitch      = myplayer->getPitch() * 100;
-	s32 yaw        = myplayer->getYaw() * 100;
+	v3f pf		 = myplayer->getPosition();
+	v3f sf		 = myplayer->getSpeed();
+	s32 pitch	  = myplayer->getPitch() * 100;
+	s32 yaw		= myplayer->getYaw() * 100;
 	u32 keyPressed = myplayer->keyPressed;
 
 	v3s32 position(pf.X*100, pf.Y*100, pf.Z*100);
@@ -2076,7 +2076,7 @@ scene::IAnimatedMesh* Client::getMesh(const std::string &filename)
 			<< "\"" << std::endl;
 		return NULL;
 	}
-	const std::string &data    = it->second;
+	const std::string &data	= it->second;
 	scene::ISceneManager *smgr = m_device->getSceneManager();
 
 	// Create the mesh, remove it from cache and return it

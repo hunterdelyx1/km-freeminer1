@@ -215,7 +215,7 @@ fake_function() {
 	gettext("Fall bobbing");
 	gettext("Multiplier for fall bobbing.\nFor example: 0 for no view bobbing; 1.0 for normal; 2.0 for double.");
 	gettext("3D mode");
-	gettext("3D support.\nCurrently supported:\n-    none: no 3d output.\n-    anaglyph: cyan/magenta color 3d.\n-    interlaced: odd/even line based polarisation screen support.\n-    topbottom: split screen top/bottom.\n-    sidebyside: split screen side by side.\n-    pageflip: quadbuffer based 3d.");
+	gettext("3D support.\nCurrently supported:\n-	none: no 3d output.\n-	anaglyph: cyan/magenta color 3d.\n-	interlaced: odd/even line based polarisation screen support.\n-	topbottom: split screen top/bottom.\n-	sidebyside: split screen side by side.\n-	pageflip: quadbuffer based 3d.");
 	gettext("Console color");
 	gettext("In-game chat console background color (R,G,B).");
 	gettext("Console alpha");
@@ -393,7 +393,7 @@ fake_function() {
 	gettext("Gravity");
 	gettext("Advanced");
 	gettext("Deprecated Lua API handling");
-	gettext("Handling for deprecated lua api calls:\n-    legacy: (try to) mimic old behaviour (default for release).\n-    log: mimic and log backtrace of deprecated call (default for debug).\n-    error: abort on usage of deprecated call (suggested for mod developers).");
+	gettext("Handling for deprecated lua api calls:\n-	legacy: (try to) mimic old behaviour (default for release).\n-	log: mimic and log backtrace of deprecated call (default for debug).\n-	error: abort on usage of deprecated call (suggested for mod developers).");
 	gettext("Mod profiling");
 	gettext("Useful for mod developers.");
 	gettext("Detailed mod profiling");
@@ -432,7 +432,7 @@ fake_function() {
 	gettext("Max block generate distance");
 	gettext("From how far blocks are generated for clients, stated in mapblocks (16 nodes).");
 	gettext("Map generation limit");
-	gettext("Where the map generator stops.\nPlease note:\n-    Limited to 31000 (setting above has no effect)\n-    The map generator works in groups of 80x80x80 nodes (5x5x5 MapBlocks).\n-    Those groups have an offset of -32, -32 nodes from the origin.\n-    Only groups which are within the map_generation_limit are generated");
+	gettext("Where the map generator stops.\nPlease note:\n-	Limited to 31000 (setting above has no effect)\n-	The map generator works in groups of 80x80x80 nodes (5x5x5 MapBlocks).\n-	Those groups have an offset of -32, -32 nodes from the origin.\n-	Only groups which are within the map_generation_limit are generated");
 	gettext("Mapgen flags");
 	gettext("Global map generation attributes.\nIn Mapgen v6 the 'decorations' flag controls all decorations except trees\nand junglegrass, in all other mapgens this flag controls all decorations.\nThe default flags set in the engine are: caves, light, decorations\nThe flags string modifies the engine defaults.\nFlags that are not specified in the flag string are not modified from the default.\nFlags starting with 'no' are used to explicitly disable them.");
 	gettext("Advanced");
@@ -585,14 +585,14 @@ fake_function() {
 	gettext("Language");
 	gettext("Set the language. Leave empty to use the system language.\nA restart is required after changing this.");
 	gettext("Debug log level");
-	gettext("Level of logging to be written to debug.txt:\n-    <nothing> (no logging)\n-    none (messages with no level)\n-    error\n-    warning\n-    action\n-    info\n-    verbose");
+	gettext("Level of logging to be written to debug.txt:\n-	<nothing> (no logging)\n-	none (messages with no level)\n-	error\n-	warning\n-	action\n-	info\n-	verbose");
 	gettext("IPv6");
 	gettext("IPv6 support.");
 	gettext("Advanced");
 	gettext("cURL timeout");
 	gettext("Default timeout for cURL, stated in milliseconds.\nOnly has an effect if compiled with cURL.");
 	gettext("cURL parallel limit");
-	gettext("Limits number of parallel HTTP requests. Affects:\n-    Media fetch if server uses remote_media setting.\n-    Serverlist download and server announcement.\n-    Downloads performed by main menu (e.g. mod manager).\nOnly has an effect if compiled with cURL.");
+	gettext("Limits number of parallel HTTP requests. Affects:\n-	Media fetch if server uses remote_media setting.\n-	Serverlist download and server announcement.\n-	Downloads performed by main menu (e.g. mod manager).\nOnly has an effect if compiled with cURL.");
 	gettext("cURL file download timeout");
 	gettext("Maximum time in ms a file download (e.g. a mod download) may take.");
 	gettext("High-precision FPU");

@@ -428,10 +428,10 @@ protected:
 	video::SColor m_default_tooltip_color;
 
 private:
-	IFormSource      *m_form_src;
-	TextDest         *m_text_dst;
-	unsigned int      m_formspec_version;
-	std::string       m_focused_element;
+	IFormSource	  *m_form_src;
+	TextDest		 *m_text_dst;
+	unsigned int	  m_formspec_version;
+	std::string	   m_focused_element;
 
 	typedef struct {
 		bool explicit_size;

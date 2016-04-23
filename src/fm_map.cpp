@@ -223,7 +223,7 @@ s16 ServerMap::updateBlockHeat(ServerEnvironment *env, v3POS p, MapBlock *block,
 		return cache->at(bp) + myrand_range(0, 1);
 
 	auto value = m_emerge->biomemgr->calcBlockHeat(p, getSeed(),
-	             env->getTimeOfDayF(), gametime * env->getTimeOfDaySpeed(), env->m_use_weather);
+				 env->getTimeOfDayF(), gametime * env->getTimeOfDaySpeed(), env->m_use_weather);
 
 	if(block) {
 		block->heat = value;
@@ -249,7 +249,7 @@ s16 ServerMap::updateBlockHumidity(ServerEnvironment *env, v3POS p, MapBlock *bl
 		return cache->at(bp) + myrand_range(0, 1);
 
 	auto value = m_emerge->biomemgr->calcBlockHumidity(p, getSeed(),
-	             env->getTimeOfDayF(), gametime * env->getTimeOfDaySpeed(), env->m_use_weather);
+				 env->getTimeOfDayF(), gametime * env->getTimeOfDaySpeed(), env->m_use_weather);
 
 	if(block) {
 		block->humidity = value;
@@ -281,8 +281,8 @@ int ServerMap::getSurface(v3POS basepos, int searchup, bool walkable_only) {
 
 		if (!walkable_only) {
 			if ((last_node.param0 != CONTENT_AIR) &&
-			        (last_node.param0 != CONTENT_IGNORE) &&
-			        (node.param0 == CONTENT_AIR)) {
+					(last_node.param0 != CONTENT_IGNORE) &&
+					(node.param0 == CONTENT_AIR)) {
 				return runpos.Y;
 			}
 		} else {
@@ -311,7 +311,7 @@ void Map::copy_27_blocks_to_vm(MapBlock * block, VoxelManipulator & vmanip) {
 	// Allocate this block + neighbors
 	vmanip.clear();
 	VoxelArea voxel_area(blockpos_nodes - v3POS(1, 1, 1) * MAP_BLOCKSIZE,
-	                     blockpos_nodes + v3POS(1, 1, 1) * MAP_BLOCKSIZE * 2 - v3POS(1, 1, 1));
+						 blockpos_nodes + v3POS(1, 1, 1) * MAP_BLOCKSIZE * 2 - v3POS(1, 1, 1));
 	vmanip.addArea(voxel_area);
 
 	block->copyTo(vmanip);
@@ -331,8 +331,8 @@ void Map::copy_27_blocks_to_vm(MapBlock * block, VoxelManipulator & vmanip) {
 
 
 u32 Map::timerUpdate(float uptime, float unload_timeout, u32 max_loaded_blocks,
-                     unsigned int max_cycle_ms,
-                     std::vector<v3POS> *unloaded_blocks) {
+					 unsigned int max_cycle_ms,
+					 std::vector<v3POS> *unloaded_blocks) {
 	bool save_before_unloading = (mapType() == MAPTYPE_SERVER);
 
 	// Profile modified reasons
@@ -451,7 +451,7 @@ u32 Map::timerUpdate(float uptime, float unload_timeout, u32 max_loaded_blocks,
 			infostream << "ServerMap: timerUpdate(): Blocks processed:" << calls << "/" << m_blocks.size() << " to " << m_blocks_update_last << std::endl;
 		PrintInfo(infostream); // ServerMap/ClientMap:
 		infostream << "Unloaded " << deleted_blocks_count << "/" << (block_count_all + deleted_blocks_count)
-		           << " blocks from memory";
+				   << " blocks from memory";
 		infostream << " (deleteq1=" << m_blocks_delete_1.size() << " deleteq2=" << m_blocks_delete_2.size() << ")";
 		if(saved_blocks_count)
 			infostream << ", of which " << saved_blocks_count << " were written";
@@ -510,7 +510,7 @@ u32 Map::updateLighting(Map::lighting_map_t & a_blocks, unordered_map_v3POS<int>
 
 		u32 end_ms = porting::getTimeMs() + max_cycle_ms;
 		for(auto i = a_blocks.begin();
-		        i != a_blocks.end();) {
+				i != a_blocks.end();) {
 
 			//processed[i->first] = //1000000;
 			//infostream<<"Light: start col if=" << i->first << std::endl;
@@ -555,7 +555,7 @@ u32 Map::updateLighting(Map::lighting_map_t & a_blocks, unordered_map_v3POS<int>
 								   dummy block.
 								*/
 								infostream << "updateLighting(): InvalidPositionException"
-								           << std::endl;
+										   << std::endl;
 								continue;
 							}
 							u8 oldlight_day = n.getLight(LIGHTBANK_DAY, nodemgr);
@@ -572,8 +572,8 @@ u32 Map::updateLighting(Map::lighting_map_t & a_blocks, unordered_map_v3POS<int>
 							v3POS p_map = p + posnodes;
 							// Collect borders for unlighting
 							if(x == 0 || x == MAP_BLOCKSIZE - 1
-							        || y == 0 || y == MAP_BLOCKSIZE - 1
-							        || z == 0 || z == MAP_BLOCKSIZE - 1) {
+									|| y == 0 || y == MAP_BLOCKSIZE - 1
+									|| z == 0 || z == MAP_BLOCKSIZE - 1) {
 								if(oldlight_day)
 									unlight_from_day[p_map] = oldlight_day;
 								if(oldlight_night)
@@ -643,7 +643,7 @@ u32 Map::updateLighting(Map::lighting_map_t & a_blocks, unordered_map_v3POS<int>
 
 
 bool Map::propagateSunlight(v3POS pos, std::set<v3POS> & light_sources,
-                            bool remove_light) {
+							bool remove_light) {
 	MapBlock *block = getBlockNoCreateNoEx(pos);
 
 	//auto lock = block->lock_unique_rec(); //no: in block_below_is_valid getnode outside block
@@ -738,10 +738,10 @@ bool Map::propagateSunlight(v3POS pos, std::set<v3POS> & light_sources,
 				if (n) {
 					if(nodemgr->get(n).light_propagates) {
 						if(n.getLight(LIGHTBANK_DAY, nodemgr) == LIGHT_SUN
-						        && sunlight_should_go_down == false)
+								&& sunlight_should_go_down == false)
 							block_below_is_valid = false;
 						else if(n.getLight(LIGHTBANK_DAY, nodemgr) != LIGHT_SUN
-						        && sunlight_should_go_down == true)
+								&& sunlight_should_go_down == true)
 							block_below_is_valid = false;
 					}
 				} else {

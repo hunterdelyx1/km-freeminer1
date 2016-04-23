@@ -530,13 +530,13 @@ bool Settings::getNoiseParamsFromValue(const std::string &name,
 	Strfnd f(value);
 
 	np.offset   = stof(f.next(","));
-	np.scale    = stof(f.next(","));
+	np.scale	= stof(f.next(","));
 	f.next("(");
 	np.spread.X = stof(f.next(","));
 	np.spread.Y = stof(f.next(","));
 	np.spread.Z = stof(f.next(")"));
 	f.next(",");
-	np.seed     = stoi(f.next(","));
+	np.seed	 = stoi(f.next(","));
 	np.octaves  = stoi(f.next(","));
 	np.persist  = stof(f.next(","));
 
@@ -570,11 +570,11 @@ bool Settings::getNoiseParamsFromGroup(const std::string &name,
 		}
 	}
 
-	group->getFloatNoEx("offset",      np.offset);
-	group->getFloatNoEx("scale",       np.scale);
-	group->getV3FNoEx("spread",        np.spread);
-	group->getS32NoEx("seed",          np.seed);
-	group->getU16NoEx("octaves",       np.octaves);
+	group->getFloatNoEx("offset",	  np.offset);
+	group->getFloatNoEx("scale",	   np.scale);
+	group->getV3FNoEx("spread",		np.spread);
+	group->getS32NoEx("seed",		  np.seed);
+	group->getU16NoEx("octaves",	   np.octaves);
 	group->getFloatNoEx("persistence", np.persist);
 	group->getFloatNoEx("lacunarity",  np.lacunarity);
 
@@ -582,9 +582,9 @@ bool Settings::getNoiseParamsFromGroup(const std::string &name,
 	if (!group->getFlagStrNoEx("flags", np.flags, flagdesc_noiseparams))
 		np.flags = NOISE_FLAG_DEFAULTS;
 
-	group->getFloatNoEx("farscale",      np.far_scale);
-	group->getFloatNoEx("farspread",     np.far_spread);
-	group->getFloatNoEx("farpersist",    np.far_persist);
+	group->getFloatNoEx("farscale",	  np.far_scale);
+	group->getFloatNoEx("farspread",	 np.far_spread);
+	group->getFloatNoEx("farpersist",	np.far_persist);
 	group->getFloatNoEx("farlacunarity", np.far_lacunarity);
 
 	if (created)
@@ -780,8 +780,8 @@ bool Settings::setEntry(const std::string &name, const void *data,
 		SettingsEntry &entry = set_default ? m_defaults[name] : m_settings[name];
 		old_group = entry.group;
 
-		entry.value    = set_group ? "" : *(const std::string *)data;
-		entry.group    = set_group ? *(Settings **)data : NULL;
+		entry.value	= set_group ? "" : *(const std::string *)data;
+		entry.group	= set_group ? *(Settings **)data : NULL;
 		entry.is_group = set_group;
 	}
 
@@ -896,16 +896,16 @@ bool Settings::setNoiseParams(const std::string &name,
 {
 	Settings *group = new Settings;
 
-	group->setFloat("offset",      np.offset);
-	group->setFloat("scale",       np.scale);
-	group->setV3F("spread",        np.spread);
-	group->setS32("seed",          np.seed);
-	group->setU16("octaves",       np.octaves);
+	group->setFloat("offset",	  np.offset);
+	group->setFloat("scale",	   np.scale);
+	group->setV3F("spread",		np.spread);
+	group->setS32("seed",		  np.seed);
+	group->setU16("octaves",	   np.octaves);
 	group->setFloat("persistence", np.persist);
 	group->setFloat("lacunarity",  np.lacunarity);
-	group->setFlagStr("flags",     np.flags, flagdesc_noiseparams, np.flags);
+	group->setFlagStr("flags",	 np.flags, flagdesc_noiseparams, np.flags);
 
-	group->setFloat("farscale",    np.far_scale);
+	group->setFloat("farscale",	np.far_scale);
 	group->setFloat("farspread",   np.far_spread);
 	group->setFloat("farpersist",  np.far_persist);
 	group->setFloat("farlacunarity",  np.far_lacunarity);

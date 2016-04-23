@@ -318,9 +318,9 @@ long WINAPI Win32ExceptionHandler(struct _EXCEPTION_POINTERS *pExceptInfo)
 	mdei.ExceptionPointers = pExceptInfo;
 	mdei.ThreadId		   = GetCurrentThreadId();
 
-	mdus.Type       = CommentStreamA;
+	mdus.Type	   = CommentStreamA;
 	mdus.BufferSize = version_str.size();
-	mdus.Buffer     = (PVOID)version_str.c_str();
+	mdus.Buffer	 = (PVOID)version_str.c_str();
 
 	mdusi.UserStreamArray = &mdus;
 	mdusi.UserStreamCount = 1;

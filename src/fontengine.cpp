@@ -61,7 +61,7 @@ FontEngine::FontEngine(Settings* main_settings, gui::IGUIEnvironment* env) :
 
 		m_default_size[FM_Standard] = m_settings->getU16("font_size");
 		m_default_size[FM_Fallback] = m_settings->getU16("fallback_font_size");
-		m_default_size[FM_Mono]     = m_settings->getU16("mono_font_size");
+		m_default_size[FM_Mono]	 = m_settings->getU16("mono_font_size");
 
 		if (is_yes(_("needs_fallback_font"))) {
 			m_currentMode = FM_Fallback;
@@ -79,7 +79,7 @@ FontEngine::FontEngine(Settings* main_settings, gui::IGUIEnvironment* env) :
 		m_settings->setDefault("mono_font_size", fontsize.str());
 	}
 
-	m_default_size[FM_Simple]       = m_settings->getU16("font_size");
+	m_default_size[FM_Simple]	   = m_settings->getU16("font_size");
 	m_default_size[FM_SimpleMono]   = m_settings->getU16("mono_font_size");
 
 	updateSkin();
@@ -213,7 +213,7 @@ void FontEngine::readSettings()
 {
 		m_default_size[FM_Standard] = m_settings->getU16("font_size");
 		m_default_size[FM_Fallback] = m_settings->getU16("fallback_font_size");
-		m_default_size[FM_Mono]     = m_settings->getU16("mono_font_size");
+		m_default_size[FM_Mono]	 = m_settings->getU16("mono_font_size");
 
 		if (is_yes(_("needs_fallback_font"))) {
 			m_currentMode = FM_Fallback;
@@ -221,7 +221,7 @@ void FontEngine::readSettings()
 		else {
 			m_currentMode = FM_Standard;
 		}
-	m_default_size[FM_Simple]       = m_settings->getU16("font_size");
+	m_default_size[FM_Simple]	   = m_settings->getU16("font_size");
 	m_default_size[FM_SimpleMono]   = m_settings->getU16("mono_font_size");
 
 	cleanCache();
@@ -310,7 +310,7 @@ void FontEngine::initFont(unsigned int basesize, FontMode mode)
 				porting::getDisplayDensity() *
 				m_settings->getFloat("gui_scaling") *
 				basesize);
-		u32 font_shadow       = 0;
+		u32 font_shadow	   = 0;
 		u32 font_shadow_alpha = 0;
 
 		try {

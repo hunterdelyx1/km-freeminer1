@@ -507,9 +507,9 @@ void GUITable::clear()
 
 	// Get colors from skin
 	gui::IGUISkin *skin = Environment->getSkin();
-	m_color          = skin->getColor(gui::EGDC_BUTTON_TEXT);
-	m_background     = skin->getColor(gui::EGDC_3D_HIGH_LIGHT);
-	m_highlight      = skin->getColor(gui::EGDC_HIGH_LIGHT);
+	m_color		  = skin->getColor(gui::EGDC_BUTTON_TEXT);
+	m_background	 = skin->getColor(gui::EGDC_3D_HIGH_LIGHT);
+	m_highlight	  = skin->getColor(gui::EGDC_HIGH_LIGHT);
 	m_highlight_text = skin->getColor(gui::EGDC_HIGH_LIGHT_TEXT);
 
 	// Reset members
@@ -957,7 +957,7 @@ bool GUITable::OnEvent(const SEvent &event)
 }
 
 /******************************************************************************/
-/* GUITable helper functions                                                  */
+/* GUITable helper functions												  */
 /******************************************************************************/
 
 s32 GUITable::allocString(const std::string &text)

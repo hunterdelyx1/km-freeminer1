@@ -62,8 +62,8 @@ struct ItemStack
 	void clear()
 	{
 		name = "";
-        inventoryLabel = "";
-    	count = 0;
+		inventoryLabel = "";
+		count = 0;
 		wear = 0;
 		metadata = "";
 	}

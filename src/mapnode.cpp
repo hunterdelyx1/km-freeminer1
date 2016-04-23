@@ -109,7 +109,7 @@ u8 MapNode::getLight(enum LightBank bank, INodeDefManager *nodemgr) const
 u8 MapNode::getLightNoChecks(enum LightBank bank, const ContentFeatures *f) const
 {
 	return MYMAX(f->light_source,
-	             bank == LIGHTBANK_DAY ? param1 & 0x0f : (param1 >> 4) & 0x0f);
+				 bank == LIGHTBANK_DAY ? param1 & 0x0f : (param1 >> 4) & 0x0f);
 }
 
 bool MapNode::getLightBanks(u8 &lightday, u8 &lightnight, INodeDefManager *nodemgr) const

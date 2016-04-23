@@ -255,7 +255,7 @@ bool getExecPathFromProcfs(char *buf, size_t buflen)
 	buflen--;
 
 	ssize_t len;
-	if ((len = readlink("/proc/self/exe",     buf, buflen)) == -1 &&
+	if ((len = readlink("/proc/self/exe",	 buf, buflen)) == -1 &&
 		(len = readlink("/proc/curproc/file", buf, buflen)) == -1 &&
 		(len = readlink("/proc/curproc/exe",  buf, buflen)) == -1)
 		return false;

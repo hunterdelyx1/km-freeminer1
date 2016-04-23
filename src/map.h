@@ -559,7 +559,7 @@ private:
 	#define MAP_NOTHREAD_LOCK(map) ;
 #endif
 
-#define VMANIP_BLOCK_DATA_INEXIST     1
+#define VMANIP_BLOCK_DATA_INEXIST	 1
 #define VMANIP_BLOCK_CONTAINS_CIGNORE 2
 
 class MMVManip : public VoxelManipulator

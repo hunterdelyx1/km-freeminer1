@@ -27,8 +27,8 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
  * MSVC, to address an irrlicht issue: https://sourceforge.net/p/irrlicht/bugs/433/
  *
  * TODO: Decide whether or not we support non-compliant C++ compilers like old
- *       versions of MSCV.  If we do not then <stdint.h> can always be included
- *       regardless of the compiler.
+ *	   versions of MSCV.  If we do not then <stdint.h> can always be included
+ *	   regardless of the compiler.
  */
 #ifndef _MSC_VER
 #	include <stdint.h>

@@ -98,13 +98,13 @@ private:
 	u64 m_inc;
 };
 
-#define NOISE_FLAG_DEFAULTS    0x01
-#define NOISE_FLAG_EASED       0x02
-#define NOISE_FLAG_ABSVALUE    0x04
+#define NOISE_FLAG_DEFAULTS	0x01
+#define NOISE_FLAG_EASED	   0x02
+#define NOISE_FLAG_ABSVALUE	0x04
 
 //// TODO(hmmmm): implement these!
 #define NOISE_FLAG_POINTBUFFER 0x08
-#define NOISE_FLAG_SIMPLEX     0x10
+#define NOISE_FLAG_SIMPLEX	 0x10
 
 struct NoiseParams {
 	float offset;
@@ -123,14 +123,14 @@ struct NoiseParams {
 
 	NoiseParams()
 	{
-		offset     = 0.0f;
-		scale      = 1.0f;
-		spread     = v3f(250, 250, 250);
-		seed       = 12345;
-		octaves    = 3;
-		persist    = 0.6f;
+		offset	 = 0.0f;
+		scale	  = 1.0f;
+		spread	 = v3f(250, 250, 250);
+		seed	   = 12345;
+		octaves	= 3;
+		persist	= 0.6f;
 		lacunarity = 2.0f;
-		flags      = NOISE_FLAG_DEFAULTS;
+		flags	  = NOISE_FLAG_DEFAULTS;
 
 		far_scale  = 1;
 		far_spread = 1;
@@ -144,14 +144,14 @@ struct NoiseParams {
 		float far_scale_ = 1, float far_spread_ = 1, float far_persist_ = 1, float far_lacunarity_ = 1
 		)
 	{
-		offset     = offset_;
-		scale      = scale_;
-		spread     = spread_;
-		seed       = seed_;
-		octaves    = octaves_;
-		persist    = persist_;
+		offset	 = offset_;
+		scale	  = scale_;
+		spread	 = spread_;
+		seed	   = seed_;
+		octaves	= octaves_;
+		persist	= persist_;
 		lacunarity = lacunarity_;
-		flags      = flags_;
+		flags	  = flags_;
 
 		far_scale  = far_scale_;
 		far_spread = far_spread_;

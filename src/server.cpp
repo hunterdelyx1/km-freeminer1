@@ -1712,14 +1712,14 @@ bool Server::getClientConInfo(u16 peer_id, con::rtt_stat_type type, float* retva
 }
 
 bool Server::getClientInfo(
-		u16          peer_id,
+		u16		  peer_id,
 		ClientState* state,
-		u32*         uptime,
-		u8*          ser_vers,
-		u16*         prot_vers,
-		u8*          major,
-		u8*          minor,
-		u8*          patch,
+		u32*		 uptime,
+		u8*		  ser_vers,
+		u16*		 prot_vers,
+		u8*		  major,
+		u8*		  minor,
+		u8*		  patch,
 		std::string* vers_string
 	)
 {
@@ -1974,7 +1974,7 @@ void Server::SendChatMessage(u16 peer_id, const std::string &message)
 }
 
 void Server::SendShowFormspecMessage(u16 peer_id, const std::string &formspec,
-                                     const std::string &formname)
+									 const std::string &formname)
 {
 	DSTACK(FUNCTION_NAME);
 
@@ -2696,7 +2696,7 @@ struct SendableMedia
 	std::string data;
 
 	SendableMedia(const std::string &name_="", const std::string &path_="",
-	              const std::string &data_=""):
+				  const std::string &data_=""):
 		name(name_),
 		path(path_),
 		data(data_)
@@ -2960,13 +2960,13 @@ void Server::DenyAccess(u16 peer_id, AccessDeniedCode reason, const std::string 
 //fmtodo: remove:
 void Server::DenyAccess(u16 peer_id, const std::string &custom_reason)
 {
-    DenyAccess(peer_id, SERVER_ACCESSDENIED_CUSTOM_STRING, custom_reason);
+	DenyAccess(peer_id, SERVER_ACCESSDENIED_CUSTOM_STRING, custom_reason);
 }
 
 //fmtodo: remove:
 void Server::DenyAccess_Legacy(u16 peer_id, const std::wstring &custom_reason)
 {
-    DenyAccess(peer_id, SERVER_ACCESSDENIED_CUSTOM_STRING, wide_to_narrow(custom_reason));
+	DenyAccess(peer_id, SERVER_ACCESSDENIED_CUSTOM_STRING, wide_to_narrow(custom_reason));
 }
 
 #if MINETEST_PROTO

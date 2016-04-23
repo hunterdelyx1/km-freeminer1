@@ -29,7 +29,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 
 /////////////////// Mapgen V7 flags
 #define MGV7_MOUNTAINS   0x01
-#define MGV7_RIDGES      0x02
+#define MGV7_RIDGES	  0x02
 
 class BiomeManager;
 

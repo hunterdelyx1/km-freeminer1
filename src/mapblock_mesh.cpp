@@ -642,7 +642,7 @@ static void makeFastFace(TileSpec tile, u16 li0, u16 li1, u16 li2, u16 li3,
 	}
 
 	f32 abs_scale = 1.0;
-	if     (scale.X < 0.999 || scale.X > 1.001) abs_scale = scale.X;
+	if	 (scale.X < 0.999 || scale.X > 1.001) abs_scale = scale.X;
 	else if(scale.Y < 0.999 || scale.Y > 1.001) abs_scale = scale.Y;
 	else if(scale.Z < 0.999 || scale.Z > 1.001) abs_scale = scale.Z;
 
@@ -773,7 +773,7 @@ TileSpec getNodeTile(MapNode mn, v3s16 p, v3s16 dir, MeshMakeData *data)
 
 	static const u16 dir_to_tile[24 * 16] =
 	{
-		// 0     +X    +Y    +Z           -Z    -Y    -X   ->   value=tile,rotation
+		// 0	 +X	+Y	+Z		   -Z	-Y	-X   ->   value=tile,rotation
 		   0,0,  2,0 , 0,0 , 4,0 ,  0,0,  5,0 , 1,0 , 3,0 ,  // rotate around y+ 0 - 3
 		   0,0,  4,0 , 0,3 , 3,0 ,  0,0,  2,0 , 1,1 , 5,0 ,
 		   0,0,  3,0 , 0,2 , 5,0 ,  0,0,  4,0 , 1,2 , 2,0 ,

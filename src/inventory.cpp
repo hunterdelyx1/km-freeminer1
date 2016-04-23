@@ -117,7 +117,7 @@ ItemStack::ItemStack(std::string name_, u16 count_,
 		IItemDefManager *itemdef)
 {
 	name = itemdef->getAlias(name_);
-    inventoryLabel = "";
+	inventoryLabel = "";
 	count = count_;
 	wear = wear_;
 	metadata = metadata_;
@@ -145,7 +145,7 @@ void ItemStack::serialize(std::ostream &os) const
 		parts = 4;
 	if(inventoryLabel != "")
 		parts = 5;
-    
+	
 	os<<serializeJsonStringIfNeeded(name);
 	if(parts >= 2) os<<" "<<count;
 	if(parts >= 3) os<<" "<<wear;
@@ -268,9 +268,9 @@ void ItemStack::deSerialize(std::istream &is, IItemDefManager *itemdef)
 		do  // This loop is just to allow "break;"
 		{
 			// The real thing
-            //std::ostringstream os;
-            //os<<is.rdbuf();
-            //std::cout << os.str() << std::endl;
+			//std::ostringstream os;
+			//os<<is.rdbuf();
+			//std::cout << os.str() << std::endl;
 			// Apply item aliases
 			if (itemdef)
 				name = itemdef->getAlias(name);
@@ -285,7 +285,7 @@ void ItemStack::deSerialize(std::istream &is, IItemDefManager *itemdef)
 			}
 			else
 				count = stoi(count_str);
-            
+			
 			// Read the wear
 			std::string wear_str;
 			std::getline(is, wear_str, ' ');
@@ -293,11 +293,11 @@ void ItemStack::deSerialize(std::istream &is, IItemDefManager *itemdef)
 				break;
 			else
 				wear = stoi(wear_str);
-            
-            metadata = deSerializeJsonStringIfNeeded(is);
-            if(metadata.empty()) is.ignore(1, ' ');
+			
+			metadata = deSerializeJsonStringIfNeeded(is);
+			if(metadata.empty()) is.ignore(1, ' ');
 
-            inventoryLabel = deSerializeJsonStringIfNeeded(is);
+			inventoryLabel = deSerializeJsonStringIfNeeded(is);
 			// In case fields are added after metadata, skip space here:
 			//std::getline(is, tmp, ' ');
 			//if(!tmp.empty())

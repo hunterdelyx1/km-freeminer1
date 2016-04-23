@@ -915,11 +915,11 @@ MapBlock::mesh_type MapBlock::getMesh(int step) {
 void MapBlock::setMesh(MapBlock::mesh_type & rmesh) {
 	if (rmesh && !mesh_size)
 		mesh_size = rmesh->getMesh()->getMeshBufferCount();
-	     if (rmesh->step == 16) {mesh_old = mesh16; mesh16 = rmesh;}
+		 if (rmesh->step == 16) {mesh_old = mesh16; mesh16 = rmesh;}
 	else if (rmesh->step == 8 ) {mesh_old = mesh8;  mesh8  = rmesh;}
 	else if (rmesh->step == 4 ) {mesh_old = mesh4;  mesh4  = rmesh;}
 	else if (rmesh->step == 2 ) {mesh_old = mesh2;  mesh2  = rmesh;}
-	else                        {mesh_old = mesh;   mesh   = rmesh;}
+	else						{mesh_old = mesh;   mesh   = rmesh;}
 }
 
 /*
@@ -1200,13 +1200,13 @@ std::string analyze_block(MapBlock *block)
 	switch(block->getModified())
 	{
 	case MOD_STATE_CLEAN:
-		desc<<"CLEAN,           ";
+		desc<<"CLEAN,		   ";
 		break;
 	case MOD_STATE_WRITE_AT_UNLOAD:
 		desc<<"WRITE_AT_UNLOAD, ";
 		break;
 	case MOD_STATE_WRITE_NEEDED:
-		desc<<"WRITE_NEEDED,    ";
+		desc<<"WRITE_NEEDED,	";
 		break;
 	default:
 		desc<<"unknown getModified()="+itos(block->getModified())+", ";

@@ -219,8 +219,8 @@ public:
 	CURLcode start(CURLM *multi);
 	const HTTPFetchResult * complete(CURLcode res);
 
-	const HTTPFetchRequest &getRequest()    const { return request; };
-	const CURL             *getEasyHandle() const { return curl; };
+	const HTTPFetchRequest &getRequest()	const { return request; };
+	const CURL			 *getEasyHandle() const { return curl; };
 
 private:
 	CurlHandlePool *pool;

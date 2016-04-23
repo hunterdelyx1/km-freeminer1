@@ -32,7 +32,7 @@
 #define OPPOSITE_FACE(x) (CircuitElement::opposite_face[x])
 #define SHIFT_TO_FACE(x) (1 << x)
 #define FACE_TO_SHIFT(x) (CircuitElement::face_to_shift[x])
-#define ROTATE_FACE(x, y) (CircuitElement::rotate_face[FACE_TO_SHIFT(x) * 24 + y])                 // Rotate real face
+#define ROTATE_FACE(x, y) (CircuitElement::rotate_face[FACE_TO_SHIFT(x) * 24 + y])				 // Rotate real face
 #define REVERSE_ROTATE_FACE(x, y) (CircuitElement::reverse_rotate_face[FACE_TO_SHIFT(x) * 24 + y]) // Get real face of node
 #define ROTATE_SHIFT(x, y) (FACE_TO_SHIFT(CircuitElement::rotate_face[x * 24 + y]))
 #define REVERSE_ROTATE_SHIIFT(x, y) (FACE_TO_SHIFT(CircuitElement::reverse_rotate_face[x * 24 + y]))
@@ -45,7 +45,7 @@ class INodeDefManager;
 
 // enum FaceId
 // {
-// 	FACE_TOP    = 0x1,
+// 	FACE_TOP	= 0x1,
 // 	FACE_BOTTOM = 0x2,
 // 	FACE_RIGHT  = 0x4,
 // 	FACE_LEFT   = 0x8,
@@ -86,7 +86,7 @@ public:
 	void serialize(std::ostream& out) const;
 	void serializeState(std::ostream& out) const;
 	void deSerialize(std::istream& is,
-	                 std::map <u32, std::list <CircuitElementVirtual>::iterator>& id_to_virtual_pointer);
+					 std::map <u32, std::list <CircuitElementVirtual>::iterator>& id_to_virtual_pointer);
 	void deSerializeState(std::istream& is);
 
 	void getNeighbors(std::vector <std::list <CircuitElementVirtual>::iterator>& neighbors) const;
@@ -94,23 +94,23 @@ public:
 	// First - pointer to object to which connected.
 	// Second - face id.
 	static void findConnectedWithFace(std::vector <std::pair <std::list<CircuitElement>::iterator, u8> >& connected,
-	                                  Map* map, INodeDefManager* ndef, v3POS pos, u8 face,
-	                                  std::map<v3POS, std::list<CircuitElement>::iterator>& pos_to_iterator,
-	                                  bool connected_faces[6]);
+									  Map* map, INodeDefManager* ndef, v3POS pos, u8 face,
+									  std::map<v3POS, std::list<CircuitElement>::iterator>& pos_to_iterator,
+									  bool connected_faces[6]);
 
 	CircuitElementContainer getFace(int id) const;
 	v3POS getPos() const;
 	u32 getId() const;
 
 	void connectFace(int id, std::list <CircuitElementVirtualContainer>::iterator it,
-	                 std::list <CircuitElementVirtual>::iterator pt);
+					 std::list <CircuitElementVirtual>::iterator pt);
 	void disconnectFace(int id);
 	void setId(u32 id);
 	void setInputState(u8 state);
 	void setDelay(u8 delay);
 
 	void swap(const MapNode& n_old, const ContentFeatures& n_old_features,
-	          const MapNode& n_new, const ContentFeatures& n_new_features);
+			  const MapNode& n_new, const ContentFeatures& n_new_features);
 
 	inline void addState(u8 state) {
 		m_next_input_state |= state;

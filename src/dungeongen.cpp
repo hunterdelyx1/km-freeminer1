@@ -59,10 +59,10 @@ DungeonGen::DungeonGen(Mapgen *mapgen, DungeonParams *dparams)
 		dp.c_stair  = mg->ndef->getId("mapgen_stair_cobble");
 
 		dp.diagonal_dirs = false;
-		dp.mossratio     = 3.0;
-		dp.holesize      = v3s16(1, 2, 1);
-		dp.roomsize      = v3s16(0, 0, 0);
-		dp.notifytype    = GENNOTIFY_DUNGEON;
+		dp.mossratio	 = 3.0;
+		dp.holesize	  = v3s16(1, 2, 1);
+		dp.roomsize	  = v3s16(0, 0, 0);
+		dp.notifytype	= GENNOTIFY_DUNGEON;
 
 		dp.np_rarity  = nparams_dungeon_rarity;
 		dp.np_wetness = nparams_dungeon_wetness;

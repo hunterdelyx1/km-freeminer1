@@ -798,9 +798,9 @@ set(client_SRCS
 	fontengine.cpp
 	game.cpp
 	guiChatConsole.cpp
-    
-    guiKmChat.cpp
-    
+	
+	guiKmChat.cpp
+	
 	guiEngine.cpp
 	guiFileSelectMenu.cpp
 	guiFormSpecMenu.cpp
