@@ -476,12 +476,12 @@ bool GUIKmChat::OnEvent(const SEvent& event)
 			m_open_inhibited = 1; // so the ESCAPE button doesn't open the "pause menu"
 			return true;
 		}
-		else if(event.KeyInput.Key == KEY_PRIOR && event.KeyInput.Char == 0)
+		else if(event.KeyInput.Key == KEY_PRIOR && event.KeyInput.Char == 0 && !event.KeyInput.Control)
 		{
 			m_chat_backend->scrollPageUp();
 			return true;
 		}
-		else if(event.KeyInput.Key == KEY_NEXT && event.KeyInput.Char == 0)
+		else if(event.KeyInput.Key == KEY_NEXT && event.KeyInput.Char == 0 && !event.KeyInput.Control)
 		{
 			m_chat_backend->scrollPageDown();
 			return true;
