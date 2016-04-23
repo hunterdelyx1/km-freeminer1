@@ -1,3 +1,25 @@
+/*
+GUIKmChat.cpp
+Copyright (C) 2013 celeron55, Perttu Ahola <celeron55@gmail.com>
+*/
+
+/*
+This file is part of Freeminer.
+
+Freeminer is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Freeminer  is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "guiKmChat.h"
 #include "chat.h"
 #include "client.h"
@@ -28,19 +50,22 @@ GUIKmChat::GUIKmChat(
 		gui::IGUIElement* parent,
 		s32 id,
 		ChatBackend* backend,
-		Client* client
+		Client* client,
+		IMenuManager* menumgr
 ):
 	IGUIElement(gui::EGUIET_ELEMENT, env, parent, id,
 			core::rect<s32>(0,0,100,100)),
 	m_chat_backend(backend),
 	m_client(client),
+	m_menumgr(menumgr),
 	m_screensize(v2u32(0,0)),
 	m_animate_time_old(0),
 	m_open(false),
-	m_close_on_return(false),
-	m_rows(0),
+	m_close_on_enter(false),
 	m_height(0),
-	m_width(0),
+	m_desired_height(0),
+	m_desired_height_fraction(0.0),
+	m_height_speed(5.0),
 	m_open_inhibited(0),
 	m_cursor_blink(0.0),
 	m_cursor_blink_speed(0.0),
@@ -56,29 +81,38 @@ GUIKmChat::GUIKmChat(
 	s32 backgrount_alpha = g_settings->getS32("km_chat_alpha");
 	m_background_color.setAlpha(clamp_u8(backgrount_alpha));
 
-	v3f chat_color = g_settings->getV3F("km_chat_color");
-	m_background_color.setRed(clamp_u8(myround(chat_color.X)));
-	m_background_color.setGreen(clamp_u8(myround(chat_color.Y)));
-	m_background_color.setBlue(clamp_u8(myround(chat_color.Z)));
-	
+	// load the background texture depending on settings
+    v3f chat_color = g_settings->getV3F("km_chat_color");
+    m_background_color.setRed(clamp_u8(myround(chat_color.X)));
+    m_background_color.setGreen(clamp_u8(myround(chat_color.Y)));
+    m_background_color.setBlue(clamp_u8(myround(chat_color.Z)));
+
+	m_font = g_fontengine->getFont(FONT_SIZE_UNSPECIFIED, FM_Mono);
+
 	int font_size = g_settings->getS32("km_chat_font_size");
-	setFont(font_size);
-		
-	int rows = g_settings->getS32("km_chat_rows");
-	setRows(rows);
-	
-	// set default cursor options
+    setFont(font_size);
+        
+    int rows = g_settings->getS32("km_chat_rows");
+    setRows(rows);
+    
+    // set default cursor options
 	setCursor(true, true, 2.0, 0.1);
-	
-	parent->sendToBack(this);
+    
+    parent->sendToBack(this);
+}
+
+GUIKmChat::~GUIKmChat()
+{
+	if (m_font)
+		m_font->drop();
 }
 
 void GUIKmChat::setFont(int font_size) {
-	if(font_size < 2) font_size = 2;
-	if(font_size > 200) font_size = 200;
-	
-	m_font = g_fontengine->getFont(font_size, FM_Mono);
-	
+    if(font_size < 2) font_size = 2;
+    if(font_size > 200) font_size = 200;
+    
+    m_font = g_fontengine->getFont(font_size, FM_Mono);
+    
 	if (m_font == NULL)
 	{
 		errorstream << "GUIKmChat: Unable to load mono font ";
@@ -89,42 +123,31 @@ void GUIKmChat::setFont(int font_size) {
 		m_fontsize = v2u32(dim.Width, dim.Height);
 		m_font->grab();
 	}
-	
+    
 	m_fontsize.X = MYMAX(m_fontsize.X, 1);
 	m_fontsize.Y = MYMAX(m_fontsize.Y, 1);
-	
-	if (font_size != g_settings->getS32("km_chat_font_size")) {
-		g_settings->set("km_chat_font_size", std::to_string(font_size));
-	}
+    
+    if (font_size != g_settings->getS32("km_chat_font_size")) {
+        g_settings->set("km_chat_font_size", std::to_string(font_size));
+    }
 }
 
 void GUIKmChat::setRows(int rows) {
-	if(rows < 1) rows = 1;
-	if(rows > 500) rows = 500;
-	
-	m_rows = rows;
-	
-	if (rows != g_settings->getS32("km_chat_rows")) {
-		g_settings->set("km_chat_rows", std::to_string(rows));
-	}
-}
-
-GUIKmChat::~GUIKmChat()
-{
-	if (m_font)
-		m_font->drop();
+    if(rows < 1) rows = 1;
+    if(rows > 500) rows = 500;
+    
+    m_rows = rows;
+    
+    if (rows != g_settings->getS32("km_chat_rows")) {
+        g_settings->set("km_chat_rows", std::to_string(rows));
+    }
 }
 
 void GUIKmChat::open()
 {
 	m_open = true;
+	Environment->setFocus(this);
 	m_client->sendChatOpened(true);
-}
-
-void GUIKmChat::close()
-{
-	m_open = false;
-	m_client->sendChatOpened(false);
 }
 
 bool GUIKmChat::isOpen() const
@@ -136,6 +159,21 @@ bool GUIKmChat::isOpenInhibited() const
 {
 	return m_open_inhibited > 0;
 }
+
+void GUIKmChat::close()
+{
+	m_open = false;
+	Environment->removeFocus(this);
+	m_client->sendChatOpened(false);
+}
+
+void GUIKmChat::replaceAndAddToHistory(std::wstring line)
+{
+	ChatPrompt& prompt = m_chat_backend->getPrompt();
+	prompt.addToHistory(prompt.getLine());
+	prompt.replace(line);
+}
+
 
 void GUIKmChat::setCursor(
 	bool visible, bool blinking, f32 blink_speed, f32 relative_height)
@@ -184,6 +222,7 @@ void GUIKmChat::draw()
 	animate(now - m_animate_time_old);
 	m_animate_time_old = now;
 
+	// Draw console elements if visible
 	if (m_open)
 	{
 		drawPrompt();
@@ -198,10 +237,10 @@ void GUIKmChat::draw()
 void GUIKmChat::reformatChat()
 {
 	s32 cols = m_width / m_fontsize.X - 2; // make room for a margin (looks better)
-
+	
 	if (cols <= 0)
 		cols = 0;
-		
+	
 	m_chat_backend->reformatChat(cols, m_rows);
 }
 
@@ -243,7 +282,6 @@ void GUIKmChat::drawMessageText()
 	irr::gui::CGUITTFont *font = static_cast<irr::gui::CGUITTFont*>(m_font);
 
 	ChatBuffer& buf = m_chat_backend->getChatBuffer();
-
 	for (u32 row = 0; row < buf.getRows(); ++row)
 	{
 		const ChatFormattedLine& line = buf.getFormattedLine(row);
@@ -284,7 +322,7 @@ void GUIKmChat::drawNewMessageText()
 {
 	if (m_font == NULL)
 		return;
-		
+    
 	video::IVideoDriver* driver = Environment->getVideoDriver();
 	irr::gui::CGUITTFont *font = static_cast<irr::gui::CGUITTFont*>(m_font);
 
@@ -327,6 +365,7 @@ void GUIKmChat::drawNewMessageText()
 	}
 }
 
+// OLD
 void GUIKmChat::drawPrompt()
 {
 	if (m_font == NULL)
@@ -353,7 +392,6 @@ void GUIKmChat::drawPrompt()
 		s32 x = (1 + i) * m_fontsize.X;
 		core::rect<s32> destrect(
 			x, y, x + m_fontsize.X, y + m_fontsize.Y);
-
 		m_font->draw(
 			ws,
 			destrect,
@@ -397,6 +435,7 @@ void GUIKmChat::setPrompt(const std::wstring& input) {
 	}
 }
 
+
 bool GUIKmChat::getAndroidUIInput() {
 #ifdef __ANDROID__
 	if (porting::getInputDialogState() == 0) {
@@ -404,12 +443,15 @@ bool GUIKmChat::getAndroidUIInput() {
 		std::wstring wtext = narrow_to_wide(text);
 		//errorstream<<"GUIKmChat::getAndroidUIInput() text=["<<text<<"] "<<std::endl;
 		m_chat_backend->getPrompt().input(wtext);
-		std::wstring wrtext = m_chat_backend->getPrompt().submit();
-		m_client->typeChatMessage(wide_to_narrow(wrtext));
+		//std::wstring wrtext = .submit();
+		//m_client->typeChatMessage(wide_to_narrow(wrtext));
+		auto & prompt = m_chat_backend->getPrompt();
+		prompt.addToHistory(prompt.getLine());
+		m_client->typeChatMessage(wide_to_utf8(prompt.replace(L"")));
 
-		if (m_close_on_return) {
-			close();
-			Environment->removeFocus(this);
+		if (m_close_on_enter) {
+			closeConsole();
+			//Environment->removeFocus(this);
 		}
 
 		return true;
@@ -418,28 +460,28 @@ bool GUIKmChat::getAndroidUIInput() {
 	return false;
 }
 
-
 bool GUIKmChat::OnEvent(const SEvent& event)
 {
+
 	ChatPrompt &prompt = m_chat_backend->getPrompt();
 
 	if(event.EventType == EET_KEY_INPUT_EVENT && event.KeyInput.PressedDown)
 	{
 		KeyPress kp(event.KeyInput);
-		// Key input
+		
 		if ( (kp == EscapeKey || kp == CancelKey) && ((int)event.KeyInput.Key == (int)event.KeyInput.Char) )
 		{
 			close();
-			Environment->removeFocus(this);
+			
 			m_open_inhibited = 1; // so the ESCAPE button doesn't open the "pause menu"
 			return true;
 		}
-		else if(event.KeyInput.Key == KEY_PRIOR && event.KeyInput.Char == 0 && !event.KeyInput.Control)
+		else if(event.KeyInput.Key == KEY_PRIOR && event.KeyInput.Char == 0)
 		{
 			m_chat_backend->scrollPageUp();
 			return true;
 		}
-		else if(event.KeyInput.Key == KEY_NEXT && event.KeyInput.Char == 0 && !event.KeyInput.Control)
+		else if(event.KeyInput.Key == KEY_NEXT && event.KeyInput.Char == 0)
 		{
 			m_chat_backend->scrollPageDown();
 			return true;
@@ -449,18 +491,21 @@ bool GUIKmChat::OnEvent(const SEvent& event)
 			prompt.addToHistory(prompt.getLine());
 			std::wstring text = prompt.replace(L"");
 			m_client->typeChatMessage(wide_to_utf8(text));
-
-            Environment->removeFocus(this);
-            close();
+			
+			close();
 			return true;
-        }
+		}
 		else if(event.KeyInput.Key == KEY_UP && event.KeyInput.Char == 0)
 		{
+			// Up pressed
+			// Move back in history
 			prompt.historyPrev();
 			return true;
 		}
 		else if(event.KeyInput.Key == KEY_DOWN && event.KeyInput.Char == 0)
 		{
+			// Down pressed
+			// Move forward in history
 			prompt.historyNext();
 			return true;
 		}
@@ -623,32 +668,31 @@ bool GUIKmChat::OnEvent(const SEvent& event)
 			#endif
 			return true;
 		}
-		// KMFREEMINER PART
+		//kmfreeminer
 		else if((event.KeyInput.Key == KEY_PLUS or event.KeyInput.Key == KEY_MINUS) && event.KeyInput.Control)
-			{
-				if(event.KeyInput.Key == KEY_PLUS) {
-					setFont(g_settings->getS32("km_chat_font_size") + 1);
-				}
-				else {
-					setFont(g_settings->getS32("km_chat_font_size") - 1);
-				}
-				
-				reformatChat();
-				recalculateKmChatPosition();
+		{
+			if(event.KeyInput.Key == KEY_PLUS) {
+				setFont(g_settings->getS32("km_chat_font_size") + 1);
 			}
+			else {
+				setFont(g_settings->getS32("km_chat_font_size") - 1);
+			}
+			
+			reformatChat();
+			recalculateKmChatPosition();
+		}
 		else if((event.KeyInput.Key == KEY_PRIOR or event.KeyInput.Key == KEY_NEXT) && event.KeyInput.Control)
-			{
-				if(event.KeyInput.Key == KEY_PRIOR) {
-					setRows(g_settings->getS32("km_chat_rows") + 1);
-				}
-				else {
-					setRows(g_settings->getS32("km_chat_rows") - 1);
-				}
-				
-				reformatChat();
-				recalculateKmChatPosition();
+		{
+			if(event.KeyInput.Key == KEY_PRIOR) {
+				setRows(g_settings->getS32("km_chat_rows") + 1);
 			}
-            
+			else {
+				setRows(g_settings->getS32("km_chat_rows") - 1);
+			}
+			
+			reformatChat();
+			recalculateKmChatPosition();
+		}
 	}
 	else if(event.EventType == EET_MOUSE_INPUT_EVENT)
 	{
@@ -668,6 +712,7 @@ void GUIKmChat::setVisible(bool visible)
 	IGUIElement::setVisible(visible);
 	if (!visible) {
 		m_height = 0;
-        recalculateKmChatPosition();
+		recalculateKmChatPosition();
 	}
 }
+

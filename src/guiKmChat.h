@@ -1,7 +1,30 @@
+/*
+GUIKmChat.h
+Copyright (C) 2013 celeron55, Perttu Ahola <celeron55@gmail.com>
+*/
+
+/*
+This file is part of Freeminer.
+
+Freeminer is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Freeminer  is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #ifndef GUIKmChat_HEADER
 #define GUIKmChat_HEADER
 
 #include "irrlichttypes_extrabloated.h"
+#include "modalMenu.h"
 #include "chat.h"
 #include "config.h"
 
@@ -16,7 +39,8 @@ public:
 			gui::IGUIElement* parent,
 			s32 id,
 			ChatBackend* backend,
-			Client* client);
+			Client* client,
+			IMenuManager* menumgr);
 	virtual ~GUIKmChat();
 
 	// Open the console (height = desired fraction of screen size)
@@ -27,12 +51,16 @@ public:
 	bool isOpen() const;
 
 	// Check if the console should not be opened at the moment
-	// This is to avoid reopening the consol`e immediately after closing
+	// This is to avoid reopening the console immediately after closing
 	bool isOpenInhibited() const;
-	// Close the console, equivalent to openConsole(0).
 	// This doesn't close immediately but initiates an animation.
 	void close();
-	// Close the console immediately, without animation.
+    
+	// Set whether to close the console after the user presses enter.
+	void setCloseOnEnter(bool close) { m_close_on_enter = close; }
+
+	// Replace actual line when adding the actual to the history (if there is any)
+	void replaceAndAddToHistory(std::wstring line);
 
 	// Change how the cursor looks
 	void setCursor(
@@ -52,6 +80,8 @@ public:
 
 	virtual bool OnEvent(const SEvent& event);
 
+	virtual void setVisible(bool visible);
+
 private:
 	void reformatChat();
 	void recalculateKmChatPosition();
@@ -63,19 +93,14 @@ private:
 	void animate(u32 msec);
     
     void drawMessageText();
-    
-	void drawBackground();
-	void drawPrompt();
-    
     void drawNewMessageText();
+    
+	void drawPrompt();
 
-	virtual void setVisible(bool visible);
 private:
-	// pointer to the chat backend
 	ChatBackend* m_chat_backend;
-
-	// pointer to the client
 	Client* m_client;
+	IMenuManager* m_menumgr;
 
 	// current screen size
 	v2u32 m_screensize;
@@ -85,10 +110,10 @@ private:
 
 	// should the console be opened or closed?
 	bool m_open;
-	// close console on return or not
-	bool m_close_on_return;
+	// should it close after you press enter?
+	bool m_close_on_enter;
     
-    // current console height [rows]
+	// current console height [rows]
 	s32 m_rows;
     
 	// current console height [pixels]
@@ -97,9 +122,12 @@ private:
 	// current console width [pixels]
 	s32 m_width;
     
-    // current console width [pixels]
-	s32 m_top_indent;
-    
+	// desired height [pixels]
+	f32 m_desired_height;
+	// desired height [screen height fraction]
+	f32 m_desired_height_fraction;
+	// console open/close animation speed [screen height fraction / second]
+	f32 m_height_speed;
 	// if nonzero, opening the console is inhibited [milliseconds]
 	u32 m_open_inhibited;
 
