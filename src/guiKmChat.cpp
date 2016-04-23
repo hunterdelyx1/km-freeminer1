@@ -615,6 +615,12 @@ bool GUIKmChat::OnEvent(const SEvent& event)
 				return true;
 
 			prompt.input(utf8_to_wide(std::string(text)));
+
+/*
+			std::basic_string<unsigned char> str((const unsigned char*)text);
+			prompt.input(std::wstring(str.begin(), str.end()));
+*/
+			return true;
 		}
 		else if(event.KeyInput.Key == KEY_KEY_X && event.KeyInput.Control)
 		{
