@@ -1632,7 +1632,7 @@ protected:
 	void openInventory();
 	void openConsole(float height, const wchar_t *line=NULL);
     
-    void openKmChat(const std::wstring& input = L"");
+    void openKmChat(const wchar_t *line=NULL);
 
 	void toggleFreeMove(float *statustext_time);
 	void toggleFreeMoveAlt(float *statustext_time, float *jump_timer);
@@ -1824,6 +1824,7 @@ Game::Game() :
 	eventmgr(NULL),
 	quicktune(NULL),
 	gui_chat_console(NULL),
+    gui_km_chat(NULL),
 	draw_control(NULL),
 	camera(NULL),
 	clouds(NULL),
@@ -2089,6 +2090,9 @@ void Game::shutdown()
 
 	if (gui_chat_console)
 		gui_chat_console->drop();
+        
+    if (gui_km_chat)
+        gui_km_chat->drop();
 
 	if (sky)
 		sky->drop();
@@ -2407,9 +2411,9 @@ bool Game::initGui()
 		return false;
 	}
     
-	// Chat backend and console
+	// Kmchat
 	gui_km_chat = new GUIKmChat(guienv, guienv->getRootGUIElement(),
-			-1, chat_backend, client);
+			-1, chat_backend, client, &g_menumgr);
 	if (!gui_km_chat) {
 		*error_message = "Could not allocate memory for km chat";
 		errorstream << *error_message << std::endl;
@@ -2966,7 +2970,7 @@ void Game::processKeyboardInput(VolatileRunFlags *flags,
 	} else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_INVENTORY])) {
 		openInventory();
 	} else if (input->wasKeyDown(EscapeKey) || input->wasKeyDown(CancelKey)) {
-		if (!gui_chat_console->isOpenInhibited()) {
+		if (!(gui_chat_console->isOpenInhibited() && gui_km_chat->isOpenInhibited())) {
 			show_pause_menu(&current_formspec, client, gamedef,
 					texture_src, device, simple_singleplayer_mode);
 		}
@@ -3200,6 +3204,35 @@ void Game::openInventory()
 	current_formspec->setFormSpec(fs_src->getForm(), inventoryloc);
 }
 
+void Game::openKmChat(const wchar_t *line)
+{
+	if (gui_km_chat->isOpenInhibited())
+		return;
+
+#ifdef __ANDROID__
+	if (porting::canKeyboard() >= 2) {
+		// fmtodo: invisible input text before pressing enter
+		porting::displayKeyboard(true, porting::app_global, porting::jnienv);
+#endif
+
+	gui_km_chat->open();
+	if (line) {
+		gui_km_chat->setCloseOnEnter(true);
+		gui_km_chat->replaceAndAddToHistory(line);
+	}
+
+#ifdef __ANDROID__
+	} else {
+		int type = 2;
+		porting::showInputDialog(_("ok"), "", wide_to_narrow(gui_km_chat->getText()), type);
+
+/*
+	porting::showInputDialog(_("ok"), "", "", 2);
+*/
+	m_android_chat_open = true;
+	}
+#endif
+}
 
 void Game::openConsole(float height, const wchar_t *line)
 {
@@ -3242,29 +3275,6 @@ void Game::handleAndroidChatInput()
 	}
 }
 #endif
-
-void Game::openKmChat(const std::wstring& input)
-{
-	if (!gui_km_chat->isOpenInhibited()) {
-		// Set initial console prompt
-		if (!input.empty()) {
-			gui_km_chat->setPrompt(input);
-		}
-		gui_km_chat->open();
-		guienv->setFocus(gui_km_chat);
-
-#ifdef __ANDROID__
-		if (porting::canKeyboard() >= 2) {
-			// fmtodo: invisible input text before pressing enter
-			porting::displayKeyboard(true, porting::app_global, porting::jnienv);
-		} else {
-			int type = 1;
-			porting::showInputDialog(_("ok"), "", wide_to_narrow(gui_km_chat->getText()), type);
-		}
-#endif
-
-	}
-}
 
 void Game::toggleFreeMove(float *statustext_time)
 {
