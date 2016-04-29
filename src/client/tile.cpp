@@ -223,6 +223,7 @@ public:
 			toadd->grab();
 		m_images[name] = toadd;
 	}
+	
 	video::IImage* get(const std::string &name)
 	{
 		std::map<std::string, video::IImage*>::iterator n;
@@ -231,80 +232,91 @@ public:
 			return n->second;
 		return NULL;
 	}
-        
+	
+	video::IImage* httpLoad(const std::string &url, const std::string &hash, IrrlichtDevice *device) {
+		video::IImage *img = NULL;
+		video::IVideoDriver* driver = device->getVideoDriver();
+
+		HTTPFetchRequest fetch_request;
+		HTTPFetchResult fetch_result;
+		fetch_request.url = url;
+		fetch_request.caller = HTTPFETCH_SYNC;
+		fetch_request.timeout = g_settings->getS32("curl_file_download_timeout");
+		httpfetch_sync(fetch_request, fetch_result);
+		if (!fetch_result.succeeded) {
+			return NULL;
+		}
+		
+		Buffer<char> data_rw(fetch_result.data.c_str(), fetch_result.data.size());
+		
+		io::IReadFile *rfile = device->getFileSystem()->createMemoryReadFile(
+			*data_rw, data_rw.getSize(), "_tempreadfile");
+		FATAL_ERROR_IF(!rfile, "Could not create irrlicht memory file.");
+		
+		img = driver->createImageFromFile(rfile);
+		
+		if(!img) {
+			errorstream<<"Client: Cannot create image from data of "<< url << std::endl;
+			rfile->drop();
+			return NULL;
+		}
+		
+		return img;
+	}   
+	
 	// Primarily fetches from cache, secondarily tries to read from filesystem
 	video::IImage* getOrLoad(const std::string &name, IrrlichtDevice *device)
 	{
-        video::IVideoDriver* driver = device->getVideoDriver();
+		video::IVideoDriver* driver = device->getVideoDriver();
 
-        video::IImage *img = NULL;
+		video::IImage *img = NULL;
+		
+		std::map<std::string, video::IImage*>::iterator n;
+		
+		img = get(name);
+		if (!img)
+		{
+			std::string path = getTexturePath(name);
+			
+			if (path == "")
+			{
+				infostream<<"SourceImageCache::getOrLoad(): No path found for \""
+						<<name<<"\""<<std::endl;
+			} 
+			else
+			{
+				infostream<<"SourceImageCache::getOrLoad(): Loading path \""<<path
+						<<"\""<<std::endl;
+					  
+				img = driver->createImageFromFile(path.c_str());
+			}
+		}
+		
 		if (str_starts_with(name, "httpload:"))
 		{
-            if(g_settings->get("http_get_host") == "") {
-                errorstream << "Client: No \"http_get_host\" in freeminer.conf " << std::endl;
-                return NULL;
-            }
-            
-			Strfnd sf(name);
-			sf.next(":"); 
-            
-            std::string filename = sf.next(":");
-            std::string url = g_settings->get("http_get_host") + filename;
-            std::string path = getMediaCacheDir() + DIR_DELIM + filename;
-            
-//            get_http_file(url.c_str(), path.c_str());
-//            img = driver->createImageFromFile(path.c_str());
-            
-            HTTPFetchRequest fetch_request;
-            HTTPFetchResult fetch_result;
-            fetch_request.url = url;
-            fetch_request.caller = HTTPFETCH_SYNC;
-            fetch_request.timeout = g_settings->getS32("curl_file_download_timeout");
-            httpfetch_sync(fetch_request, fetch_result);
-            
-            if (!fetch_result.succeeded) {
-                return NULL;
-            }
-                        
-            Buffer<char> data_rw(fetch_result.data.c_str(), fetch_result.data.size());
-            
-            io::IFileSystem *irrfs = device->getFileSystem();
-            io::IReadFile *rfile = irrfs->createMemoryReadFile(
-                    *data_rw, data_rw.getSize(), "_tempreadfile");
-            FATAL_ERROR_IF(!rfile, "Could not create irrlicht memory file.");
-
-            img = driver->createImageFromFile(rfile);
-            
-            if(!img) {
-                errorstream<<"Client: Cannot create image from data of "<< url << std::endl;
-                rfile->drop();
-                return NULL;
-            }
-        }
-        else {
-            std::map<std::string, video::IImage*>::iterator n;
-            n = m_images.find(name);
-            if (n != m_images.end()){
-                n->second->grab(); // Grab for caller
-                return n->second;
-            }
-
-            std::string path = getTexturePath(name);
-            
-            if (path == ""){
-                infostream<<"SourceImageCache::getOrLoad(): No path found for \""
-                        <<name<<"\""<<std::endl;
-                return NULL;
-            }
-            infostream<<"SourceImageCache::getOrLoad(): Loading path \""<<path
-                    <<"\""<<std::endl;
-            img = driver->createImageFromFile(path.c_str());
-
-            if (img){
-                m_images[name] = img;
-                img->grab(); // Grab for caller
-            }
-        }
+			if(g_settings->get("http_get_host") == "") {
+				errorstream << "Client: No \"http_get_host\" in freeminer.conf " << std::endl;
+			} else {
+				Strfnd sf(name);
+				sf.next(":"); 
+				
+				std::string filename = sf.next(":");
+				std::string url = g_settings->get("http_get_host") + filename;
+				
+				std::string hash = "";
+				if (img) hash = "";
+								
+				video::IImage *img_remote = httpLoad(url, hash, device);
+				if (img_remote) img = img_remote;
+			}
+		}
+		
+		if (img)
+		{
+			m_images[name] = img;
+			img->grab(); // Grab for caller
+		}
+		
 		return img;
 	}
 private:
@@ -1450,13 +1462,13 @@ bool TextureSource::generateImagePart(std::string part_of_name,
 
 			N can be a number (between 0 and 7) or a transform name.
 			Rotations are counter-clockwise.
-			0  I      identity
-			1  R90    rotate by 90 degrees
+			0  I	  identity
+			1  R90	rotate by 90 degrees
 			2  R180   rotate by 180 degrees
 			3  R270   rotate by 270 degrees
-			4  FX     flip X
+			4  FX	 flip X
 			5  FXR90  flip X then rotate by 90 degrees
-			6  FY     flip Y
+			6  FY	 flip Y
 			7  FYR90  flip Y then rotate by 90 degrees
 
 			Note: Transform names can be concatenated to produce
@@ -2095,21 +2107,21 @@ void imageTransform(u32 transform, video::IImage *src, video::IImage *dst)
 	*/
 	int sxn = 0;
 	int syn = 2;
-	if (transform == 0)         // identity
+	if (transform == 0)		 // identity
 		sxn = 0, syn = 2;  //   sx = dx, sy = dy
-	else if (transform == 1)    // rotate by 90 degrees ccw
+	else if (transform == 1)	// rotate by 90 degrees ccw
 		sxn = 3, syn = 0;  //   sx = (H-1) - dy, sy = dx
-	else if (transform == 2)    // rotate by 180 degrees
+	else if (transform == 2)	// rotate by 180 degrees
 		sxn = 1, syn = 3;  //   sx = (W-1) - dx, sy = (H-1) - dy
-	else if (transform == 3)    // rotate by 270 degrees ccw
+	else if (transform == 3)	// rotate by 270 degrees ccw
 		sxn = 2, syn = 1;  //   sx = dy, sy = (W-1) - dx
-	else if (transform == 4)    // flip x
+	else if (transform == 4)	// flip x
 		sxn = 1, syn = 2;  //   sx = (W-1) - dx, sy = dy
-	else if (transform == 5)    // flip x then rotate by 90 degrees ccw
+	else if (transform == 5)	// flip x then rotate by 90 degrees ccw
 		sxn = 2, syn = 0;  //   sx = dy, sy = dx
-	else if (transform == 6)    // flip y
+	else if (transform == 6)	// flip y
 		sxn = 0, syn = 3;  //   sx = dx, sy = (H-1) - dy
-	else if (transform == 7)    // flip y then rotate by 90 degrees ccw
+	else if (transform == 7)	// flip y then rotate by 90 degrees ccw
 		sxn = 3, syn = 1;  //   sx = (H-1) - dy, sy = (W-1) - dx
 
 	for (u32 dy=0; dy<dstdim.Height; dy++)
