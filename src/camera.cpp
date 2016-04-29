@@ -775,53 +775,68 @@ void Camera::drawWieldedTool(irr::core::matrix4* translation)
 
 void Camera::drawNametags()
 {
-	core::matrix4 trans = m_cameranode->getProjectionMatrix();
-	trans *= m_cameranode->getViewMatrix();
+	//core::matrix4 trans = m_cameranode->getProjectionMatrix();
+	//trans *= m_cameranode->getViewMatrix();
 
-	for (std::list<Nametag *>::const_iterator
-			i = m_nametags.begin();
-			i != m_nametags.end(); ++i) {
-		Nametag *nametag = *i;
-		if (nametag->nametag_color.getAlpha() == 0) {
-			// Enforce hiding nametag,
-			// because if freetype is enabled, a grey
-			// shadow can remain.
-			continue;
-		}
-		v3f pos = nametag->parent_node->getPosition() + v3f(0.0, 1.1 * BS, 0.0);
-		f32 transformed_pos[4] = { pos.X, pos.Y, pos.Z, 1.0f };
-		trans.multiplyWith1x4Matrix(transformed_pos);
-		if (transformed_pos[3] > 0) {
-			core::dimension2d<u32> textsize =
-				g_fontengine->getFont()->getDimension(
-				utf8_to_wide(nametag->nametag_text).c_str());
-			f32 zDiv = transformed_pos[3] == 0.0f ? 1.0f :
-				core::reciprocal(transformed_pos[3]);
-			v2u32 screensize = m_driver->getScreenSize();
-			v2s32 screen_pos;
-			screen_pos.X = screensize.X *
-				(0.5 * transformed_pos[0] * zDiv + 0.5) - textsize.Width / 2;
-			screen_pos.Y = screensize.Y *
-				(0.5 - transformed_pos[1] * zDiv * 0.5) - textsize.Height / 2;
-			core::rect<s32> size(0, 0, textsize.Width, textsize.Height);
-			g_fontengine->getFont()->draw(utf8_to_wide(nametag->nametag_text).c_str(),
-					size + screen_pos, nametag->nametag_color);
-		}
-	}
+	//for (std::list<Nametag *>::const_iterator
+			//i = m_nametags.begin();
+			//i != m_nametags.end(); ++i) {
+		//Nametag *nametag = *i;
+		//if (nametag->nametag_color.getAlpha() == 0) {
+			//// Enforce hiding nametag,
+			//// because if freetype is enabled, a grey
+			//// shadow can remain.
+			//continue;
+		//}
+		//v3f pos = nametag->parent_node->getPosition() + v3f(0.0, 1.1 * BS, 0.0);
+		//f32 transformed_pos[4] = { pos.X, pos.Y, pos.Z, 1.0f };
+		//trans.multiplyWith1x4Matrix(transformed_pos);
+		//if (transformed_pos[3] > 0) {
+			//core::dimension2d<u32> textsize =
+				//g_fontengine->getFont()->getDimension(
+				//utf8_to_wide(nametag->nametag_text).c_str());
+			//f32 zDiv = transformed_pos[3] == 0.0f ? 1.0f :
+				//core::reciprocal(transformed_pos[3]);
+			//v2u32 screensize = m_driver->getScreenSize();
+			//v2s32 screen_pos;
+			//screen_pos.X = screensize.X *
+				//(0.5 * transformed_pos[0] * zDiv + 0.5) - textsize.Width / 2;
+			//screen_pos.Y = screensize.Y *
+				//(0.5 - transformed_pos[1] * zDiv * 0.5) - textsize.Height / 2;
+			//core::rect<s32> size(0, 0, textsize.Width, textsize.Height);
+			//g_fontengine->getFont()->draw(utf8_to_wide(nametag->nametag_text).c_str(),
+					//size + screen_pos, nametag->nametag_color);
+		//}
+	//}
 }
 
 Nametag *Camera::addNametag(scene::ISceneNode *parent_node,
 		std::string nametag_text, video::SColor nametag_color)
 {
-
+	irr::scene::ISceneManager *smgr = parent_node -> getSceneManager();
+	irr::gui::IGUIEnvironment *gui = smgr -> getGUIEnvironment();
+	
 	auto nametag_text_wide = utf8_to_wide(nametag_text);
 	if (nametag_text_wide.size() > 15) {
 		nametag_text_wide.resize(15);
 		nametag_text_wide += L".";
 		nametag_text = wide_to_utf8(nametag_text_wide);
 	}
+	
+	core::dimension2d< f32 > nickname_size = core::dimension2d< f32 >(gui->getBuiltInFont()->getDimension(nametag_text_wide.c_str())) * 0.2;
+        	
+	scene::IBillboardTextSceneNode *textnode = smgr->addBillboardTextSceneNode(gui->getBuiltInFont(),
+		nametag_text_wide.c_str(), parent_node, nickname_size);
+	
+	textnode->setColor(nametag_color, nametag_color);
+	textnode->setVisible(nametag_color.getAlpha() > 0);
 
-	Nametag *nametag = new Nametag(parent_node, nametag_text, nametag_color);
+	textnode->setMaterialType(video::EMT_TRANSPARENT_VERTEX_ALPHA);
+	textnode->setMaterialFlag(video::EMF_BILINEAR_FILTER, false);
+		
+	textnode->setPosition(v3f(0, BS*1.1, 0));
+		
+	Nametag *nametag = new Nametag(parent_node, textnode, nametag_text, nametag_color);
 	m_nametags.push_back(nametag);
 	return nametag;
 }
