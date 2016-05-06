@@ -17,7 +17,6 @@ addons:
   apt:
     sources:
       # NOTE gcc-4.9 breaks clang
-      - extras-precise
       - ubuntu-toolchain-r-test    # for gcc-4.8
       - llvm-toolchain-precise-3.7 # for clang
     packages:
@@ -26,7 +25,7 @@ addons:
       - doxygen
       - g++-4.8
       - gcc-4.8
-      - libirrlicht1.8
+      - libirrlicht-dev
       - libleveldb-dev
       - libogg-dev
       - libopenal-dev
