@@ -1761,3 +1761,13 @@
 #    type: string
 # mg_math = {"generator":"sphere"}
 
+# KM-part
+
+# http_get_host = ""
+# km_chat_rows = 20
+# km_chat_font_size = 26
+
+# km_chat_color = (0,0,0)
+# km_chat_alpha = 180
+	
+# km_chat_nmsg_time = 15.0

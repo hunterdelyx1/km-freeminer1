@@ -29,7 +29,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 
 
 // kmfreeminer part:
-void set_km_default_settings(Settings *settings) {
+void km_set_default_settings(Settings *settings) {
 	settings->setDefault("http_get_host", "");
 
 	settings->setDefault("km_chat_rows", "20");
@@ -732,7 +732,7 @@ void set_default_settings(Settings *settings)
 #endif
 
 	fm_set_default_settings(settings);
-	set_km_default_settings(settings);
+	km_set_default_settings(settings);
 }
 
 
