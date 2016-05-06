@@ -17,7 +17,7 @@ addons:
   apt:
     sources:
       # NOTE gcc-4.9 breaks clang
-      - debian-sid
+      - extras-precise
       - ubuntu-toolchain-r-test    # for gcc-4.8
       - llvm-toolchain-precise-3.7 # for clang
     packages:
