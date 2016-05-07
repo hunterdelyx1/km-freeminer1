@@ -58,6 +58,7 @@ namespace httpload
 			*data_rw, data_rw.getSize(), "_tempreadfile");
 			
 		if (!rfile) {
+            delete rfile;
 			return NULL;
 		}
 				
