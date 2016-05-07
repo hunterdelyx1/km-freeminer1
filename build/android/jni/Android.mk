@@ -10,7 +10,7 @@ include $(PREBUILT_STATIC_LIBRARY)
 ifeq ($(HAVE_LEVELDB), 1)
 	include $(CLEAR_VARS)
 	LOCAL_MODULE := LevelDB
-	LOCAL_SRC_FILES := deps/leveldb/out-static/libleveldb.a
+	LOCAL_SRC_FILES := deps/leveldb/libleveldb.a
 	include $(PREBUILT_STATIC_LIBRARY)
 endif
 
@@ -24,14 +24,10 @@ LOCAL_MODULE := freetype
 LOCAL_SRC_FILES := deps/freetype2-android/Android/obj/local/$(TARGET_ARCH_ABI)/libfreetype2-static.a
 include $(PREBUILT_STATIC_LIBRARY)
 
-ifdef NOT_USED_ICONV
 include $(CLEAR_VARS)
 LOCAL_MODULE := iconv
-#LOCAL_SRC_FILES := deps/libiconv/obj/local/$(TARGET_ARCH_ABI)/libiconv.a
-#include $(PREBUILT_STATIC_LIBRARY)
 LOCAL_SRC_FILES := deps/libiconv/lib/.libs/libiconv.so
 include $(PREBUILT_SHARED_LIBRARY)
-endif
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := openal
@@ -64,40 +60,7 @@ LOCAL_SRC_FILES := deps/openssl/libcrypto.a
 include $(PREBUILT_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
-LOCAL_MODULE := msgpack
-LOCAL_SRC_FILES := deps/msgpack/libmsgpackc.a
-include $(PREBUILT_STATIC_LIBRARY)
-
-ifeq ($(USE_LUAJIT), 1)
-include $(CLEAR_VARS)
-LOCAL_MODULE := luajit
-LOCAL_SRC_FILES := deps/luajit/src/libluajit.a
-include $(PREBUILT_STATIC_LIBRARY)
-endif
-
-ifeq ($(USE_ENET), 1)
-include $(CLEAR_VARS)
-LOCAL_CFLAGS := -DHAS_INET_PTON=1 -DHAS_INET_NTOP=1 -DHAS_GETHOSTBYNAME_R=1 -DHAS_GETADDRINFO=1 -DHAS_GETNAMEINFO=1 -DHAS_FCNTL=1 -DHAS_POLL=1 -DHAS_MSGHDR_FLAGS=1 -DHAS_SOCKLEN_T=1
-LOCAL_MODULE := enet
-LOCAL_C_INCLUDES := jni/src/enet/include
-LOCAL_SRC_FILES := $(wildcard $(LOCAL_PATH)/jni/src/enet/*.c)
-include $(BUILD_STATIC_LIBRARY)
-endif
-
-include $(CLEAR_VARS)
-LOCAL_MODULE := jsoncpp
-LOCAL_C_INCLUDES := jni/src/jsoncpp/include
-LOCAL_SRC_FILES := $(wildcard $(LOCAL_PATH)/jni/src/jsoncpp/src/lib_json/*.cpp)
-include $(BUILD_STATIC_LIBRARY)
-
-include $(CLEAR_VARS)
-LOCAL_MODULE := gettext
-LOCAL_C_INCLUDES := deps/gettext
-LOCAL_SRC_FILES := $(wildcard deps/gettext/internal/*.cpp)
-include $(BUILD_STATIC_LIBRARY)
-
-include $(CLEAR_VARS)
-LOCAL_MODULE := freeminer
+LOCAL_MODULE := minetest
 
 LOCAL_CPP_FEATURES += exceptions
 
@@ -106,21 +69,13 @@ GPROF_DEF=-DGPROF
 endif
 
 LOCAL_CFLAGS := -D_IRR_ANDROID_PLATFORM_      \
-				-DHAVE_TOUCHSCREENGUI         \
-				-DUSE_CURL=1                  \
-				-DUSE_SOUND=1                 \
-				-DUSE_FREETYPE=1              \
-				-DUSE_LEVELDB=$(HAVE_LEVELDB) \
-				$(GPROF_DEF)                  \
-				-DUSE_MANDELBULBER=1 \
-				-DHAVE_THREAD_LOCAL=1 \
-				-DGAMES_VERSION=\"$(GAMES_VERSION)\" \
-				-DUSE_GETTEXT=1 \
-				-DPROJECT_NAME_C=\"$(PROJECT_NAME_C)\" \
-				-pipe -fstrict-aliasing
-
-#too slow fmtodo				-DENABLE_THREADS=1 -DHAVE_FUTURE=1 \
-
+		-DHAVE_TOUCHSCREENGUI         \
+		-DUSE_CURL=1                  \
+		-DUSE_SOUND=1                 \
+		-DUSE_FREETYPE=1              \
+		-DUSE_LEVELDB=$(HAVE_LEVELDB) \
+		$(GPROF_DEF)                  \
+		-pipe -fstrict-aliasing
 
 ifndef NDEBUG
 LOCAL_CFLAGS += -g -D_DEBUG -O0 -fno-omit-frame-pointer
@@ -140,13 +95,11 @@ ifeq ($(TARGET_ARCH_ABI),x86)
 LOCAL_CFLAGS += -fno-stack-protector
 endif
 
-LOCAL_C_INCLUDES :=                               \
-		deps/msgpack/include                      \
-		deps/msgpack/src                          \
-		deps/gettext                              \
-		jni/src jni/src/sqlite                    \
+LOCAL_C_INCLUDES := \
+		jni/src                                   \
 		jni/src/script                            \
-		jni/src/jsoncpp/include                   \
+		jni/src/lua/src                           \
+		jni/src/json                              \
 		jni/src/cguittfont                        \
 		deps/irrlicht/include                     \
 		deps/libiconv/include                     \
@@ -158,37 +111,7 @@ LOCAL_C_INCLUDES :=                               \
 		deps/leveldb/include                      \
 		deps/sqlite/
 
-ifeq ($(USE_LUAJIT), 1)
-LOCAL_C_INCLUDES += deps/luajit/src
-else
-LOCAL_C_INCLUDES += jni/src/lua/src
-endif
-
-LOCAL_SRC_FILES +=                                \
-		jni/src/guiTextInputMenu.cpp              \
-		jni/src/FMColoredString.cpp               \
-		jni/src/FMStaticText.cpp                  \
-		jni/src/fm_bitset.cpp                     \
-		jni/src/fm_liquid.cpp                     \
-		jni/src/fm_map.cpp                        \
-		jni/src/key_value_storage.cpp             \
-		jni/src/log_types.cpp                     \
-		jni/src/mapgen_indev.cpp                  \
-		jni/src/mapgen_math.cpp                   \
-		jni/src/threading/lock.cpp                \
-		jni/src/threading/thread_pool.cpp         \
-		jni/src/circuit.cpp                       \
-		jni/src/circuit_element_virtual.cpp       \
-		jni/src/circuit_element.cpp               \
-		jni/src/stat.cpp                          \
-		jni/src/contrib/environment.cpp           \
-		jni/src/contrib/fallingsao.cpp            \
-		jni/src/contrib/itemsao.cpp               \
-		jni/src/contrib/l_env.cpp                 \
-		jni/src/network/fm_lan.cpp                \
-
-
-LOCAL_SRC_FILES +=                                \
+LOCAL_SRC_FILES := \
 		jni/src/ban.cpp                           \
 		jni/src/camera.cpp                        \
 		jni/src/cavegen.cpp                       \
@@ -338,7 +261,7 @@ LOCAL_SRC_FILES +=                                \
 # intentionally kept out (we already build openssl itself): jni/src/util/sha256.c
 
 # Network
-LOCAL_SRC_FILES +=                                \
+LOCAL_SRC_FILES += \
 		jni/src/network/connection.cpp            \
 		jni/src/network/networkpacket.cpp         \
 		jni/src/network/clientopcodes.cpp         \
@@ -347,8 +270,7 @@ LOCAL_SRC_FILES +=                                \
 		jni/src/network/serverpackethandler.cpp   \
 
 # lua api
-LOCAL_SRC_FILES +=                                \
-		jni/src/script/lua_api/l_key_value_storage.cpp	\
+LOCAL_SRC_FILES += \
 		jni/src/script/common/c_content.cpp       \
 		jni/src/script/common/c_converter.cpp     \
 		jni/src/script/common/c_internal.cpp      \
@@ -388,12 +310,10 @@ LOCAL_SRC_FILES +=                                \
 		jni/src/script/scripting_mainmenu.cpp
 
 #freetype2 support
-LOCAL_SRC_FILES +=                                \
-		jni/src/cguittfont/xCGUITTFont.cpp
+LOCAL_SRC_FILES += jni/src/cguittfont/xCGUITTFont.cpp
 
-ifneq ($(USE_LUAJIT), 1)
-# lua
-LOCAL_SRC_FILES +=                                \
+# Lua
+LOCAL_SRC_FILES += \
 		jni/src/lua/src/lapi.c                    \
 		jni/src/lua/src/lauxlib.c                 \
 		jni/src/lua/src/lbaselib.c                \
@@ -424,7 +344,6 @@ LOCAL_SRC_FILES +=                                \
 		jni/src/lua/src/lvm.c                     \
 		jni/src/lua/src/lzio.c                    \
 		jni/src/lua/src/print.c
-endif
 
 # SQLite3
 LOCAL_SRC_FILES += deps/sqlite/sqlite3.c
@@ -436,22 +355,11 @@ LOCAL_SRC_FILES += \
 		jni/src/threading/semaphore.cpp \
 		jni/src/threading/thread.cpp
 
+# JSONCPP
+LOCAL_SRC_FILES += jni/src/json/jsoncpp.cpp
+
 LOCAL_SHARED_LIBRARIES := iconv openal ogg vorbis gmp
 LOCAL_STATIC_LIBRARIES := Irrlicht freetype curl ssl crypto android_native_app_glue $(PROFILER_LIBS)
-
-#freeminer:
-LOCAL_STATIC_LIBRARIES += msgpack jsoncpp gettext
-
-ifeq ($(USE_ENET), 1)
-LOCAL_C_INCLUDES += jni/src/enet/include
-LOCAL_STATIC_LIBRARIES += enet
-else
-LOCAL_CFLAGS += -DMINETEST_PROTO=1
-endif
-
-ifeq ($(USE_LUAJIT), 1)
-LOCAL_STATIC_LIBRARIES += luajit
-endif
 
 ifeq ($(HAVE_LEVELDB), 1)
 	LOCAL_STATIC_LIBRARIES += LevelDB
@@ -465,3 +373,4 @@ ifdef GPROF
 $(call import-module,android-ndk-profiler)
 endif
 $(call import-module,android/native_app_glue)
+

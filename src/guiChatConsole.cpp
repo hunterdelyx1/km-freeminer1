@@ -255,7 +255,9 @@ void GUIChatConsole::animate(u32 msec)
 	s32 goal = m_open ? m_desired_height : 0;
 
 	// Set invisible if close animation finished (reset by openConsole)
-	if (!m_open && m_height == 0)
+	// This function (animate()) is never called once its visibility becomes false so do not
+	//		actually set visible to false before the inhibited period is over
+	if (!m_open && m_height == 0 && m_open_inhibited == 0)
 		IGUIElement::setVisible(false);
 
 	if (m_height != goal)
@@ -452,6 +454,8 @@ bool GUIChatConsole::OnEvent(const SEvent& event)
 {
 
 	ChatPrompt &prompt = m_chat_backend->getPrompt();
+
+	//errorstream << "cgc:event eventtype=" << (int)event.EventType << " pd=" << event.KeyInput.PressedDown << " key="<<(int)event.KeyInput.Key << " char=" <<  (int)event.KeyInput.Char<<std::endl;
 
 	if(event.EventType == EET_KEY_INPUT_EVENT && event.KeyInput.PressedDown)
 	{
@@ -670,7 +674,7 @@ bool GUIChatConsole::OnEvent(const SEvent& event)
 				ChatPrompt::CURSOROP_SCOPE_LINE);
 			return true;
 		}
-		else if(event.KeyInput.Key == KEY_TAB && event.KeyInput.Char == 0)
+		else if(event.KeyInput.Key == KEY_TAB)
 		{
 			// Tab or Shift-Tab pressed
 			// Nick completion
