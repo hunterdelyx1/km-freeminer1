@@ -37,17 +37,14 @@ namespace httpload
 	{
 		video::IVideoDriver* driver = device->getVideoDriver();
 		
-		std::cout << name << std::endl;
 		#ifdef __ANDROID__
 			if (!fs::PathExists(httpload::getCachePath())) {
 				fs::CreateDir(httpload::getCachePath());
 			}
 		#else
-			std::cout << fs::CreateDir(httpload::getCachePath()) << std::endl;
+			fs::CreateDir(httpload::getCachePath());
 		#endif
 		
-		std::cout << (httpload::getCachePath() + DIR_DELIM + std::string(name)).c_str() << std::endl;
-
 		driver->writeImageToFile(img, (httpload::getCachePath() + DIR_DELIM + std::string(name)).c_str());
 	}
 	
@@ -60,13 +57,15 @@ namespace httpload
 		io::IReadFile *rfile = device->getFileSystem()->createMemoryReadFile(
 			*data_rw, data_rw.getSize(), "_tempreadfile");
 			
-		FATAL_ERROR_IF(!rfile, "Could not create irrlicht memory file.");
-		
+		if (!rfile) {
+			return NULL;
+		}
+				
 		video::IImage* img = driver->createImageFromFile(rfile);
 		
 		if (!img) {
+            rfile->drop();
 			return NULL;
-			rfile->drop();
 		}
 		
 		return img;
@@ -74,11 +73,8 @@ namespace httpload
 
 	video::IImage* getOrLoad(const std::string &name, video::IImage* img_cache, IrrlichtDevice *device)
 	{
-					std::cout << name <<std::endl;
-
 		if(!str_starts_with(name, "httpload:"))
 		{
-			std::cout << "test" <<std::endl;
 			return img_cache;
 		}
 		
@@ -87,8 +83,7 @@ namespace httpload
 			errorstream << "Client: No \"http_get_host\" in freeminer.conf " << std::endl;
 			return img_cache;
 		}
-					std::cout << "test2" <<std::endl;
-
+        
 		Strfnd sf(name); sf.next(":"); 
 		std::string filename = sf.next(":");
 		
@@ -115,16 +110,14 @@ namespace httpload
 		
 		// Activate synchronized http-request
 		httpfetch_sync(fetch_request, fetch_result);
-		std::cout << fetch_result.response_code << std::endl;
-		
+        		
 		if (!fetch_result.succeeded)
 		{
 			errorstream << "Client[httpload]: Unable to fetch successfully, url:"<< url << std::endl;
 			return img_cache;
 		}
 		
-		std::cout << fetch_result.response_code <<std::endl;
-		if (fetch_result.response_code == 200) // 200: File is modified or new, already downloaded.
+        if (fetch_result.response_code == 200) // 200: File is modified or new, already downloaded.
 		{
 			// Convert fetched data to IImage
 			img_remote = httpload::dataToImage(fetch_result.data, device);
