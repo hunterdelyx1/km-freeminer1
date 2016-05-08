@@ -37,7 +37,7 @@ along with Freeminer.  If not, see <http://www.gnu.org/licenses/>.
 #include "xCGUITTFont.h"
 
 #define PROMPT_TOP_INDENT 0
-#define PROMPT_BOT_INDENT 10
+#define PROMPT_BOT_INDENT 50
 
 inline u32 clamp_u8(s32 value)
 {
@@ -657,7 +657,7 @@ bool GUIKmChat::OnEvent(const SEvent& event)
 				ChatPrompt::CURSOROP_SCOPE_LINE);
 			return true;
 		}
-		else if(event.KeyInput.Key == KEY_TAB && event.KeyInput.Char == 0)
+		else if(event.KeyInput.Key == KEY_TAB)
 		{
 			// Tab or Shift-Tab pressed
 			// Nick completion
