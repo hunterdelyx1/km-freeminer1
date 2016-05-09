@@ -2970,7 +2970,7 @@ void Game::processKeyboardInput(VolatileRunFlags *flags,
 	} else if (input->wasKeyDown(keycache.key[KeyCache::KEYMAP_ID_INVENTORY])) {
 		openInventory();
 	} else if (input->wasKeyDown(EscapeKey) || input->wasKeyDown(CancelKey)) {
-		if (!(gui_chat_console->isOpenInhibited() && gui_km_chat->isOpenInhibited())) {
+		if (!(gui_chat_console->isOpenInhibited() || gui_km_chat->isOpenInhibited())) {
 			show_pause_menu(&current_formspec, client, gamedef,
 					texture_src, device, simple_singleplayer_mode);
 		}
