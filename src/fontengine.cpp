@@ -345,9 +345,9 @@ void FontEngine::initSimpleFont(unsigned int basesize, FontMode mode)
 
 	std::string font_path = "";
 	if (mode == FM_Simple) {
-		font_path = m_settings->get("font_path");
+		font_path = m_settings->get("font_simple_path");
 	} else {
-		font_path = m_settings->get("mono_font_path");
+		font_path = m_settings->get("mono_font_simple_path");
 	}
 	std::string basename = font_path;
 	std::string ending = font_path.substr(font_path.length() -4);

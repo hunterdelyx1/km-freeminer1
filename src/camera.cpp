@@ -823,9 +823,9 @@ Nametag *Camera::addNametag(scene::ISceneNode *parent_node,
 		nametag_text = wide_to_utf8(nametag_text_wide);
 	}
 	
-    gui::IGUIFont* font = gui->getBuiltInFont(); //g_fontengine->getFont();
+    gui::IGUIFont* font = g_fontengine->getFont(24, FM_SimpleMono); // gui->getBuiltInFont();
     
-	core::dimension2d< f32 > nickname_size = core::dimension2d< f32 >(font->getDimension(nametag_text_wide.c_str())) * 0.2;
+	core::dimension2d<f32> nickname_size = core::dimension2d<f32>(font->getDimension(nametag_text_wide.c_str())) * 0.1;
         	
 	scene::IBillboardTextSceneNode *textnode = smgr->addBillboardTextSceneNode(font,
 		nametag_text_wide.c_str(), parent_node, nickname_size);
@@ -833,7 +833,7 @@ Nametag *Camera::addNametag(scene::ISceneNode *parent_node,
 	textnode->setColor(nametag_color, nametag_color);
 	textnode->setVisible(nametag_color.getAlpha() > 0);
 
-	textnode->setMaterialType(video::EMT_TRANSPARENT_VERTEX_ALPHA);
+	//textnode->setMaterialType(video::EMT_TRANSPARENT_VERTEX_ALPHA);
 	textnode->setMaterialFlag(video::EMF_BILINEAR_FILTER, false);
 		
 	textnode->setPosition(v3f(0, BS*1.1, 0));

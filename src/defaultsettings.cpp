@@ -39,7 +39,9 @@ void km_set_default_settings(Settings *settings) {
 	settings->setDefault("km_chat_alpha", "180");
 	
 	settings->setDefault("km_chat_nmsg_time", "15.0");
-
+    
+    settings->setDefault("font_simple_path", porting::getDataPath("fonts" DIR_DELIM "lucida_sans"));
+    settings->setDefault("mono_font_simple_path", porting::getDataPath("fonts" DIR_DELIM "mono_dejavu_sans"));
 }
 // End of kmfreeminer ======
 
