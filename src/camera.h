@@ -41,19 +41,13 @@ class WieldMeshSceneNode;
 
 struct Nametag {
 	Nametag(scene::ISceneNode *a_parent_node,
-			scene::IBillboardTextSceneNode *a_textnode,
-			const std::string &a_nametag_text,
-			const video::SColor &a_nametag_color):
+			scene::IBillboardTextSceneNode *a_textnode):
 		parent_node(a_parent_node),
-		textnode(a_textnode),
-		nametag_text(a_nametag_text),
-		nametag_color(a_nametag_color)
+		textnode(a_textnode)
 	{
 	}
 	scene::ISceneNode *parent_node;
 	scene::IBillboardTextSceneNode *textnode;
-	std::string nametag_text;
-	video::SColor nametag_color;
 };
 
 enum CameraMode {CAMERA_MODE_FIRST, CAMERA_MODE_THIRD, CAMERA_MODE_THIRD_FRONT};

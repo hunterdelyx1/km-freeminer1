@@ -823,11 +823,13 @@ Nametag *Camera::addNametag(scene::ISceneNode *parent_node,
 		nametag_text = wide_to_utf8(nametag_text_wide);
 	}
 	
-	core::dimension2d< f32 > nickname_size = core::dimension2d< f32 >(gui->getBuiltInFont()->getDimension(nametag_text_wide.c_str())) * 0.2;
+    gui::IGUIFont* font = gui->getBuiltInFont(); //g_fontengine->getFont();
+    
+	core::dimension2d< f32 > nickname_size = core::dimension2d< f32 >(font->getDimension(nametag_text_wide.c_str())) * 0.2;
         	
-	scene::IBillboardTextSceneNode *textnode = smgr->addBillboardTextSceneNode(gui->getBuiltInFont(),
+	scene::IBillboardTextSceneNode *textnode = smgr->addBillboardTextSceneNode(font,
 		nametag_text_wide.c_str(), parent_node, nickname_size);
-	
+    
 	textnode->setColor(nametag_color, nametag_color);
 	textnode->setVisible(nametag_color.getAlpha() > 0);
 
@@ -836,7 +838,7 @@ Nametag *Camera::addNametag(scene::ISceneNode *parent_node,
 		
 	textnode->setPosition(v3f(0, BS*1.1, 0));
 		
-	Nametag *nametag = new Nametag(parent_node, textnode, nametag_text, nametag_color);
+	Nametag *nametag = new Nametag(parent_node, textnode);
 	m_nametags.push_back(nametag);
 	return nametag;
 }

@@ -1824,7 +1824,7 @@ void GenericCAO::processMessage(const std::string &data)
 		readU8(is); // version
 		m_prop.nametag_color = readARGB8(is);
 		if (m_nametag != NULL) {
-			m_nametag->nametag_color = m_prop.nametag_color;
+			m_nametag->textnode->setColor(m_prop.nametag_color, m_prop.nametag_color);
 		}
 	}
 }
