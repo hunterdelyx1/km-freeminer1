@@ -55,12 +55,7 @@ namespace httpload
 		
 		io::IReadFile *rfile = device->getFileSystem()->createMemoryReadFile(
 			*data_rw, data_rw.getSize(), "_tempreadfile");
-			
-		if (!rfile) {
-            delete(rfile);
-			return NULL;
-		}
-				
+        
 		video::IImage* img = driver->createImageFromFile(rfile);
 		
 		if (!img) {
@@ -75,7 +70,7 @@ namespace httpload
 	{		
 		if(g_settings->get("http_get_host") == "")
 		{
-			errorstream << "Client: No \"http_get_host\" in freeminer.conf " << std::endl;
+			errorstream << "httpload: No \"http_get_host\" in freeminer.conf " << std::endl;
 			return NULL;
 		}
 
@@ -108,7 +103,7 @@ namespace httpload
         		
 		if (!fetch_result.succeeded)
 		{
-			errorstream << "Client[httpload]: Unable to fetch successfully, url:"<< url << std::endl;
+			errorstream << "httpload: Unable to fetch successfully, url:"<< url << std::endl;
 			return NULL;
 		}
 		
@@ -119,7 +114,7 @@ namespace httpload
 			
 			if (!img_remote)
 			{
-				errorstream << "Client[httpload]: Cannot create image from data, url: "<< url << std::endl;	
+				errorstream << "httpload: Cannot create image from data, url: "<< url << std::endl;	
 				return NULL;
 			}
 
@@ -129,11 +124,11 @@ namespace httpload
 		}
 		else if (fetch_result.response_code == 304) // 304: Cached file is ok, no need to download.
 		{
-			infostream << "Client[httpload]: local cache is ok, keeping it, url: "<< url << std::endl;
+			infostream << "httpload: local cache is ok, keeping it, url: "<< url << std::endl;
 		}
 		else
 		{
-			errorstream << "Client[httpload]: response code: " << fetch_result.response_code << ", url: " << url << std::endl;
+			errorstream << "httpload: response code: " << fetch_result.response_code << ", url: " << url << std::endl;
 		}
 		
 		return NULL;
