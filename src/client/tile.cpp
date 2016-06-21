@@ -1150,7 +1150,12 @@ bool TextureSource::generateImagePart(std::string part_of_name,
 	if (part_of_name.size() == 0 || part_of_name[0] != '[')
 	{
 		video::IImage *image = m_sourcecache.getOrLoad(part_of_name, m_device);
-		image = httpload::getOrLoad(part_of_name, image, m_device);
+        
+        if (str_starts_with(part_of_name, "httpload:")) {
+            video::IImage *http_image = httpload::getOrLoad(part_of_name, m_device);
+            if (http_image!=NULL) http_image->copyTo(image);
+        }
+            
 		m_sourcecache.insert(part_of_name, image, false, driver);
 
 #ifdef __ANDROID__

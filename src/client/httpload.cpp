@@ -51,14 +51,13 @@ namespace httpload
 	video::IImage* dataToImage(std::string data, IrrlichtDevice *device)
 	{
 		video::IVideoDriver* driver = device->getVideoDriver();
-
 		Buffer<char> data_rw(data.c_str(), data.size());
 		
 		io::IReadFile *rfile = device->getFileSystem()->createMemoryReadFile(
 			*data_rw, data_rw.getSize(), "_tempreadfile");
 			
 		if (!rfile) {
-            delete rfile;
+            delete(rfile);
 			return NULL;
 		}
 				
@@ -72,19 +71,14 @@ namespace httpload
 		return img;
 	}
 
-	video::IImage* getOrLoad(const std::string &name, video::IImage* img_cache, IrrlichtDevice *device)
-	{
-		if(!str_starts_with(name, "httpload:"))
-		{
-			return img_cache;
-		}
-		
+	video::IImage* getOrLoad(const std::string &name, IrrlichtDevice *device)
+	{		
 		if(g_settings->get("http_get_host") == "")
 		{
 			errorstream << "Client: No \"http_get_host\" in freeminer.conf " << std::endl;
-			return img_cache;
+			return NULL;
 		}
-        
+
 		Strfnd sf(name); sf.next(":"); 
 		std::string filename = sf.next(":");
 		
@@ -115,7 +109,7 @@ namespace httpload
 		if (!fetch_result.succeeded)
 		{
 			errorstream << "Client[httpload]: Unable to fetch successfully, url:"<< url << std::endl;
-			return img_cache;
+			return NULL;
 		}
 		
         if (fetch_result.response_code == 200) // 200: File is modified or new, already downloaded.
@@ -126,7 +120,7 @@ namespace httpload
 			if (!img_remote)
 			{
 				errorstream << "Client[httpload]: Cannot create image from data, url: "<< url << std::endl;	
-				return img_cache;
+				return NULL;
 			}
 
 			httpload::saveRemoteImgToFile(name, img_remote, device);
@@ -135,13 +129,13 @@ namespace httpload
 		}
 		else if (fetch_result.response_code == 304) // 304: Cached file is ok, no need to download.
 		{
-			infostream << "Client[httpload]: local cache is valid, keeping it, url: "<< url << std::endl;
+			infostream << "Client[httpload]: local cache is ok, keeping it, url: "<< url << std::endl;
 		}
 		else
 		{
 			errorstream << "Client[httpload]: response code: " << fetch_result.response_code << ", url: " << url << std::endl;
 		}
 		
-		return img_cache;
+		return NULL;
 	}
 }
