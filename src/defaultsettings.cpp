@@ -33,15 +33,14 @@ void km_set_default_settings(Settings *settings) {
 	settings->setDefault("http_get_host", "");
 
 	settings->setDefault("km_chat_rows", "20");
-	settings->setDefault("km_chat_font_size", "26");
+	settings->setDefault("km_chat_font_size", "30");
 	
 	settings->setDefault("km_chat_color", "(0,0,0)");
 	settings->setDefault("km_chat_alpha", "180");
 	
 	settings->setDefault("km_chat_nmsg_time", "15.0");
-    
-    settings->setDefault("font_simple_path", porting::getDataPath("fonts" DIR_DELIM "lucida_sans"));
-    settings->setDefault("mono_font_simple_path", porting::getDataPath("fonts" DIR_DELIM "mono_dejavu_sans"));
+
+	settings->setDefault("mono_font_path", porting::getDataPath("fonts" DIR_DELIM "verm.pcf.gz")); // porting::getDataPath("fonts" DIR_DELIM "mono_dejavu_sans")
 }
 // End of kmfreeminer ======
 
