@@ -678,18 +678,18 @@ bool GUIKmChat::OnEvent(const SEvent& event)
 			return true;
 		}
 		//kmfreeminer
-		else if((event.KeyInput.Key == KEY_PLUS or event.KeyInput.Key == KEY_MINUS) && event.KeyInput.Control)
-		{
-			if(event.KeyInput.Key == KEY_PLUS) {
-				setFont(g_settings->getS32("km_chat_font_size") + 1);
-			}
-			else {
-				setFont(g_settings->getS32("km_chat_font_size") - 1);
-			}
+		//else if((event.KeyInput.Key == KEY_PLUS or event.KeyInput.Key == KEY_MINUS) && event.KeyInput.Control)
+		//{
+			//if(event.KeyInput.Key == KEY_PLUS) {
+				//setFont(g_settings->getS32("km_chat_font_size") + 1);
+			//}
+			//else {
+				//setFont(g_settings->getS32("km_chat_font_size") - 1);
+			//}
 			
-			reformatChat();
-			recalculateKmChatPosition();
-		}
+			//reformatChat();
+			//recalculateKmChatPosition();
+		//}
 		else if((event.KeyInput.Key == KEY_PRIOR or event.KeyInput.Key == KEY_NEXT) && event.KeyInput.Control)
 		{
 			if(event.KeyInput.Key == KEY_PRIOR) {
