@@ -810,6 +810,8 @@ void Camera::drawNametags()
 	//}
 }
 
+#define NICKNAME_HEIGHT 2
+
 Nametag *Camera::addNametag(scene::ISceneNode *parent_node,
 		std::string nametag_text, video::SColor nametag_color)
 {
@@ -823,19 +825,22 @@ Nametag *Camera::addNametag(scene::ISceneNode *parent_node,
 		nametag_text = wide_to_utf8(nametag_text_wide);
 	}
 	
-    gui::IGUIFont* font = g_fontengine->getFont(24, FM_SimpleMono); // gui->getBuiltInFont();
+    gui::IGUIFont* font = g_fontengine->getFont(28, FM_SimpleMono); // gui->getBuiltInFont();
     
-	core::dimension2d<f32> nickname_size = core::dimension2d<f32>(font->getDimension(nametag_text_wide.c_str())) * 0.1;
-        	
+	core::dimension2d<f32> nickname_size  = core::dimension2d<f32>(font->getDimension(nametag_text_wide.c_str()));
+    nickname_size.Width = (NICKNAME_HEIGHT * nickname_size.Width) / nickname_size.Height;
+    nickname_size.Height = NICKNAME_HEIGHT;
+    
 	scene::IBillboardTextSceneNode *textnode = smgr->addBillboardTextSceneNode(font,
 		nametag_text_wide.c_str(), parent_node, nickname_size);
     
 	textnode->setColor(nametag_color, nametag_color);
 	textnode->setVisible(nametag_color.getAlpha() > 0);
 
-	//textnode->setMaterialType(video::EMT_TRANSPARENT_VERTEX_ALPHA);
+	//textnode->setMaterialType(video::EMT_TRANSPARENT_ALPHA_CHANNEL);
 	textnode->setMaterialFlag(video::EMF_BILINEAR_FILTER, false);
-		
+	textnode->setMaterialFlag(video::EMF_ANISOTROPIC_FILTER, true);
+
 	textnode->setPosition(v3f(0, BS*1.1, 0));
 		
 	Nametag *nametag = new Nametag(parent_node, textnode);

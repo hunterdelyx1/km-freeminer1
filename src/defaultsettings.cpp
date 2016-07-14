@@ -41,6 +41,9 @@ void km_set_default_settings(Settings *settings) {
 	settings->setDefault("km_chat_nmsg_time", "15.0");
 
 	settings->setDefault("mono_font_path", porting::getDataPath("fonts" DIR_DELIM "verm.pcf.gz")); // porting::getDataPath("fonts" DIR_DELIM "mono_dejavu_sans")
+    settings->setDefault("mono_font_simple_path", porting::getDataPath("fonts" DIR_DELIM "mono_dejavu_sans")); // porting::getDataPath("fonts" DIR_DELIM "mono_dejavu_sans")
+    
+	settings->setDefault("show_entity_selectionbox", "false");
 }
 // End of kmfreeminer ======
 
