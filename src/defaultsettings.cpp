@@ -44,6 +44,8 @@ void km_set_default_settings(Settings *settings) {
     settings->setDefault("mono_font_simple_path", porting::getDataPath("fonts" DIR_DELIM "mono_dejavu_sans")); // porting::getDataPath("fonts" DIR_DELIM "mono_dejavu_sans")
     
 	settings->setDefault("show_entity_selectionbox", "false");
+    
+    settings->setDefault("enable_minimap", "false");
 }
 // End of kmfreeminer ======
 
