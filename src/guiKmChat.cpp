@@ -690,7 +690,7 @@ bool GUIKmChat::OnEvent(const SEvent& event)
 			//reformatChat();
 			//recalculateKmChatPosition();
 		//}
-		else if((event.KeyInput.Key == KEY_PRIOR or event.KeyInput.Key == KEY_NEXT) && event.KeyInput.Control)
+		else if((event.KeyInput.Key == KEY_PRIOR || event.KeyInput.Key == KEY_NEXT) && event.KeyInput.Control)
 		{
 			if(event.KeyInput.Key == KEY_PRIOR) {
 				setRows(g_settings->getS32("km_chat_rows") + 1);
